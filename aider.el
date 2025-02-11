@@ -39,6 +39,12 @@ When nil, use standard `display-buffer' behavior."
   :type 'boolean
   :group 'aider)
 
+(defcustom aider-multiline-newline-key "S-<return>"
+  "Key binding for `comint-accumulate' in Aider buffers.
+This allows for multi-line input without sending the command."
+  :type 'string
+  :group 'aider)
+
 (defcustom aider-popular-models '("anthropic/claude-3-5-sonnet-20241022"  ;; really good in practical
                                   "o3-mini" ;; very powerful
                                   "gemini/gemini-exp-1206"  ;; free
@@ -243,6 +249,10 @@ With the universal argument, prompt to edit aider-args before running."
               (get-buffer-create (concat " *aider-fontify" buffer-name)))
         (add-hook 'kill-buffer-hook #'aider-kill-buffer nil t)
         (add-hook 'comint-output-filter-functions #'aider-fontify-blocks 100 t)
+        (let ((local-map (make-sparse-keymap)))
+          (set-keymap-parent local-map comint-mode-map)
+          (define-key local-map (kbd aider-multiline-newline-key) #'comint-accumulate)
+          (use-local-map local-map))
         (font-lock-add-keywords nil aider-font-lock-keywords t)))
     (aider-switch-to-buffer)))
 
