@@ -254,7 +254,7 @@ With the universal argument, prompt to edit aider-args before running."
 (defun aider-input-sender (proc string)
   "Reset font-lock state before executing a command."
   (aider-reset-font-lock-state)
-  (comint-simple-send proc string))
+  (comint-simple-send proc (aider--process-message-if-multi-line string)))
 
 ;; Buffer-local variables for block processing state
 (defvar-local aider--block-end-marker nil
