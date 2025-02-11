@@ -490,9 +490,10 @@ from the source buffer and maintaining proper process markers."
 (defun aider--process-message-if-multi-line (str)
   "Entering multi-line chat messages
 https://aider.chat/docs/usage/commands.html#entering-multi-line-chat-messages
-If STR contains newlines, wrap it in {aider\\nstr\\naider}.
-Otherwise return STR unchanged."
-  (if (string-match-p "\n" str)
+If STR contains newlines and isn't already wrapped in {aider...aider},
+wrap it in {aider\\nstr\\naider}. Otherwise return STR unchanged."
+  (if (and (string-match-p "\n" str)
+           (not (string-match-p "^{aider\n.*\naider}$" str)))
       (format "{aider\n%s\naider}" str)
     str))
 
