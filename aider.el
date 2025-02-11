@@ -215,13 +215,13 @@ If not in a git repository and no buffer file exists, an error is raised."
         (current-file (buffer-file-name)))
     (cond
      ;; Case 1: Valid git repo path (not nil and not containing "fatal")
-     ((and git-repo-path 
+     ((and git-repo-path
            (stringp git-repo-path)
            (not (string-match-p "fatal" git-repo-path)))
       (format "*aider:%s*" (file-truename git-repo-path)))
      ;; Case 2: Has buffer file (handles both nil and "fatal" git-repo-path cases)
      (current-file
-      (format "*aider:%s*" 
+      (format "*aider:%s*"
               (file-truename (file-name-directory current-file))))
      ;; Case 3: No git repo and no buffer file
      (t
@@ -591,12 +591,12 @@ If cursor is inside a function, include the function name as context."
   (when (string= (buffer-name) (aider-buffer-name))
     (call-interactively 'aider-general-question)
     (cl-return-from aider-ask-question))
-  
+
   (let* ((function-name (which-function))
-         (initial-input (when function-name 
+         (initial-input (when function-name
                           (format "About function '%s': " function-name)))
          (question (aider-read-string "Enter question to ask: " initial-input))
-         (region-text (and (region-active-p) 
+         (region-text (and (region-active-p)
                            (buffer-substring-no-properties (region-beginning) (region-end))))
          (command (if region-text
                       (format "/ask %s: %s" question region-text)
@@ -823,8 +823,8 @@ Otherwise:
        (is-test-file
         (if function-name
             (if (string-match-p "test" function-name)
-                (let* ((initial-input 
-                       (format "Please implement test function '%s'. Follow standard unit testing practices and make it a meaningful test. Do not use Mock if possible." 
+                (let* ((initial-input
+                       (format "Please implement test function '%s'. Follow standard unit testing practices and make it a meaningful test. Do not use Mock if possible."
                               function-name))
                       (user-command (aider-read-string "Test implementation instruction: " initial-input))
                       (command (format "/architect %s" user-command)))
@@ -837,9 +837,9 @@ Otherwise:
         (let* ((common-instructions "Keep existing tests if there are. Follow standard unit testing practices. Do not use Mock if possible.")
                (initial-input
                 (if function-name
-                    (format "Please write unit test code for function '%s'. %s" 
+                    (format "Please write unit test code for function '%s'. %s"
                            function-name common-instructions)
-                  (format "Please write unit test code for file '%s'. For each function %s" 
+                  (format "Please write unit test code for file '%s'. For each function %s"
                          (file-name-nondirectory buffer-file-name) common-instructions)))
                (user-command (aider-read-string "Unit test generation instruction: " initial-input))
                (command (format "/architect %s" user-command)))
@@ -885,22 +885,22 @@ Otherwise implement TODOs for the entire current file."
            (is-comment (aider--is-comment-line current-line))
            (function-name (which-function))
            (region-text (when (region-active-p)
-                         (buffer-substring-no-properties 
-                          (region-beginning) 
+                         (buffer-substring-no-properties
+                          (region-beginning)
                           (region-end))))
            (initial-input
             (cond
              (region-text
-              (format "Please implement this code block: '%s'. It is already inside current code. Please do in-place implementation. Keep the existing code structure and implement just this specific block." 
+              (format "Please implement this code block: '%s'. It is already inside current code. Please do in-place implementation. Keep the existing code structure and implement just this specific block."
                       region-text))
              (is-comment
-              (format "Please implement this comment: '%s'. It is already inside current code. Please do in-place implementation. Keep the existing code structure and implement just this specific comment." 
+              (format "Please implement this comment: '%s'. It is already inside current code. Please do in-place implementation. Keep the existing code structure and implement just this specific comment."
                       current-line))
              (function-name
-              (format "Please implement the TODO items in function '%s'. Keep the existing code structure and only implement the TODOs in comments." 
+              (format "Please implement the TODO items in function '%s'. Keep the existing code structure and only implement the TODOs in comments."
                       function-name))
              (t
-              (format "Please implement all TODO items in file '%s'. Keep the existing code structure and only implement the TODOs in comments." 
+              (format "Please implement all TODO items in file '%s'. Keep the existing code structure and only implement the TODOs in comments."
                       (file-name-nondirectory buffer-file-name)))))
            (user-command (aider-read-string "TODO implementation instruction: " initial-input))
            (command (format "/architect %s" user-command)))
@@ -943,8 +943,8 @@ for each non-empty line, send it to aider session.
 If no region is selected, show a message."
   (interactive)
   (if (region-active-p)
-      (let ((region-text (buffer-substring-no-properties 
-                         (region-beginning) 
+      (let ((region-text (buffer-substring-no-properties
+                         (region-beginning)
                          (region-end))))
         (mapc (lambda (line)
                 (unless (string-empty-p line)
@@ -1010,11 +1010,28 @@ If file doesn't exist, create it with command binding help and sample prompt."
   :keymap aider-minor-mode-map
   :override t)
 
+;; Auto-enable aider-minor-mode for specific files
+(defcustom aider-auto-mode-files
+  (list
+   ".aider.prompt.org"    ; Default prompt file
+   ".aider.chat.md"       ; Chat history file
+   ".aider-history.md")   ; Alternative history file
+  "List of filenames that should automatically enable `aider-minor-mode'.
+These are exact filename matches (including the dot prefix)."
+  :type '(repeat string)
+  :group 'aider)
+
+(defun aider--should-enable-minor-mode-p (filename)
+  "Determine if aider-minor-mode should be enabled for FILENAME.
+Returns t if the file matches any of the patterns in `aider-auto-mode-files'."
+  (when filename
+    (let ((base-name (file-name-nondirectory filename)))
+      (member base-name aider-auto-mode-files))))
+
 (add-hook 'find-file-hook
           (lambda ()
-            (when (and (buffer-file-name)
-                      (or (string-match-p "aider" (buffer-file-name))
-                          (string= aider-prompt-file-name (file-name-nondirectory (buffer-file-name)))))
+            (when (and buffer-file-name
+                      (aider--should-enable-minor-mode-p buffer-file-name))
               (aider-minor-mode 1))))
 
 (when (featurep 'doom)
