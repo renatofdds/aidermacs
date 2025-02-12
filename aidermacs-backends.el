@@ -20,7 +20,7 @@ of using a comint process."
 
 
 (require 'aidermacs-backend-comint)
-(when (and (eq aidermacs-backend 'vterm) (not (featurep 'vterm)))
+(when (featurep 'vterm)
   (require 'aidermacs-backend-vterm))
 
 
