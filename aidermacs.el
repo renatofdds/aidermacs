@@ -57,7 +57,7 @@ When nil, use standard `display-buffer' behavior."
                 :value-type (string :tag "Mode Name (without -mode)"))
   :group 'aidermacs)
 
-(defcustom aidermacs-prompt-file-name ".aidermacs.prompt.org"
+(defcustom aidermacs-prompt-file-name ".aider.prompt.org"
   "File name that will automatically enable aidermacs-minor-mode when opened.
 This is the file name without path."
   :type 'string
@@ -940,9 +940,10 @@ If file doesn't exist, create it with command binding help and sample prompt."
 ;; Auto-enable aidermacs-minor-mode for specific files
 (defcustom aidermacs-auto-mode-files
   (list
-   ".aidermacs.prompt.org"    ; Default prompt file
-   ".aidermacs.chat.md"       ; Chat history file
-   ".aidermacs-history.md")   ; Alternative history file
+   aidermacs-prompt-file-name    ; Default prompt file
+   ".aider.chat.md"
+   ".aider.chat.history.md"
+   ".aider.input.history")
   "List of filenames that should automatically enable `aidermacs-minor-mode'.
 These are exact filename matches (including the dot prefix)."
   :type '(repeat string)
