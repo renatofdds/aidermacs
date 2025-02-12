@@ -12,41 +12,50 @@
 This advice records the current prompt position as START-POINT,
 calls ORIG-FUN (with ARGS) and then waits until the expected finish
 sequence appears.  The expected finish sequence is defined as the
-substring from (vterm--get-prompt-point) minus the length of the sequence
-to (vterm--get-prompt-point). For example, if
-
-  (buffer-substring-no-properties (- (vterm--get-prompt-point) 1)
-                                  (+ (vterm--get-prompt-point) 2))
-yields \"\n> \",
-then the expected finish sequence is \"\n> \" (12 characters).
+substring from the newline before `(vterm--get-prompt-point)` to the
+newline after `(vterm--get-prompt-point)`, matching a regex of `\\n>.*`
+or `\\ndiff>.*`.
 
 Once that is detected, the output from START-POINT up to the beginning
-of the finish sequence is captured and stored via `aidermacs--store-output`."
-  (let ((start-point (vterm--get-prompt-point))
-        (proc (get-buffer-process (current-buffer)))
-        (expected "\n> "))
-    ;; Store the original process filter
-    (let ((orig-filter (process-filter proc)))
-      ;; Set up our temporary filter
-      (set-process-filter
-       proc
-       (lambda (proc string)
-         ;; Call original filter first
-         (funcall orig-filter proc string)
-         ;; Then check for our finish sequence
-         (let* ((end-point (vterm--get-prompt-point))
-                (seq-start (max 0 (- end-point 1)))
-                (seq-end (min (point-max) (+ end-point 2)))
-                (finish-seq (buffer-substring-no-properties seq-start seq-end)))
-           (when (and (string= finish-seq expected)
-                      (not (= start-point end-point)))
-             ;; We found our finish sequence
-             (let ((output (buffer-substring-no-properties start-point end-point)))
-               (aidermacs--store-output (string-trim output))
-               ;; Restore original filter
-               (set-process-filter proc orig-filter))))))
-      ;; Execute original function
-      (apply orig-fun args))))
+of the finish sequence is captured and stored via `aidermacs--store-output`.
+
+Thisis a covoluted way of capturing aider output until someone comes up with a better idea."
+  (when (and (bound-and-true-p aidermacs-minor-mode)
+             (eq major-mode 'vterm-mode))
+    (let* ((start-point (vterm--get-prompt-point))
+           (proc (get-buffer-process (current-buffer)))
+           (expected "\n[^[:space:]]*>[[:space:]].*\n"))
+      ;; Save the original process filter.
+      (let ((orig-filter (process-filter proc)))
+        ;; Set up our temporary filter.
+        (set-process-filter
+         proc
+         (lambda (proc string)
+           ;; Call the original filter first.
+           (funcall orig-filter proc string)
+           ;; Then check for our finish sequence.
+           (let ((buffer (process-buffer proc)))
+             (with-current-buffer buffer
+               (let* ((prompt-point (vterm--get-prompt-point))
+                      (seq-start (or (save-excursion
+                                       (goto-char prompt-point)
+                                       (search-backward "\n" nil t))
+                                     (point-min)))
+                      (seq-end (or (save-excursion
+                                     (goto-char prompt-point)
+                                     (search-forward "\n" nil t))
+                                   (point-max)))
+                      (finish-seq (buffer-substring-no-properties seq-start seq-end)))
+                 (when (and (string-match-p expected finish-seq)
+                            (< start-point prompt-point))
+                   ;; Capture the output from the original start-point up to
+                   ;; the beginning of the finish sequence.
+                   (let ((output (buffer-substring-no-properties start-point seq-start)))
+                     (aidermacs--store-output (string-trim output))
+                     ;; Restore the original filter.
+                     (set-process-filter proc orig-filter))))))))
+        ;; Finally, call the original function.
+        (apply orig-fun args)))))
 
 (defun aidermacs-run-aidermacs-vterm (program args buffer-name)
   "Create a vterm-based buffer and run aidermacs PROGRAM with ARGS in BUFFER-NAME.
@@ -66,8 +75,7 @@ and BUFFER-NAME is the name of the vterm buffer."
       (setq vterm-shell cmd)
       (with-current-buffer (vterm-other-window)
         (aidermacs-minor-mode 1)
-        (advice-add 'vterm-send-return :around #'aidermacs--vterm-output-advice)
-        )
+        (advice-add 'vterm-send-return :around #'aidermacs--vterm-output-advice))
       ;; Restore the original globals.
       (setq vterm-buffer-name vterm-buffer-name-orig)
       (setq vterm-shell vterm-shell-orig)))
