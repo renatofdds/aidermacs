@@ -73,7 +73,7 @@ With =aidermacs=, you get:
 (package! aidermacs :recipe (:host github :repo "MatthewZMD/aidermacs" :files ("*.el")))
 #+END_SRC
 
-* Configurability
+* Configuration
 
 ** Terminal Backend Selection
 Choose your preferred terminal backend by setting =aidermacs-backend=:
@@ -97,71 +97,92 @@ When using the comint backend, you can customize the key binding for multiline i
 
 This key allows you to enter multiple lines without sending the command to Aider. Press =RET= normally to send the command.
 
-
-* Usage Guide
+* Usage
 
 This section provides a step-by-step guide on how to use Aidermacs for AI-assisted pair programming in Emacs.
 
 ** 1. Start an Aidermacs Session
 
-- Use the command =aidermacs-run-aidermacs= or press =C-c a a= (if using the default keybindings) to start an Aidermacs session.
+- Use the command =M-x aidermacs-run-aidermacs= (=a= in transient menu) to start an Aidermacs session.
 - This will open a new buffer named =*aidermacs:your-repo-name*= where you can interact with the AI.
-- If you want to use a specific AI model, you can customize the =aidermacs-args= variable in your Emacs configuration (see "Installation" section).
-- You can also select a model interactively by using the =aidermacs-change-model= command or pressing =C-c a o=.
+- If you want to use a specific AI model, you can customize the =aidermacs-args= variable in your Emacs configuration.
+- You can also select a model interactively by using =M-x aidermacs-change-model= (=o= in transient menu).
 
 ** 2. Add Files to the Session
 
-- To provide context to the AI, you need to add relevant files to the Aidermacs session.
-- You can add the current file using =aidermacs-add-current-file= or press =C-c a f=.
-- To add the current file in read-only mode, use =aidermacs-current-file-read-only= or press =C-c a R=. This prevents the AI from modifying the file.
-- You can add all files in the current window using =aidermacs-add-files-in-current-window= or press =C-c a w=.
-- To add all files with the same suffix as the current file in the current directory, use =aidermacs-add-same-type-files-under-dir= or press =C-c a d=.
-- If you are in =dired-mode=, you can add multiple marked files using =aidermacs-batch-add-dired-marked-files= or press =C-c a b=.
+To provide context to the AI, you need to add relevant files to the Aidermacs session:
+
+- Add current file: =M-x aidermacs-add-current-file= (=f= in transient menu)
+- Add current file in read-only mode: =M-x aidermacs-current-file-read-only= (=R= in transient menu)
+- Add all files in current window: =M-x aidermacs-add-files-in-current-window= (=w= in transient menu)
+- Add all files with same suffix in current directory: =M-x aidermacs-add-same-type-files-under-dir= (=d= in transient menu)
+- In dired-mode, add marked files: =M-x aidermacs-batch-add-dired-marked-files= (=b= in transient menu)
 
 ** 3. Interact with the AI
 
-- Once you have added the relevant files, you can start interacting with the AI.
-- You can ask general questions about the code using =aidermacs-ask-question= or press =C-c a q=.
-- To ask a general question without any context, use =aidermacs-general-question= or press =C-c a Q=.
-- You can also use =aidermacs-code-change= or press =C-c a c=.
-- To refactor a function or region, use =aidermacs-function-or-region-refactor= or press =C-c a r=.
-- To implement TODO comments, use =aidermacs-implement-todo= or press =C-c a i=.
-- To explain a function or region, use =aidermacs-function-or-region-explain= or press =C-c a e=.
-- To explain the symbol under the point, use =aidermacs-explain-symbol-under-point= or press =C-c a p=.
-- To generate unit tests, use =aidermacs-write-unit-test= or press =C-c a U=.
-- To fix a failing test, use =aidermacs-fix-failing-test-under-cursor= or press =C-c a T=.
-- To have the AI continue with the last task, use =aidermacs-go-ahead= or press =C-c a y=.
-- To get help on a specific command, use =aidermacs-help= or press =C-c a h=.
-- To start an architectural discussion, use =aidermacs-architect-discussion= or press =C-c a t=.
-- To debug an exception, use =aidermacs-debug-exception= or press =C-c a D=.
-- To undo the last change made by Aidermacs, use =aidermacs-undo-last-change= or press =C-c a u=.
+Once you have added the relevant files, you can interact with the AI using these commands:
+
+*** Code Changes
+- Request code changes: =M-x aidermacs-code-change= (=c= in transient menu)
+- Refactor function/region: =M-x aidermacs-function-or-region-refactor= (=r= in transient menu)
+- Implement TODO comments: =M-x aidermacs-implement-todo= (=i= in transient menu)
+- Start architectural discussion: =M-x aidermacs-architect-discussion= (=t= in transient menu)
+- Undo last AI change: =M-x aidermacs-undo-last-change= (=u= in transient menu)
+
+*** Questions and Explanations
+- Ask questions about code context: =M-x aidermacs-ask-question= (=q= in transient menu)
+- Ask general questions: =M-x aidermacs-general-question= (=Q= in transient menu)
+- Explain function/region: =M-x aidermacs-function-or-region-explain= (=e= in transient menu)
+- Explain symbol at point: =M-x aidermacs-explain-symbol-under-point= (=p= in transient menu)
+- Get help: =M-x aidermacs-help= (=h= in transient menu)
+
+*** Testing and Debugging
+- Generate unit tests: =M-x aidermacs-write-unit-test= (=U= in transient menu)
+- Fix failing test: =M-x aidermacs-fix-failing-test-under-cursor= (=T= in transient menu)
+- Debug exception: =M-x aidermacs-debug-exception= (=D= in transient menu)
+
+*** Other Interactions
+- Continue with last task: =M-x aidermacs-go-ahead= (=y= in transient menu)
+- General command: =M-x aidermacs-general-command= (=g= in transient menu)
+- Show last commit with Magit: =M-x aidermacs-magit-show-last-commit= (=m= in transient menu)
 
 ** 4. Send Code Blocks
 
-- You can send code blocks to the AI using the following commands:
-  - =aidermacs-send-line-or-region= or press =C-c C-n= or =C-<return>=: Sends the current line or the selected region line by line.
-  - =aidermacs-send-block-or-region= or press =C-c C-c=: Sends the current block (paragraph) or the selected region as a whole.
+When working with code blocks, you can use these commands:
+
+- Send line or region line-by-line: =C-c C-n= or =C-<return>=
+- Send block/region as whole: =C-c C-c=
+
+These keybindings are available in the minor mode.
 
 ** 5. Manage the Aidermacs Session
 
-- You can switch to the Aidermacs buffer using =aidermacs-switch-to-buffer= or press =C-c a z= or =C-c C-z=.
-- To clear the Aidermacs buffer, use =aidermacs-clear= or press =C-c a l=.
-- To reset the Aidermacs session, use =aidermacs-reset= or press =C-c a s=.
-- To exit the Aidermacs session, use =aidermacs-exit= or press =C-c a x=.
+Session management commands:
+
+- Switch to Aidermacs buffer: =C-c C-z= or =M-x aidermacs-switch-to-buffer= (=z= in transient menu)
+- Clear buffer: =M-x aidermacs-clear= (=l= in transient menu)
+- Reset session: =M-x aidermacs-reset= (=s= in transient menu)
+- Exit session: =M-x aidermacs-exit= (=x= in transient menu)
 
 ** 6. Prompt Files
 
-- You can create a prompt file in the root of your Git repository to store frequently used prompts.
-- Use the command =aidermacs-open-prompt-file= or press =C-c a O p= to open the prompt file.
-- The prompt file is a plain text file where you can write your prompts.
-- Each line in the prompt file is treated as a separate prompt.
-- You can use the keybindings defined in =aidermacs-minor-mode-map= to send prompts from the prompt file to the Aidermacs session.
+- Open/create prompt file: =M-x aidermacs-open-prompt-file= (=p= in transient menu)
+- The prompt file (=.aider.prompt.org=) is created in your Git repository root
+- Use it to store frequently used prompts
+- When the prompt file is open, you can use these keybindings:
+  - =C-c C-n= or =C-<return>=: Send current line/region line-by-line
+  - =C-c C-c=: Send current block/region as whole
+  - =C-c C-z=: Switch to Aidermacs buffer
 
-** 7. Keybindings
+** 7. Transient Menu
 
-- Aidermacs provides a transient menu with keybindings for all available commands.
-- To open the transient menu, use the command =aidermacs-transient-menu= or press =C-c a=.
-- The transient menu shows the available commands and their corresponding keybindings.
-- You can customize the keybindings in your Emacs configuration.
+- Access all commands through the transient menu: =M-x aidermacs-transient-menu=
+- The menu groups commands into categories:
+  - "aidermacs Process": Basic session management (=a=, =z=, =o=, =l=, =s=, =x=)
+  - "Add File to aidermacs": File management (=f=, =R=, =w=, =d=, =b=)
+  - "Code Change": Code modifications (=t=, =c=, =r=, =i=, =U=, =T=, =m=, =u=)
+  - "Discussion": Questions and explanations (=q=, =y=, =e=, =p=, =D=)
+  - "Other": Additional commands (=g=, =Q=, =p=, =h=)
+- Toggle options are available at the top of some sections
 
-By following these steps, you can effectively use Aidermacs to enhance your Emacs workflow with AI-powered pair programming.
+Note: The default keybindings in the minor mode map (=C-c C-n=, =C-<return>=, =C-c C-c=, and =C-c C-z=) are always available when the minor mode is active. All other commands can be accessed either through =M-x= or through the transient menu after invoking =M-x aidermacs-transient-menu=.
