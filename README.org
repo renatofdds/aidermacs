@@ -112,29 +112,29 @@ This section provides a step-by-step guide on how to use Aidermacs for AI-assist
 ** 2. Add Files to the Session
 
 - To provide context to the AI, you need to add relevant files to the Aidermacs session.
-- You can add the current file using =aidermacs-add-current-file= or press =C-c a A c=.
-- To add the current file in read-only mode, use =aidermacs-current-file-read-only= or press =C-c a A f=. This prevents the AI from modifying the file.
-- You can add all files in the current window using =aidermacs-add-files-in-current-window= or press =C-c a A w=.
-- To add all files with the same suffix as the current file in the current directory, use =aidermacs-add-same-type-files-under-dir= or press =C-c a A d=.
-- If you are in =dired-mode=, you can add multiple marked files using =aidermacs-batch-add-dired-marked-files= or press =C-c a A b=.
+- You can add the current file using =aidermacs-add-current-file= or press =C-c a f=.
+- To add the current file in read-only mode, use =aidermacs-current-file-read-only= or press =C-c a R=. This prevents the AI from modifying the file.
+- You can add all files in the current window using =aidermacs-add-files-in-current-window= or press =C-c a w=.
+- To add all files with the same suffix as the current file in the current directory, use =aidermacs-add-same-type-files-under-dir= or press =C-c a d=.
+- If you are in =dired-mode=, you can add multiple marked files using =aidermacs-batch-add-dired-marked-files= or press =C-c a b=.
 
 ** 3. Interact with the AI
 
 - Once you have added the relevant files, you can start interacting with the AI.
-- You can ask general questions about the code using =aidermacs-ask-question= or press =C-c a D a=.
-- To ask a general question without any context, use =aidermacs-general-question= or press =C-c a O Q=.
-- You can also use =aidermacs-code-change= or press =C-c a C c= to ask the AI to make specific code changes.
-- To refactor a function or region, use =aidermacs-function-or-region-refactor= or press =C-c a C r=.
-- To implement TODO comments, use =aidermacs-implement-todo= or press =C-c a C i=.
-- To explain a function or region, use =aidermacs-function-or-region-explain= or press =C-c a D e=.
-- To explain the symbol under the point, use =aidermacs-explain-symbol-under-point= or press =C-c a D p=.
-- To generate unit tests, use =aidermacs-write-unit-test= or press =C-c a C U=.
-- To fix a failing test, use =aidermacs-fix-failing-test-under-cursor= or press =C-c a C T=.
-- To have the AI continue with the last task, use =aidermacs-go-ahead= or press =C-c a D y=.
-- To get help on a specific command, use =aidermacs-help= or press =C-c a O h=.
-- To start an architectural discussion, use =aidermacs-architect-discussion= or press =C-c a C t=.
-- To debug an exception, use =aidermacs-debug-exception= or press =C-c a D D=.
-- To undo the last change made by Aidermacs, use =aidermacs-undo-last-change= or press =C-c a C u=.
+- You can ask general questions about the code using =aidermacs-ask-question= or press =C-c a q=.
+- To ask a general question without any context, use =aidermacs-general-question= or press =C-c a Q=.
+- You can also use =aidermacs-code-change= or press =C-c a c=.
+- To refactor a function or region, use =aidermacs-function-or-region-refactor= or press =C-c a r=.
+- To implement TODO comments, use =aidermacs-implement-todo= or press =C-c a i=.
+- To explain a function or region, use =aidermacs-function-or-region-explain= or press =C-c a e=.
+- To explain the symbol under the point, use =aidermacs-explain-symbol-under-point= or press =C-c a p=.
+- To generate unit tests, use =aidermacs-write-unit-test= or press =C-c a U=.
+- To fix a failing test, use =aidermacs-fix-failing-test-under-cursor= or press =C-c a T=.
+- To have the AI continue with the last task, use =aidermacs-go-ahead= or press =C-c a y=.
+- To get help on a specific command, use =aidermacs-help= or press =C-c a h=.
+- To start an architectural discussion, use =aidermacs-architect-discussion= or press =C-c a t=.
+- To debug an exception, use =aidermacs-debug-exception= or press =C-c a D=.
+- To undo the last change made by Aidermacs, use =aidermacs-undo-last-change= or press =C-c a u=.
 
 ** 4. Send Code Blocks
 
@@ -144,10 +144,10 @@ This section provides a step-by-step guide on how to use Aidermacs for AI-assist
 
 ** 5. Manage the Aidermacs Session
 
-- You can switch to the Aidermacs buffer using =aidermacs-switch-to-buffer= or press =C-c a B b= or =C-c C-z=.
-- To clear the Aidermacs buffer, use =aidermacs-clear= or press =C-c a B c=.
-- To reset the Aidermacs session, use =aidermacs-reset= or press =C-c a B s=.
-- To exit the Aidermacs session, use =aidermacs-exit= or press =C-c a B x=.
+- You can switch to the Aidermacs buffer using =aidermacs-switch-to-buffer= or press =C-c a z= or =C-c C-z=.
+- To clear the Aidermacs buffer, use =aidermacs-clear= or press =C-c a l=.
+- To reset the Aidermacs session, use =aidermacs-reset= or press =C-c a s=.
+- To exit the Aidermacs session, use =aidermacs-exit= or press =C-c a x=.
 
 ** 6. Prompt Files
 
