@@ -16,9 +16,9 @@
                      "--dark-mode"
                    "--light-mode"))
            (cmd (mapconcat 'identity (append (list program mode) args) " ")))
-      (setq vterm-shell cmd)
-      (setq vterm-buffer-name buffer-name)
-      (vterm)
+      (let ((vterm-shell cmd)
+            (vterm-buffer-name buffer-name))
+        (vterm-other-window))
       (with-current-buffer buffer-name
         (setq-local aidermacs-backend 'vterm)
         (aidermacs-minor-mode 1)))))
