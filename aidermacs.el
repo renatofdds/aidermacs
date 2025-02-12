@@ -235,7 +235,7 @@ Dispatches to the appropriate backend."
         (when switch-to-buffer
           (aidermacs-switch-to-buffer))
         (sleep-for 0.2))
-    (message "Buffer %s does not exist. Please start aidermacs with 'M-x aidermacs-run-aidermacs'." (funcall #'aidermacs-buffer-name))))
+    (message "Buffer %s does not exist. Please start aidermacs with 'M-x aidermacs-run-aidermacs'." aidermacs-buffer-name)))
 
 (defun aidermacs-kill-buffer ()
   "Clean-up fontify buffer."
@@ -430,7 +430,7 @@ If the current buffer is already the aidermacs buffer, do nothing."
         (if aidermacs--switch-to-buffer-other-frame
             (switch-to-buffer-other-frame buffer)
           (pop-to-buffer buffer))
-      (message "aidermacs buffer '%s' does not exist." (aidermacs-buffer-name)))))
+      (message "Buffer '%s' does not exist." (aidermacs-buffer-name)))))
 
 ;; Function to reset the aidermacs buffer
 ;;;###autoload

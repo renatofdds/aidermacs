@@ -15,13 +15,17 @@
     (let* ((mode (if (eq (frame-parameter nil 'background-mode) 'dark)
                      "--dark-mode"
                    "--light-mode"))
-           (cmd (mapconcat 'identity (append (list program mode) args) " ")))
-      (let ((vterm-shell cmd)
-            (vterm-buffer-name buffer-name))
-        (vterm-other-window))
-      (with-current-buffer buffer-name
-        (setq-local aidermacs-backend 'vterm)
-        (aidermacs-minor-mode 1)))))
+           (cmd (mapconcat 'identity (append (list program mode) args) " "))
+           (vterm-buffer-name-orig vterm-buffer-name)
+           (vterm-shell-orig vterm-shell))
+      (setq vterm-buffer-name buffer-name)
+      (setq vterm-shell cmd)
+      (if (get-buffer buffer-name)
+          (switch-to-buffer buffer-name)
+        (with-current-buffer (vterm-other-window)
+          (aidermacs-minor-mode 1)))
+      (setq vterm-buffer-name vterm-buffer-name-orig)
+      (setq vterm-shell vterm-shell-orig))))
 
 (defun aidermacs--send-command-vterm (buffer command &optional switch-to-buffer)
   "Send COMMAND to the aidermacs vterm BUFFER.
