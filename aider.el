@@ -227,17 +227,31 @@ If not in a git repository and no buffer file exists, an error is raised."
      (t
       (error "Not in a git repository and current buffer is not associated with a file")))))
 
-;;;###autoload
-(defun aider-run-aider (&optional edit-args)
+;; 1. Add a new customizable variable to choose the backend.
+(defcustom aider-backend 'comint
+  "Backend to use for the aider process.
+Options are 'comint (the default) or 'vterm. When set to 'vterm, aider will
+launch a fully functional vterm buffer (with bracketed paste support) instead
+of using a comint process."
+  :type '(choice (const :tag "Comint" comint)
+                 (const :tag "VTerm" vterm))
+  :group 'aider)
+
+;; Optionally, you can require vterm if the user selects it:
+(when (and (eq aider-backend 'vterm) (not (featurep 'vterm)))
+  (require 'vterm nil t))
+
+;; 2. Split the aider-run-aider function into two versions.
+;;    (a) The original comint version (renamed to aider-run-aider-comint)
+(defun aider-run-aider-comint (&optional edit-args)
   "Create a comint-based buffer and run \"aider\" for interactive conversation.
 With the universal argument, prompt to edit aider-args before running."
   (interactive "P")
   (let* ((buffer-name (aider-buffer-name))
          (comint-terminfo-terminal "dumb")
          (current-args (if edit-args
-                           (split-string
-                            (read-string "Edit aider arguments: "
-					 (mapconcat 'identity aider-args " ")))
+                           (split-string (read-string "Edit aider arguments: "
+                                                      (mapconcat 'identity aider-args " ")))
                          aider-args))
          (source-buffer (window-buffer (selected-window))))
     (unless (comint-check-proc buffer-name)
@@ -255,6 +269,81 @@ With the universal argument, prompt to edit aider-args before running."
           (use-local-map local-map))
         (font-lock-add-keywords nil aider-font-lock-keywords t)))
     (aider-switch-to-buffer)))
+
+(defun aider-run-aider-vterm (&optional edit-args)
+  "Create a vterm-based buffer and run \"aider\" for interactive conversation using vterm.
+With the universal argument, prompt to edit aider-args before running.
+
+This uses the vterm backend (which supports bracketed paste and a full TUI)
+by temporarily binding `vterm-shell' and `vterm-buffer-name'."
+  (interactive "P")
+  (unless (require 'vterm nil t)
+    (error "vterm package is not available"))
+  (let* ((buffer-name (aider-buffer-name))
+         (current-args (if edit-args
+                           (split-string (read-string "Edit aider arguments: "
+                                                      (mapconcat 'identity aider-args " ")))
+                         aider-args))
+         ;; Build the full command line to run aider.
+         (cmd (concat aider-program " " (mapconcat 'identity current-args " ")))
+         (source-buffer (window-buffer (selected-window))))
+    (unless (get-buffer buffer-name)
+      (let ((vterm-shell cmd)
+            (vterm-buffer-name buffer-name))
+        (vterm)
+        (with-current-buffer buffer-name
+          (setq-local aider-backend 'vterm)
+          ;; (Optionally, enable aider-minor-mode to inherit keybindings)
+          (aider-minor-mode 1))))
+    (aider-switch-to-buffer)))
+
+;;;###autoload
+(defun aider-run-aider (&optional edit-args)
+  "Run aider process using the selected backend.
+With the universal argument, prompt to edit aider-args before running.
+Dispatches to the vterm version when `aider-backend' is 'vterm, and to the
+comint version otherwise."
+  (interactive "P")
+  (if (eq aider-backend 'vterm)
+      (aider-run-aider-vterm edit-args)
+    (aider-run-aider-comint edit-args)))
+
+(defun aider--send-command-comint (command &optional switch-to-buffer)
+  "Send COMMAND to the aider comint buffer after performing necessary checks.
+COMMAND should be a string representing the command to send."
+  (if-let ((aider-buffer (get-buffer (aider-buffer-name))))
+      (let* ((command (aider--process-message-if-multi-line command))
+             (aider-process (get-buffer-process aider-buffer)))
+        (if (and aider-process (comint-check-proc aider-buffer))
+            (progn
+              (aider-reset-font-lock-state)
+              (aider--comint-send-string-syntax-highlight aider-buffer (concat command "\n"))
+              (when switch-to-buffer
+                (aider-switch-to-buffer))
+              (sleep-for 0.2))
+          (message "No active process found in buffer %s." (aider-buffer-name))))
+    (message "Buffer %s does not exist. Please start 'aider' first." (aider-buffer-name))))
+
+(defun aider--send-command-vterm (command &optional switch-to-buffer)
+  "Send COMMAND to the aider vterm buffer.
+COMMAND should be a string. If SWITCH-TO-BUFFER is non-nil, switch to the aider buffer.
+This uses `vterm-send-string' and `vterm-send-return' to simulate input."
+  (if-let ((aider-buffer (get-buffer (aider-buffer-name))))
+      (with-current-buffer aider-buffer
+        (let ((processed-command (aider--process-message-if-multi-line command)))
+          (vterm-send-string processed-command)
+          (vterm-send-return)
+          (when switch-to-buffer
+            (aider-switch-to-buffer))
+          (sleep-for 0.2)))
+    (message "Buffer %s does not exist. Please start 'aider' first." (aider-buffer-name))))
+
+(defun aider--send-command (command &optional switch-to-buffer)
+  "Send COMMAND to the corresponding aider process after performing necessary checks.
+Dispatches to the appropriate backend (comint or vterm) based on `aider-backend`."
+  (if (eq aider-backend 'vterm)
+      (aider--send-command-vterm command switch-to-buffer)
+    (aider--send-command-comint command switch-to-buffer)))
 
 (defun aider-kill-buffer ()
   "Clean-up fontify buffer."
@@ -496,28 +585,6 @@ wrap it in {aider\\nstr\\naider}. Otherwise return STR unchanged."
            (not (string-match-p "^{aider\n.*\naider}$" str)))
       (format "{aider\n%s\naider}" str)
     str))
-
-;; Shared helper function to send commands to corresponding aider buffer
-(defun aider--send-command (command &optional switch-to-buffer)
-  "Send COMMAND to the corresponding aider comint buffer after performing necessary checks.
-COMMAND should be a string representing the command to send."
-  ;; Check if the corresponding aider buffer exists
-  (if-let ((aider-buffer (get-buffer (aider-buffer-name))))
-      (let* ((command (aider--process-message-if-multi-line command))
-             (aider-process (get-buffer-process aider-buffer)))
-        ;; Check if the corresponding aider buffer has an active process
-        (if (and aider-process (comint-check-proc aider-buffer))
-            (progn
-              (aider-reset-font-lock-state)
-              ;; Send the command to the aider process
-              (aider--comint-send-string-syntax-highlight aider-buffer (concat command "\n"))
-              ;; Provide feedback to the user
-              ;; (message "Sent command to aider buffer: %s" (string-trim command))
-              (when switch-to-buffer
-                (aider-switch-to-buffer))
-              (sleep-for 0.2))
-          (message "No active process found in buffer %s." (aider-buffer-name))))
-    (message "Buffer %s does not exist. Please start 'aider' first." (aider-buffer-name))))
 
 ;;;###autoload
 (defun aider-add-or-read-current-file (command-prefix)
