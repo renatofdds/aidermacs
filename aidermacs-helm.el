@@ -1,21 +1,22 @@
-;;; aider-helm.el --- Helm completion for aider.el -*- lexical-binding: t; -*-
+;;; aidermacs-helm.el --- Helm completion for aidermacs.el -*- lexical-binding: t; -*-
 
-;; Author: Kang Tu <tninja@gmail.com>
+;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
+;; Original Author: Kang Tu <tninja@gmail.com>
 ;; Version: 0.2.0
 ;; Package-Requires: ((emacs "25.1") (helm "3.0"))
 ;; Keywords: convenience, tools
-;; URL: https://github.com/tninja/aider.el
+;; URL: https://github.com/MatthewZMD/aidermacs.el
 
 ;;; Commentary:
-;; Optional Helm completion interface for aider.el
-;; To use this, ensure both aider.el and helm are installed.
+;; Optional Helm completion interface for aidermacs.el
+;; To use this, ensure both aidermacs.el and helm are installed.
 
 ;;; Code:
 
 (require 'helm)
 (require 'cl-lib)  ; For `cl-subseq`
 
-(defun aider-helm-read-string-with-history (prompt history-file-name &optional initial-input)
+(defun aidermacs-helm-read-string-with-history (prompt history-file-name &optional initial-input)
   "Read a string with Helm completion using specified history file.
 PROMPT is the prompt string.
 HISTORY-FILE-NAME is the base name for history file.
@@ -44,19 +45,19 @@ INITIAL-INPUT is optional initial input string."
           (insert (prin1-to-string history-entries)))))
     input))
 
-(defun aider-helm-read-string (prompt &optional initial-input)
-  "Read a string with Helm completion for aider, showing historical inputs.
+(defun aidermacs-helm-read-string (prompt &optional initial-input)
+  "Read a string with Helm completion for aidermacs, showing historical inputs.
 PROMPT is the prompt string.
 INITIAL-INPUT is optional initial input string."
-  (aider-helm-read-string-with-history prompt "aider-helm-read-string-history.el" initial-input))
+  (aidermacs-helm-read-string-with-history prompt "aidermacs-helm-read-string-history.el" initial-input))
 
-(declare-function aider-read-string "aider")
+(declare-function aidermacs-read-string "aidermacs")
 
 ;;;###autoload
-(with-eval-after-load 'aider
+(with-eval-after-load 'aidermacs
   (if (featurep 'helm)
-    (defalias 'aider-read-string 'aider-helm-read-string)
-    (message "Helm is not available. Please install helm package to use aider-helm features")))
+      (defalias 'aidermacs-read-string 'aidermacs-helm-read-string)
+    (message "Helm is not available. Please install helm package to use aidermacs-helm features")))
 
-(provide 'aider-helm)
-;;; aider-helm.el ends here
+(provide 'aidermacs-helm)
+;;; aidermacs-helm.el ends here

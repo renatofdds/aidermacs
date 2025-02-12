@@ -59,43 +59,37 @@ With =aidermacs=, you get:
 - [[https://github.com/magit/transient][Transient]] and [[https://github.com/magit/magit][Magit]]
 
 ** Recommended
-With Straight
+*** With Straight
 #+BEGIN_SRC emacs-lisp
-(use-package aider
+(use-package aidermacs
   :straight (:host github :repo "MatthewZMD/aidermacs" :files ("*.el"))
   :config
-  (setq aider-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
+  (setq aidermacs-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
   (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
-  (global-set-key (kbd "C-c a") 'aider-transient-menu))
+  (global-set-key (kbd "C-c a") 'aidermacs-transient-menu))
 #+END_SRC
 
- With package-vc-install
+*** With use-package
 #+BEGIN_SRC emacs-lisp
-(package-vc-install '(aider :url "https://github.com/MatthewZMD/aidermacs"))
+(use-package aidermacs
+  :config
+  (setq aidermacs-args '("--model" "o3-mini")))
 #+END_SRC
 
- For Doom Emacs
+*** For Doom Emacs
 In =packages.el=:
 #+BEGIN_SRC emacs-lisp
-(package! aider :recipe (:host github :repo "MatthewZMD/aidermacs" :files ("aider.el" "aider-doom.el")))
+(package! aidermacs :recipe (:host github :repo "MatthewZMD/aidermacs" :files ("*.el")))
 #+END_SRC
-
-In =config.el=:
-#+BEGIN_SRC emacs-lisp
-(use-package aider
-  :config
-  (setq aider-args '("--model" "o3-mini")))
-#+END_SRC
-
 
 * Configurability
 
 ** Terminal Backend Selection
-Choose your preferred terminal backend by setting =aider-backend=:
+Choose your preferred terminal backend by setting =aidermacs-backend=:
 
 #+BEGIN_SRC emacs-lisp
 ;; Use vterm backend (default is comint)
-(setq aider-backend 'vterm)
+(setq aidermacs-backend 'vterm)
 #+END_SRC
 
 Available backends:
@@ -107,7 +101,7 @@ When using the comint backend, you can customize the key binding for multiline i
 
 #+BEGIN_SRC emacs-lisp
 ;; Change multiline input key (default is S-<return>)
-(setq aider-comint-multiline-newline-key "C-<return>")
+(setq aidermacs-comint-multiline-newline-key "C-<return>")
 #+END_SRC
 
 This key allows you to enter multiple lines without sending the command to Aider. Press =RET= normally to send the command.
@@ -116,7 +110,7 @@ This key allows you to enter multiple lines without sending the command to Aider
 * Features
 
 ** Session Management
-- Create repository-specific Aider sessions
+- Create repository-specific Aidermacs sessions
 - Switch between multiple AI sessions
 - Toggle between window and frame views
 
@@ -135,10 +129,10 @@ Access repository-specific prompt files with =C-c a p= for organizing and reusin
 
 * Development Workflow
 
-1. Start an Aider session (=aider-run-aider=)
+1. Start an Aidermacs session (=aidermacs-run-aider=)
 2. Add relevant files to the session
 3. Implement or modify code using:
-   - =aider-implement-todo= for new code
-   - =aider-function-or-region-refactor= for existing code
+   - =aidermacs-implement-todo= for new code
+   - =aidermacs-function-or-region-refactor= for existing code
 4. Generate and run tests
 5. Refine the implementation through additional prompts or manual edits
