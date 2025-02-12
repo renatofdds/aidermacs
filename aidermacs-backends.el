@@ -32,14 +32,14 @@ of using a comint process."
   :type 'integer
   :group 'aidermacs-output)
 
-(defvar-local aidermacs--output-history nil
+(defvar aidermacs--output-history nil
   "List to store aidermacs output history.
 Each entry is a cons cell (timestamp . output-text).")
 
-(defvar-local aidermacs--last-command nil
+(defvar aidermacs--last-command nil
   "Store the last command sent to aidermacs.")
 
-(defvar-local aidermacs--current-output nil
+(defvar aidermacs--current-output nil
   "Accumulator for current output being captured.")
 
 (defun aidermacs-get-output-history (&optional limit)
@@ -58,6 +58,31 @@ Returns a list of (timestamp . output-text) pairs, most recent first."
   "Clear the output history."
   (interactive)
   (setq aidermacs--output-history nil))
+
+
+(defun aidermacs-show-output-history ()
+  "Display the AI output history in a new buffer."
+  (interactive)
+  (let ((buf (get-buffer-create "*aidermacs-history*"))
+        (history aidermacs--output-history)) ; Get history from current buffer
+    (with-current-buffer buf
+      (erase-buffer)
+      (display-line-numbers-mode 1)
+      (dolist (entry history) ; Use passed history
+        (let ((timestamp (format-time-string "%Y-%m-%d %H:%M:%S" (car entry)))
+              (output (cdr entry)))
+          (insert (format "=== %s ===\n%s\n\n" timestamp output))))
+      (goto-char (point-min)))
+    (display-buffer buf)))
+
+(defun aidermacs-copy-last-output ()
+  "Copy the most recent AI output to the kill ring."
+  (interactive)
+  (if-let ((last-output (cdr (aidermacs-get-last-output))))
+      (progn
+        (kill-new last-output)
+        (message "Copied last AI output to kill ring"))
+    (message "No AI output available")))
 
 (defun aidermacs--store-output (output)
   "Store OUTPUT in the history with timestamp."

@@ -65,6 +65,7 @@ This is the file name without path."
 
 (defvar aidermacs-read-string-history nil
   "History list for aidermacs read string inputs.")
+
 (if (bound-and-true-p savehist-loaded)
     (add-to-list 'savehist-additional-variables 'aidermacs-read-string-history)
   (add-hook 'savehist-mode-hook
@@ -167,6 +168,8 @@ Affects the system message too.")
     ("Q" "Ask General Question"         aidermacs-general-question)
     ("p" "Open Prompt File"           aidermacs-open-prompt-file)
     ("h" "Help"                       aidermacs-help)
+    ("H" "Show Output History"        aidermacs-show-output-history)
+    ("C" "Copy Last Output"           aidermacs-copy-last-output)
     ]
    ])
 
