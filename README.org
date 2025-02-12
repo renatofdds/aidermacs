@@ -53,13 +53,12 @@ With =aidermacs=, you get:
 
 * Installation
 
- Requirements
+*** Requirements
 - Emacs ≥ 26.1
 - [[https://aider.chat/docs/install.html][Aider]]
 - [[https://github.com/magit/transient][Transient]]
 
-** Recommended
-*** With Straight
+*** Sample Config With Straight
 #+BEGIN_SRC emacs-lisp
 (use-package aidermacs
   :straight (:host github :repo "MatthewZMD/aidermacs" :files ("*.el"))
@@ -69,15 +68,7 @@ With =aidermacs=, you get:
   (global-set-key (kbd "C-c a") 'aidermacs-transient-menu))
 #+END_SRC
 
-*** With use-package
-#+BEGIN_SRC emacs-lisp
-(use-package aidermacs
-  :config
-  (setq aidermacs-args '("--model" "o3-mini")))
-#+END_SRC
-
-*** For Doom Emacs
-In =packages.el=:
+*** Sample Config With Doom Emacs
 #+BEGIN_SRC emacs-lisp
 (package! aidermacs :recipe (:host github :repo "MatthewZMD/aidermacs" :files ("*.el")))
 #+END_SRC
