@@ -40,7 +40,12 @@ With =aidermacs=, you get:
    - AI-generated code appears with proper syntax highlighting in major languages.
    - Ensures clarity and readability without additional configuration.
 
-3. Community-Focused Development
+3. Flexible Terminal Backend Support
+   - =aidermacs= supports multiple terminal backends (comint and vterm) for better compatibility and performance
+   - Easy configuration to choose your preferred terminal emulation
+   - Extensible architecture for adding new backends
+
+4. Community-Focused Development
    - =aidermacs= is actively developed and maintained by the community, incorporating user feedback and contributions.
    - We prioritize features and improvements that directly benefit Emacs users, ensuring a tool that evolves with your needs.
 
@@ -53,10 +58,11 @@ With =aidermacs=, you get:
 - [[https://aider.chat/docs/install.html][Aider]]
 - [[https://github.com/magit/transient][Transient]] and [[https://github.com/magit/magit][Magit]]
 
- With Straight
+** Recommended
+With Straight
 #+BEGIN_SRC emacs-lisp
 (use-package aider
-  :straight (:host github :repo "MatthewZMD/aidermacs" :files ("aider.el"))
+  :straight (:host github :repo "MatthewZMD/aidermacs" :files ("*.el"))
   :config
   (setq aider-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
   (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
@@ -81,6 +87,32 @@ In =config.el=:
   (setq aider-args '("--model" "o3-mini")))
 #+END_SRC
 
+
+* Configurability
+
+** Terminal Backend Selection
+Choose your preferred terminal backend by setting =aider-backend=:
+
+#+BEGIN_SRC emacs-lisp
+;; Use vterm backend (default is comint)
+(setq aider-backend 'vterm)
+#+END_SRC
+
+Available backends:
+- =comint= (default): Uses Emacs' built-in terminal emulation
+- =vterm=: Leverages vterm for better terminal compatibility
+
+** Multiline Input Configuration
+When using the comint backend, you can customize the key binding for multiline input:
+
+#+BEGIN_SRC emacs-lisp
+;; Change multiline input key (default is S-<return>)
+(setq aider-comint-multiline-newline-key "C-<return>")
+#+END_SRC
+
+This key allows you to enter multiple lines without sending the command to Aider. Press =RET= normally to send the command.
+
+
 * Features
 
 ** Session Management
@@ -95,14 +127,8 @@ In =config.el=:
 - Generate and fix unit tests
 - Analyze and explain code
 
-** Optional Features
-
- Helm Integration
-For fuzzy command history searching:
-#+BEGIN_SRC emacs-lisp
-(use-package aider
-  :straight (:host github :repo "MatthewZMD/aidermacs" :files ("aider.el" "aider-helm.el")))
-#+END_SRC
+** Helm Integration
+For fuzzy command history searching.
 
 ** Prompt Management
 Access repository-specific prompt files with =C-c a p= for organizing and reusing prompts.

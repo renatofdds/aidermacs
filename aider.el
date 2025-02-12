@@ -1,4 +1,4 @@
-;;; aider.el --- Aidermacs package for interactive conversation with aider -*- lexical-binding: t; -*-
+;;; aider.el --- aidermacs package for interactive conversation with aider -*- lexical-binding: t; -*-
 
 ;; Author: Kang Tu <tninja@gmail.com>
 ;; Version: 0.2.0
@@ -18,8 +18,14 @@
 (require 'which-func)
 (require 'ansi-color)
 
+
+(require 'aider-backends)
+(require 'aider-models)
+(when (featurep 'doom)
+  (require 'aider-doom))
+
 (defgroup aider nil
-  "Customization group for the Aidermacs package."
+  "Customization group for the aidermacs package."
   :prefix "aider-"
   :group 'convenience)
 
@@ -29,33 +35,16 @@
   :group 'aider)
 
 (defcustom aider-args '("--model" "anthropic/claude-3-5-sonnet-20241022")
-  "Arguments to pass to the Aidermacs command."
+  "Arguments to pass to the aidermacs command."
   :type '(repeat string)
   :group 'aider)
 
 (defcustom aider--switch-to-buffer-other-frame nil
-  "When non-nil, open Aidermacs buffer in a new frame using `switch-to-buffer-other-frame'.
+  "When non-nil, open aidermacs buffer in a new frame using `switch-to-buffer-other-frame'.
 When nil, use standard `display-buffer' behavior."
   :type 'boolean
   :group 'aider)
 
-(defcustom aider-multiline-newline-key "S-<return>"
-  "Key binding for `comint-accumulate' in Aidermacs buffers.
-This allows for multi-line input without sending the command."
-  :type 'string
-  :group 'aider)
-
-(defcustom aider-popular-models '("anthropic/claude-3-5-sonnet-20241022"  ;; really good in practical
-                                  "o3-mini" ;; very powerful
-                                  "gemini/gemini-exp-1206"  ;; free
-                                  "r1"  ;; performance match o1, price << claude sonnet. weakness: small context
-                                  "deepseek/deepseek-chat"  ;; chatgpt-4o level performance, price is 1/100. weakness: small context
-                                  )
-  "List of available AI models for selection.
-Each model should be in the format expected by the aider command line interface.
-Also based on aider LLM benchmark: https://aider.chat/docs/leaderboards/"
-  :type '(repeat string)
-  :group 'aider)
 
 (defcustom aider-language-name-map '(("elisp" . "emacs-lisp")
                                      ("bash" . "sh")
@@ -156,23 +145,23 @@ Affects the system message too.")
   :reader (lambda (_prompt _initial-input _history)
            (not aider--switch-to-buffer-other-frame)))
 
-;; Transient menu for Aidermacs commands
+;; Transient menu for aidermacs commands
 ;; The instruction in the autoload comment is needed, see
 ;; https://github.com/magit/transient/issues/280.
-;;;###autoload (autoload 'aider-transient-menu "aider" "Transient menu for Aidermacs commands." t)
+;;;###autoload (autoload 'aider-transient-menu "aider" "Transient menu for aidermacs commands." t)
 (transient-define-prefix aider-transient-menu ()
-  "Transient menu for Aidermacs commands."
-  ["Aidermacs: AI Pair Programming"
-   ["Aidermacs Process"
+  "Transient menu for aidermacs commands."
+  ["aidermacs: AI Pair Programming"
+   ["aidermacs Process"
     (aider--infix-switch-to-buffer-other-frame)
-    ("a" "Run Aidermacs" aider-run-aider)
-    ("z" "Switch to Aidermacs Buffer" aider-switch-to-buffer)
+    ("a" "Run aidermacs" aider-run-aider)
+    ("z" "Switch to aidermacs Buffer" aider-switch-to-buffer)
     ("o" "Select Model" aider-change-model)
-    ("l" "Clear Aidermacs" aider-clear)
-    ("s" "Reset Aidermacs" aider-reset)
-    ("x" "Exit Aidermacs" aider-exit)
+    ("l" "Clear aidermacs" aider-clear)
+    ("s" "Reset aidermacs" aider-reset)
+    ("x" "Exit aidermacs" aider-exit)
     ]
-   ["Add File to Aidermacs"
+   ["Add File to aidermacs"
     (aider--infix-add-file-read-only)
     ("f" "Add Current File" aider-add-current-file)
     ("R" "Add Current File Read-Only" aider-current-file-read-only)
@@ -205,11 +194,8 @@ Affects the system message too.")
     ]
    ])
 
-;; Removed the default key binding
-;; (global-set-key (kbd "C-c a") 'aider-transient-menu)
-
 (defun aider-buffer-name ()
-  "Generate the Aidermacs buffer name based on the git repo or current buffer file path.
+  "Generate the aidermacs buffer name based on the git repo or current buffer file path.
 If not in a git repository and no buffer file exists, an error is raised."
   (let ((git-repo-path (magit-toplevel))
         (current-file (buffer-file-name)))
@@ -227,123 +213,30 @@ If not in a git repository and no buffer file exists, an error is raised."
      (t
       (error "Not in a git repository and current buffer is not associated with a file")))))
 
-;; 1. Add a new customizable variable to choose the backend.
-(defcustom aider-backend 'comint
-  "Backend to use for the aider process.
-Options are 'comint (the default) or 'vterm. When set to 'vterm, aider will
-launch a fully functional vterm buffer (with bracketed paste support) instead
-of using a comint process."
-  :type '(choice (const :tag "Comint" comint)
-                 (const :tag "VTerm" vterm))
-  :group 'aider)
-
-;; Optionally, you can require vterm if the user selects it:
-(when (and (eq aider-backend 'vterm) (not (featurep 'vterm)))
-  (require 'vterm nil t))
-
-;; 2. Split the aider-run-aider function into two versions.
-;;    (a) The original comint version (renamed to aider-run-aider-comint)
-(defun aider-run-aider-comint (&optional edit-args)
-  "Create a comint-based buffer and run \"aider\" for interactive conversation.
-With the universal argument, prompt to edit aider-args before running."
-  (interactive "P")
-  (let* ((buffer-name (aider-buffer-name))
-         (comint-terminfo-terminal "dumb")
-         (current-args (if edit-args
-                           (split-string (read-string "Edit aider arguments: "
-                                                      (mapconcat 'identity aider-args " ")))
-                         aider-args))
-         (source-buffer (window-buffer (selected-window))))
-    (unless (comint-check-proc buffer-name)
-      (apply 'make-comint-in-buffer "aider" buffer-name aider-program nil current-args)
-      (with-current-buffer buffer-name
-        (comint-mode)
-        (setq-local comint-input-sender 'aider-input-sender)
-        (setq aider--font-lock-buffer
-              (get-buffer-create (concat " *aider-fontify" buffer-name)))
-        (add-hook 'kill-buffer-hook #'aider-kill-buffer nil t)
-        (add-hook 'comint-output-filter-functions #'aider-fontify-blocks 100 t)
-        (let ((local-map (make-sparse-keymap)))
-          (set-keymap-parent local-map comint-mode-map)
-          (define-key local-map (kbd aider-multiline-newline-key) #'comint-accumulate)
-          (use-local-map local-map))
-        (font-lock-add-keywords nil aider-font-lock-keywords t)))
-    (aider-switch-to-buffer)))
-
-(defun aider-run-aider-vterm (&optional edit-args)
-  "Create a vterm-based buffer and run \"aider\" for interactive conversation using vterm.
-With the universal argument, prompt to edit aider-args before running.
-
-This uses the vterm backend (which supports bracketed paste and a full TUI)
-by temporarily binding `vterm-shell' and `vterm-buffer-name'."
-  (interactive "P")
-  (unless (require 'vterm nil t)
-    (error "vterm package is not available"))
-  (let* ((buffer-name (aider-buffer-name))
-         (current-args (if edit-args
-                           (split-string (read-string "Edit aider arguments: "
-                                                      (mapconcat 'identity aider-args " ")))
-                         aider-args))
-         ;; Build the full command line to run aider.
-         (cmd (concat aider-program " " (mapconcat 'identity current-args " ")))
-         (source-buffer (window-buffer (selected-window))))
-    (unless (get-buffer buffer-name)
-      (let ((vterm-shell cmd)
-            (vterm-buffer-name buffer-name))
-        (vterm)
-        (with-current-buffer buffer-name
-          (setq-local aider-backend 'vterm)
-          ;; (Optionally, enable aider-minor-mode to inherit keybindings)
-          (aider-minor-mode 1))))
-    (aider-switch-to-buffer)))
-
 ;;;###autoload
 (defun aider-run-aider (&optional edit-args)
   "Run aider process using the selected backend.
-With the universal argument, prompt to edit aider-args before running.
-Dispatches to the vterm version when `aider-backend' is 'vterm, and to the
-comint version otherwise."
+With the universal argument, prompt to edit aider-args before running."
   (interactive "P")
-  (if (eq aider-backend 'vterm)
-      (aider-run-aider-vterm edit-args)
-    (aider-run-aider-comint edit-args)))
-
-(defun aider--send-command-comint (command &optional switch-to-buffer)
-  "Send COMMAND to the aider comint buffer after performing necessary checks.
-COMMAND should be a string representing the command to send."
-  (if-let ((aider-buffer (get-buffer (aider-buffer-name))))
-      (let* ((command (aider--process-message-if-multi-line command))
-             (aider-process (get-buffer-process aider-buffer)))
-        (if (and aider-process (comint-check-proc aider-buffer))
-            (progn
-              (aider-reset-font-lock-state)
-              (aider--comint-send-string-syntax-highlight aider-buffer (concat command "\n"))
-              (when switch-to-buffer
-                (aider-switch-to-buffer))
-              (sleep-for 0.2))
-          (message "No active process found in buffer %s." (aider-buffer-name))))
-    (message "Buffer %s does not exist. Please start 'aider' first." (aider-buffer-name))))
-
-(defun aider--send-command-vterm (command &optional switch-to-buffer)
-  "Send COMMAND to the aider vterm buffer.
-COMMAND should be a string. If SWITCH-TO-BUFFER is non-nil, switch to the aider buffer.
-This uses `vterm-send-string' and `vterm-send-return' to simulate input."
-  (if-let ((aider-buffer (get-buffer (aider-buffer-name))))
-      (with-current-buffer aider-buffer
-        (let ((processed-command (aider--process-message-if-multi-line command)))
-          (vterm-send-string processed-command)
-          (vterm-send-return)
-          (when switch-to-buffer
-            (aider-switch-to-buffer))
-          (sleep-for 0.2)))
-    (message "Buffer %s does not exist. Please start 'aider' first." (aider-buffer-name))))
+  (let* ((buffer-name (aider-buffer-name))
+         (current-args (if edit-args
+                          (split-string (read-string "Edit aider arguments: "
+                                                   (mapconcat 'identity aider-args " ")))
+                        aider-args)))
+    (aider-run-aider-backend aider-program current-args buffer-name)
+    (aider-switch-to-buffer)))
 
 (defun aider--send-command (command &optional switch-to-buffer)
   "Send COMMAND to the corresponding aider process after performing necessary checks.
-Dispatches to the appropriate backend (comint or vterm) based on `aider-backend`."
-  (if (eq aider-backend 'vterm)
-      (aider--send-command-vterm command switch-to-buffer)
-    (aider--send-command-comint command switch-to-buffer)))
+Dispatches to the appropriate backend."
+  (if-let ((aider-buffer (get-buffer (aider-buffer-name))))
+      (let ((processed-command (aider--process-message-if-multi-line command)))
+        (aider-reset-font-lock-state)
+        (aider--send-command-backend aider-buffer processed-command switch-to-buffer)
+        (when switch-to-buffer
+          (aider-switch-to-buffer))
+        (sleep-for 0.2))
+    (message "Buffer %s does not exist. Please start 'aider' first." (funcall #'aider-buffer-name))))
 
 (defun aider-kill-buffer ()
   "Clean-up fontify buffer."
@@ -525,37 +418,37 @@ Dispatches to the appropriate backend (comint or vterm) based on `aider-backend`
      aider--block-mode
      'fundamental-mode)))
 
-;; Function to switch to the Aidermacs buffer
+;; Function to switch to the aidermacs buffer
 ;;;###autoload
 (defun aider-switch-to-buffer ()
-  "Switch to the Aidermacs buffer.
+  "Switch to the aidermacs buffer.
 When `aider--switch-to-buffer-other-frame' is non-nil, open in a new frame.
-If the current buffer is already the Aidermacs buffer, do nothing."
+If the current buffer is already the aidermacs buffer, do nothing."
   (interactive)
   (if (string= (buffer-name) (aider-buffer-name))
-      (message "Already in Aidermacs buffer")
+      (message "Already in aidermacs buffer")
     (if-let ((buffer (get-buffer (aider-buffer-name))))
         (if aider--switch-to-buffer-other-frame
             (switch-to-buffer-other-frame buffer)
           (pop-to-buffer buffer))
-      (message "Aidermacs buffer '%s' does not exist." (aider-buffer-name)))))
+      (message "aidermacs buffer '%s' does not exist." (aider-buffer-name)))))
 
-;; Function to reset the Aidermacs buffer
+;; Function to reset the aidermacs buffer
 ;;;###autoload
 (defun aider-clear ()
-  "Send the command \"/clear\" to the Aidermacs buffer."
+  "Send the command \"/clear\" to the aidermacs buffer."
   (interactive)
   (aider--send-command "/clear"))
 
 ;;;###autoload
 (defun aider-reset ()
-  "Send the command \"/reset\" to the Aidermacs buffer."
+  "Send the command \"/reset\" to the aidermacs buffer."
   (interactive)
   (aider--send-command "/reset"))
 
 ;;;###autoload
 (defun aider-exit ()
-  "Send the command \"/exit\" to the Aidermacs buffer."
+  "Send the command \"/exit\" to the aidermacs buffer."
   (interactive)
   (aider--send-command "/exit"))
 
@@ -617,7 +510,7 @@ wrap it in {aider\\nstr\\naider}. Otherwise return STR unchanged."
 ;; New function to add files in all buffers in current emacs window
 ;;;###autoload
 (defun aider-add-files-in-current-window ()
-  "Add files in all buffers in the current Emacs window to the Aidermacs buffer."
+  "Add files in all buffers in the current Emacs window to the aidermacs buffer."
   (interactive)
   (let ((files (mapcar (lambda (buffer)
                          (with-current-buffer buffer
@@ -723,54 +616,34 @@ If Magit is not installed, report that it is required."
 ;; Modified function to get command from user and send it based on selected region
 ;;;###autoload
 (defun aider-undo-last-change ()
-  "Undo the last change made by Aidermacs."
+  "Undo the last change made by aidermacs."
   (interactive)
   (aider--send-command "/undo"))
 
-(defun aider-region-refactor-generate-command (region-text function-name user-command)
-  "Generate the command string based on REGION-TEXT, FUNCTION-NAME, and USER-COMMAND."
-  (let ((processed-region-text region-text))
-    (if function-name
-        (format "/architect \"in function %s, for the following code block, %s: %s\"\n"
-                function-name user-command processed-region-text)
-      (format "/architect \"for the following code block, %s: %s\"\n"
-              user-command processed-region-text))))
-
 ;;;###autoload
-(defun aider-function-refactor ()
-  "Get the function name under cursor and send refactor command to aider.
-The command will be formatted as \"/architect\" followed by refactoring instructions
-for the specified function."
-  (interactive)
-  (if-let ((function-name (which-function)))
-      (let* ((initial-input (format "refactor %s: " function-name))
-             (user-command (aider-read-string "Enter refactor instruction: " initial-input))
-             (command (format "/architect %s" user-command)))
-        (aider-add-current-file)
-        (aider--send-command command t))
-    (message "No function found at cursor position.")))
-
-;;;###autoload
-(defun aider-region-refactor ()
-  "Get a command from the user and send it to the corresponding aider comint buffer based on the selected region.
-The command will be formatted as \"/architect \" followed by the user command and the text from the selected region."
+(defun aider-function-or-region-refactor ()
+  "Refactor code at point or region.
+If region is active, refactor that region.
+If point is in a function, refactor that function."
   (interactive)
   (if (use-region-p)
       (let* ((region-text (buffer-substring-no-properties (region-beginning) (region-end)))
              (function-name (which-function))
-             (user-command (aider-read-string "Enter your refactor instruction: "))
-             (command (aider-region-refactor-generate-command region-text function-name user-command)))
+             (user-command (aider-read-string "Enter refactor instruction: "))
+             (command (if function-name
+                         (format "/architect \"in function %s, for the following code block, %s: %s\"\n"
+                                 function-name user-command region-text)
+                       (format "/architect \"for the following code block, %s: %s\"\n"
+                               user-command region-text))))
         (aider-add-current-file)
         (aider--send-command command t))
-    (message "No region selected.")))
-
-;;;###autoload
-(defun aider-function-or-region-refactor ()
-  "Call aider-function-refactor when no region is selected, otherwise call aider-region-refactor."
-  (interactive)
-  (if (region-active-p)
-      (aider-region-refactor)
-    (aider-function-refactor)))
+    (if-let ((function-name (which-function)))
+        (let* ((initial-input (format "refactor %s: " function-name))
+               (user-command (aider-read-string "Enter refactor instruction: " initial-input))
+               (command (format "/architect %s" user-command)))
+          (aider-add-current-file)
+          (aider--send-command command t))
+      (message "No region selected and no function found at point."))))
 
 ;; New function to explain the code in the selected region
 ;;;###autoload
@@ -792,10 +665,10 @@ The command will be formatted as \"/ask \" followed by the text from the selecte
         (aider--send-command command t))
     (message "No region selected.")))
 
-;; New function to ask Aidermacs to explain the function under the cursor
+;; New function to ask aidermacs to explain the function under the cursor
 ;;;###autoload
 (defun aider-function-explain ()
-  "Ask Aidermacs to explain the function under the cursor.
+  "Ask aidermacs to explain the function under the cursor.
 Prompts user for specific questions about the function."
   (interactive)
   (if-let ((function-name (which-function)))
@@ -817,7 +690,7 @@ Prompts user for specific questions about the function."
 ;; New function to explain the symbol at line
 ;;;###autoload
 (defun aider-explain-symbol-under-point ()
-  "Ask Aidermacs to explain symbol under point, given the code line as background info."
+  "Ask aidermacs to explain symbol under point, given the code line as background info."
   (interactive)
   (let* ((symbol (thing-at-point 'symbol))
          (line (buffer-substring-no-properties
@@ -829,16 +702,16 @@ Prompts user for specific questions about the function."
     (aider--send-command prompt t)))
 
 (defun aider-send-command-with-prefix (prefix command)
-  "Send COMMAND to the Aidermacs buffer prefixed with PREFIX."
+  "Send COMMAND to the aidermacs buffer prefixed with PREFIX."
   (aider-add-current-file)
   (aider--send-command (concat prefix command) t))
 
 ;;; functions for dired related
 
-;; New function to add multiple Dired marked files to Aidermacs buffer
+;; New function to add multiple Dired marked files to aidermacs buffer
 ;;;###autoload
 (defun aider-batch-add-dired-marked-files ()
-  "Add multiple Dired marked files to the Aidermacs buffer with the \"/add\" command."
+  "Add multiple Dired marked files to the aidermacs buffer with the \"/add\" command."
   (interactive)
   (let ((files (dired-get-marked-files)))
     (if files
@@ -849,7 +722,7 @@ Prompts user for specific questions about the function."
 ;; New function to add all files with same suffix as current file under current directory
 ;;;###autoload
 (defun aider-add-same-type-files-under-dir ()
-  "Add all files with same suffix as current file under current directory to Aidermacs.
+  "Add all files with same suffix as current file under current directory to aidermacs.
 If there are more than 40 files, refuse to add and show warning message."
   (interactive)
   (if (not buffer-file-name)
@@ -974,25 +847,13 @@ Otherwise implement TODOs for the entire current file."
       (aider-add-current-file)
       (aider--send-command command t))))
 
-;;; Model selection functions
-;;;###autoload
-(defun aider-change-model ()
-  "Interactively select and change AI model in current aider session."
-  (interactive)
-  (let ((model (aider--select-model)))
-    (when model
-      (aider--send-command (format "/model %s" model) t))))
-
-(defun aider--select-model ()
-  "Private function for model selection with completion."
-  (completing-read "Select AI model: " aider-popular-models nil t nil nil (car aider-popular-models)))
 
 ;;; functions for sending text blocks
 
-;; New function to send "<line under cursor>" or region line by line to the Aidermacs buffer
+;; New function to send "<line under cursor>" or region line by line to the aidermacs buffer
 ;;;###autoload
 (defun aider-send-line-or-region ()
-  "Send text to the Aidermacs buffer.
+  "Send text to the aidermacs buffer.
 If region is active, send the selected region line by line.
 Otherwise, send the line under cursor."
   (interactive)
@@ -1001,7 +862,7 @@ Otherwise, send the line under cursor."
     (let ((line (thing-at-point 'line t)))
       (aider--send-command (string-trim line) t))))
 
-;;; New function to send the current selected region line by line to the Aidermacs buffer
+;;; New function to send the current selected region line by line to the aidermacs buffer
 ;;;###autoload
 (defun aider-send-region-by-line ()
   "Get the text of the current selected region, split them into lines,
@@ -1050,7 +911,7 @@ If file doesn't exist, create it with command binding help and sample prompt."
           (find-file-other-window prompt-file)
           (unless (file-exists-p prompt-file)
             ;; Insert initial content for new file
-            (insert "# Aidermacs Prompt File - Command Reference:\n")
+            (insert "# aidermacs Prompt File - Command Reference:\n")
             (insert "# C-c C-n or C-<return>: Send current line or selected region line by line\n")
             (insert "# C-c C-c: Send current block or selected region as a whole\n")
             (insert "# C-c C-z: Switch to aider buffer\n\n")
@@ -1059,7 +920,7 @@ If file doesn't exist, create it with command binding help and sample prompt."
             (save-buffer)))
       (message "Not in a git repository"))))
 
-;; Define the keymap for Aidermacs Minor Mode
+;; Define the keymap for aidermacs Minor Mode
 (defvar aider-minor-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-n") 'aider-send-line-or-region)
@@ -1067,13 +928,13 @@ If file doesn't exist, create it with command binding help and sample prompt."
     (define-key map (kbd "C-c C-c") 'aider-send-block-or-region)
     (define-key map (kbd "C-c C-z") 'aider-switch-to-buffer)
     map)
-  "Keymap for Aidermacs Minor Mode.")
+  "Keymap for aidermacs Minor Mode.")
 
-;; Define the Aidermacs Minor Mode
+;; Define the aidermacs Minor Mode
 ;;;###autoload
 (define-minor-mode aider-minor-mode
-  "Minor mode for Aidermacs with keybindings."
-  :lighter " Aidermacs"
+  "Minor mode for aidermacs with keybindings."
+  :lighter " aidermacs"
   :keymap aider-minor-mode-map
   :override t)
 
@@ -1100,9 +961,6 @@ Returns t if the file matches any of the patterns in `aider-auto-mode-files'."
             (when (and buffer-file-name
                       (aider--should-enable-minor-mode-p buffer-file-name))
               (aider-minor-mode 1))))
-
-(when (featurep 'doom)
-  (require 'aider-doom))
 
 (provide 'aider)
 

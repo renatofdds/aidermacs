@@ -4,16 +4,16 @@
 ;;
 ;;; Commentary:
 ;;
-;;  Doom integration for Aidermacs
+;;  Doom integration for aidermacs
 ;;
 ;;; Code:
 
 (defun aider-doom-setup-keys ()
-  "Setup Aidermacs keybindings if the current buffer is in a git repository."
+  "Setup aidermacs keybindings if the current buffer is in a git repository."
   (when (and (featurep 'doom-keybinds)
              (vc-backend (or (buffer-file-name) default-directory)))
     (map! :leader
-          (:prefix ("A" . "Aidermacs")
+          (:prefix ("A" . "aidermacs")
                    (:prefix ("a" . "Add")
                     :desc "Current file" "c" #'aider-add-current-file
                     :desc "File read-only" "f" #'aider-current-file-read-only
@@ -23,8 +23,8 @@
                     )
 
                    (:prefix ("b" . "Buffer")
-                    :desc "Switch to Aidermacs" "b" #'aider-switch-to-buffer
-                    :desc "Clear Aidermacs" "c" #'aider-clear
+                    :desc "Switch to aidermacs" "b" #'aider-switch-to-buffer
+                    :desc "Clear aidermacs" "c" #'aider-clear
                     )
 
                    (:prefix ("s" . "Send")
@@ -58,9 +58,9 @@
                     :desc "Help" "h" #'aider-help
                     )
 
-                   :desc "Open Aidermacs" "o" #'aider-run-aider
-                   :desc "Reset Aidermacs" "r" #'aider-reset
-                   :desc "Exit Aidermacs" "x" #'aider-exit
+                   :desc "Open aidermacs" "o" #'aider-run-aider
+                   :desc "Reset aidermacs" "r" #'aider-reset
+                   :desc "Exit aidermacs" "x" #'aider-exit
                    ))))
 
 ;; Add the setup function to appropriate hooks
