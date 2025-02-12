@@ -55,7 +55,7 @@ With =aidermacs=, you get:
 
  With Straight
 #+BEGIN_SRC emacs-lisp
-(use-package aidermacs
+(use-package aider
   :straight (:host github :repo "MatthewZMD/aidermacs" :files ("aider.el"))
   :config
   (setq aider-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
