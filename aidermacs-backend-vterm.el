@@ -5,10 +5,53 @@
 
 ;;; Code:
 
-(require 'vterm nil t)
+(require 'vterm nil 'noerror)
+
+(defun aidermacs--vterm-output-advice (orig-fun &rest args)
+  "Capture output before and after executing `vterm-send-return'.
+This advice records the current prompt position as START-POINT,
+calls ORIG-FUN (with ARGS) and then waits until the expected finish
+sequence appears.  The expected finish sequence is defined as the
+substring from (vterm--get-prompt-point) minus the length of the sequence
+to (vterm--get-prompt-point). For example, if
+
+  (buffer-substring-no-properties (- (vterm--get-prompt-point) 1)
+                                  (+ (vterm--get-prompt-point) 2))
+yields \"\n> \",
+then the expected finish sequence is \"\n> \" (12 characters).
+
+Once that is detected, the output from START-POINT up to the beginning
+of the finish sequence is captured and stored via `aidermacs--store-output`."
+  (let ((start-point (vterm--get-prompt-point))
+        (proc (get-buffer-process (current-buffer)))
+        (expected "\n> "))
+    ;; Store the original process filter
+    (let ((orig-filter (process-filter proc)))
+      ;; Set up our temporary filter
+      (set-process-filter
+       proc
+       (lambda (proc string)
+         ;; Call original filter first
+         (funcall orig-filter proc string)
+         ;; Then check for our finish sequence
+         (let* ((end-point (vterm--get-prompt-point))
+                (seq-start (max 0 (- end-point 1)))
+                (seq-end (min (point-max) (+ end-point 2)))
+                (finish-seq (buffer-substring-no-properties seq-start seq-end)))
+           (when (and (string= finish-seq expected)
+                      (not (= start-point end-point)))
+             ;; We found our finish sequence
+             (let ((output (buffer-substring-no-properties start-point end-point)))
+               (aidermacs--store-output (string-trim output))
+               ;; Restore original filter
+               (set-process-filter proc orig-filter))))))
+      ;; Execute original function
+      (apply orig-fun args))))
 
 (defun aidermacs-run-aidermacs-vterm (program args buffer-name)
-  "Create a vterm-based buffer and run aidermacs PROGRAM with ARGS in BUFFER-NAME."
+  "Create a vterm-based buffer and run aidermacs PROGRAM with ARGS in BUFFER-NAME.
+PROGRAM is the command to run, ARGS is a list of arguments,
+and BUFFER-NAME is the name of the vterm buffer."
   (unless (require 'vterm nil t)
     (error "vterm package is not available"))
   (unless (get-buffer buffer-name)
@@ -18,21 +61,26 @@
            (cmd (mapconcat 'identity (append (list program mode) args) " "))
            (vterm-buffer-name-orig vterm-buffer-name)
            (vterm-shell-orig vterm-shell))
+      ;; Temporarily set globals so that the new buffer uses our values.
       (setq vterm-buffer-name buffer-name)
       (setq vterm-shell cmd)
-      (if (get-buffer buffer-name)
-          (switch-to-buffer buffer-name)
-        (with-current-buffer (vterm-other-window)
-          (aidermacs-minor-mode 1)))
+      (with-current-buffer (vterm-other-window)
+        (aidermacs-minor-mode 1)
+        (advice-add 'vterm-send-return :around #'aidermacs--vterm-output-advice)
+        )
+      ;; Restore the original globals.
       (setq vterm-buffer-name vterm-buffer-name-orig)
-      (setq vterm-shell vterm-shell-orig))))
+      (setq vterm-shell vterm-shell-orig)))
+  buffer-name)
 
 (defun aidermacs--send-command-vterm (buffer command &optional switch-to-buffer)
   "Send COMMAND to the aidermacs vterm BUFFER.
-If SWITCH-TO-BUFFER is non-nil, switch to the buffer after sending."
+If SWITCH-TO-BUFFER is non-nil, switch to BUFFER after sending the command."
   (with-current-buffer buffer
     (vterm-send-string command)
-    (vterm-send-return)))
+    (vterm-send-return)
+    (when switch-to-buffer
+      (switch-to-buffer buffer))))
 
 (provide 'aidermacs-backend-vterm)
 

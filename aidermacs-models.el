@@ -12,7 +12,7 @@
 (defcustom aidermacs-popular-models
   '("anthropic/claude-3-5-sonnet-20241022"  ;; really good in practical
     "o3-mini" ;; very powerful
-    "gemini/gemini-2.0-flash"  ;; free
+    "gemini/gemini-2.0-pro-exp-02-05"  ;; free
     "r1"  ;; performance match o1, price << claude sonnet. weakness: small context
     "deepseek/deepseek-chat"  ;; chatgpt-4o level performance, price is 1/100. weakness: small context
     )

@@ -5,6 +5,10 @@
 
 ;;; Code:
 
+(require 'aidermacs-backend-comint)
+(when (require 'vterm nil 'noerror)
+  (require 'aidermacs-backend-vterm))
+
 (defgroup aidermacs-backends nil
   "Backend customization for aidermacs."
   :group 'aidermacs)
@@ -18,11 +22,50 @@ of using a comint process."
                  (const :tag "VTerm" vterm))
   :group 'aidermacs-backends)
 
+;; Core output management functionality
+(defgroup aidermacs-output nil
+  "Output handling for aidermacs."
+  :group 'aidermacs)
 
-(require 'aidermacs-backend-comint)
-(when (require 'vterm nil t)
-  (require 'aidermacs-backend-vterm))
+(defcustom aidermacs-output-limit 10
+  "Maximum number of output entries to keep in history."
+  :type 'integer
+  :group 'aidermacs-output)
 
+(defvar-local aidermacs--output-history nil
+  "List to store aidermacs output history.
+Each entry is a cons cell (timestamp . output-text).")
+
+(defvar-local aidermacs--last-command nil
+  "Store the last command sent to aidermacs.")
+
+(defvar-local aidermacs--current-output nil
+  "Accumulator for current output being captured.")
+
+(defun aidermacs-get-output-history (&optional limit)
+  "Get the output history, optionally limited to LIMIT entries.
+Returns a list of (timestamp . output-text) pairs, most recent first."
+  (let ((history aidermacs--output-history))
+    (if limit
+        (seq-take history limit)
+      history)))
+
+(defun aidermacs-get-last-output ()
+  "Get the most recent output from aidermacs."
+  (car (aidermacs-get-output-history 1)))
+
+(defun aidermacs-clear-output-history ()
+  "Clear the output history."
+  (interactive)
+  (setq aidermacs--output-history nil))
+
+(defun aidermacs--store-output (output)
+  "Store OUTPUT in the history with timestamp."
+  (setq aidermacs--current-output output)
+  (push (cons (current-time) output) aidermacs--output-history)
+  (when (> (length aidermacs--output-history) aidermacs-output-limit)
+    (setq aidermacs--output-history
+          (seq-take aidermacs--output-history aidermacs-output-limit))))
 
 ;; Backend dispatcher functions
 (defun aidermacs-run-aidermacs-backend (program args buffer-name)
