@@ -76,7 +76,7 @@ In =packages.el=:
 
 In =config.el=:
 #+BEGIN_SRC emacs-lisp
-(use-package aidermacs
+(use-package aider
   :config
   (setq aider-args '("--model" "o3-mini")))
 #+END_SRC
@@ -100,7 +100,7 @@ In =config.el=:
  Helm Integration
 For fuzzy command history searching:
 #+BEGIN_SRC emacs-lisp
-(use-package aidermacs
+(use-package aider
   :straight (:host github :repo "MatthewZMD/aidermacs" :files ("aider.el" "aider-helm.el")))
 #+END_SRC
 
