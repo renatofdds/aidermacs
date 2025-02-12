@@ -56,7 +56,7 @@ With =aidermacs=, you get:
  Requirements
 - Emacs ≥ 26.1
 - [[https://aider.chat/docs/install.html][Aider]]
-- [[https://github.com/magit/transient][Transient]] and [[https://github.com/magit/magit][Magit]]
+- [[https://github.com/magit/transient][Transient]]
 
 ** Recommended
 *** With Straight
