@@ -20,7 +20,7 @@ of using a comint process."
 
 
 (require 'aidermacs-backend-comint)
-(when (featurep 'vterm)
+(when (or (featurep 'vterm) (functionp 'vterm))
   (require 'aidermacs-backend-vterm))
 
 
@@ -31,7 +31,7 @@ PROGRAM is the aidermacs executable path, ARGS are command line arguments,
 and BUFFER-NAME is the name for the aidermacs buffer."
   (cond
    ((eq aidermacs-backend 'vterm)
-    (if (featurep 'vterm)
+    (if (or (featurep 'vterm) (functionp 'vterm))
         (aidermacs-run-aidermacs-vterm program args buffer-name)
       (error "vterm package is not available. Please install it to use the vterm backend.")))
    (t
