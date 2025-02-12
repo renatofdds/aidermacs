@@ -78,6 +78,8 @@ With =aidermacs=, you get:
 ** Terminal Backend Selection
 Choose your preferred terminal backend by setting =aidermacs-backend=:
 
+=vterm= provides better terminal compatibility and bracketed paste support, while =comint= is a simpler, built-in option.
+
 #+BEGIN_SRC emacs-lisp
 ;; Use vterm backend (default is comint)
 (setq aidermacs-backend 'vterm)
@@ -120,7 +122,7 @@ To provide context to the AI, you need to add relevant files to the Aidermacs se
 
 ** 3. Interact with the AI
 
-Once you have added the relevant files, you can interact with the AI using these commands:
+After adding files to the session, switch to the =*aidermacs*= buffer to interact with the AI using these commands:
 
 *** Code Changes
 - Request code changes: =M-x aidermacs-code-change= (=c= in transient menu)
@@ -130,11 +132,11 @@ Once you have added the relevant files, you can interact with the AI using these
 - Undo last AI change: =M-x aidermacs-undo-last-change= (=u= in transient menu)
 
 *** Questions and Explanations
-- Ask questions about code context: =M-x aidermacs-ask-question= (=q= in transient menu)
-- Ask general questions: =M-x aidermacs-general-question= (=Q= in transient menu)
-- Explain function/region: =M-x aidermacs-function-or-region-explain= (=e= in transient menu)
-- Explain symbol at point: =M-x aidermacs-explain-symbol-under-point= (=p= in transient menu)
-- Get help: =M-x aidermacs-help= (=h= in transient menu)
+- Ask the AI questions about the current code context: =M-x aidermacs-ask-question= (=q= in transient menu)
+- Ask the AI a general question: =M-x aidermacs-general-question= (=Q= in transient menu)
+- Explain a function or region of code: =M-x aidermacs-function-or-region-explain= (=e= in transient menu)
+- Explain the symbol at point: =M-x aidermacs-explain-symbol-under-point= (=p= in transient menu)
+- Get help on aidermacs commands: =M-x aidermacs-help= (=h= in transient menu)
 
 *** Testing and Debugging
 - Generate unit tests: =M-x aidermacs-write-unit-test= (=U= in transient menu)
@@ -177,6 +179,7 @@ Session management commands:
 ** 7. Transient Menu
 
 - Access all commands through the transient menu: =M-x aidermacs-transient-menu=
+- The transient menu is a popup menu that provides a convenient way to access all aidermacs commands.
 - The menu groups commands into categories:
   - "aidermacs Process": Basic session management (=a=, =z=, =o=, =l=, =s=, =x=)
   - "Add File to aidermacs": File management (=f=, =R=, =w=, =d=, =b=)

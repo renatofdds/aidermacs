@@ -12,7 +12,7 @@
   (unless (require 'vterm nil t)
     (error "vterm package is not available"))
   (unless (get-buffer buffer-name)
-    (let ((mode (if (eq (frame-parameter nil 'background-mode) 'dark)
+    (let* ((mode (if (eq (frame-parameter nil 'background-mode) 'dark)
                      "--dark-mode"
                    "--light-mode"))
            (cmd (mapconcat 'identity (append (list program mode) args) " ")))

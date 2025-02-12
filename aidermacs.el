@@ -1,4 +1,4 @@
-;;; aidermacs.el --- aidermacsmacs package for interactive conversation with aidermacs -*- lexical-binding: t; -*-
+;;; aidermacs.el --- aidermacs package for interactive conversation with aidermacs -*- lexical-binding: t; -*-a
 
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Original Author: Kang Tu <tninja@gmail.com>
@@ -149,7 +149,7 @@ Affects the system message too.")
 ;; Transient menu for aidermacs commands
 ;; The instruction in the autoload comment is needed, see
 ;; https://github.com/magit/transient/issues/280.
-;;;###autoload (autoload 'aidermacs-transient-menu "aidermacs" "Transient menu for aidermacsmacs commands." t)
+;;;###autoload (autoload 'aidermacs-transient-menu "aidermacs" "Transient menu for aidermacs commands." t)
 (transient-define-prefix aidermacs-transient-menu ()
   "Transient menu for aidermacs commands."
   ["aidermacs: AI Pair Programming"
@@ -210,7 +210,7 @@ If not in a git repository and no buffer file exists, an error is raised."
               (file-truename (file-name-directory current-file))))
      ;; Case 3: No git repo and no buffer file
      (t
-      (error "Not in a git repository and current buffer is not associated with a file")))))
+      (error "Not in a git repository and current buffer is not associated with a file.  Please open a file or start aidermacs from within a git repository.")))))
 
 ;;;###autoload
 (defun aidermacs-run-aidermacs (&optional edit-args)
@@ -235,7 +235,7 @@ Dispatches to the appropriate backend."
         (when switch-to-buffer
           (aidermacs-switch-to-buffer))
         (sleep-for 0.2))
-    (message "Buffer %s does not exist. Please start 'aidermacs' first." (funcall #'aidermacs-buffer-name))))
+    (message "Buffer %s does not exist. Please start aidermacs with 'M-x aidermacs-run-aidermacs'." (funcall #'aidermacs-buffer-name))))
 
 (defun aidermacs-kill-buffer ()
   "Clean-up fontify buffer."
@@ -335,7 +335,7 @@ Dispatches to the appropriate backend."
               (condition-case e
                   (let ((inhibit-message t))
                     (funcall mode))
-                (error (message "aidermacs: failed to init major-mode `%s' for font-locking: %s" mode e))))))
+                (error "aidermacs: failed to init major-mode `%s' for font-locking: %s" mode e)))))
 
         ;; Process initial content
         (aidermacs--fontify-block)))))
@@ -430,7 +430,7 @@ If the current buffer is already the aidermacs buffer, do nothing."
         (if aidermacs--switch-to-buffer-other-frame
             (switch-to-buffer-other-frame buffer)
           (pop-to-buffer buffer))
-      (message "aidermacsmacs buffer '%s' does not exist." (aidermacs-buffer-name)))))
+      (message "aidermacs buffer '%s' does not exist." (aidermacs-buffer-name)))))
 
 ;; Function to reset the aidermacs buffer
 ;;;###autoload
@@ -472,7 +472,7 @@ from the source buffer and maintaining proper process markers."
   "Entering multi-line chat messages
 https://aidermacs.chat/docs/usage/commands.html#entering-multi-line-chat-messages
 If STR contains newlines and isn't already wrapped in {aidermacs...aidermacs},
-wrap it in {aidermacs\\nstr\\naidermacs}. Otherwise return STR unchanged."
+wrap it in {aidermacs\nstr\naidermacs}. Otherwise return STR unchanged."
   (if (and (string-match-p "\n" str)
            (not (string-match-p "^{aidermacs\n.*\naidermacs}$" str)))
       (format "{aidermacs\n%s\naidermacs}" str)
@@ -484,11 +484,11 @@ wrap it in {aidermacs\\nstr\\naidermacs}. Otherwise return STR unchanged."
   ;; Ensure the current buffer is associated with a file
   (if (not buffer-file-name)
       (message "Current buffer is not associated with a file.")
-    (let* ((local-name (file-local-name
-                        (expand-file-name buffer-file-name)))
-           (formatted-path (if (string-match-p " " local-name)
-                               (format "\"%s\"" local-name)
-                             local-name))
+    (let* ((file-path (buffer-file-name))
+           ;; Use buffer-file-name directly
+           (formatted-path (if (string-match-p " " file-path)
+                               (format "\"%s\"" file-path)
+                             file-path))
            (command (format "%s %s" command-prefix formatted-path)))
       ;; Use the shared helper function to send the command
       (aidermacs--send-command command))))
@@ -527,7 +527,7 @@ wrap it in {aidermacs\\nstr\\naidermacs}. Otherwise return STR unchanged."
 (defun aidermacs-general-command ()
   "Prompt the user to input COMMAND and send it to the corresponding aidermacs comint buffer."
   (interactive)
-  (let ((command (aidermacs-read-string "Enter command to send to aidermacsmacs: ")))
+  (let ((command (aidermacs-read-string "Enter command to send to aidermacs: ")))
     ;; Use the shared helper function to send the command
     (aidermacs--send-command command t)))
 

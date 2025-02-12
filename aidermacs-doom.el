@@ -23,8 +23,8 @@
                             )
 
                    (:prefix ("b" . "Buffer")
-                            :desc "Switch to aidermacsmacs" "b" #'aidermacs-switch-to-buffer
-                            :desc "Clear aidermacsmacs" "c" #'aidermacs-clear
+                            :desc "Switch to aidermacs" "b" #'aidermacs-switch-to-buffer
+                            :desc "Clear aidermacs" "c" #'aidermacs-clear
                             )
 
                    (:prefix ("s" . "Send")
@@ -58,9 +58,9 @@
                             :desc "Help" "h" #'aidermacs-help
                             )
 
-                   :desc "Open aidermacsmacs" "o" #'aidermacs-run-aidermacs
-                   :desc "Reset aidermacsmacs" "r" #'aidermacs-reset
-                   :desc "Exit aidermacsmacs" "x" #'aidermacs-exit
+                   :desc "Open aidermacs" "o" #'aidermacs-run-aidermacs
+                   :desc "Reset aidermacs" "r" #'aidermacs-reset
+                   :desc "Exit aidermacs" "x" #'aidermacs-exit
                    ))))
 
 ;; Add the setup function to appropriate hooks

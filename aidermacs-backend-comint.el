@@ -1,4 +1,4 @@
-;;; aidermacsmacs-backend-comint.el --- Comint backend for aidermacs.el -*- lexical-binding: t; -*-
+;;; aidermacs-backend-comint.el --- Comint backend for aidermacs.el -*- lexical-binding: t; -*-
 
 ;;; Commentary:
 ;; Comint backend implementation for aidermacs.el

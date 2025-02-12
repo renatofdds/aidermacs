@@ -31,7 +31,9 @@ PROGRAM is the aidermacs executable path, ARGS are command line arguments,
 and BUFFER-NAME is the name for the aidermacs buffer."
   (cond
    ((eq aidermacs-backend 'vterm)
-    (aidermacs-run-aidermacs-vterm program args buffer-name))
+    (if (featurep 'vterm)
+        (aidermacs-run-aidermacs-vterm program args buffer-name)
+      (error "vterm package is not available. Please install it to use the vterm backend.")))
    (t
     (aidermacs-run-aidermacs-comint program args buffer-name))))
 
