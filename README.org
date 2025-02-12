@@ -1,4 +1,4 @@
-#+TITLE: aidermacs: Aider AI Pair Programming for Emacs
+#+TITLE: aidermacs: Aider AI Pair Programming in Emacs
 #+OPTIONS: toc:2
 
 * Introduction
