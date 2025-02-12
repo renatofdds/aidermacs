@@ -209,48 +209,11 @@ With the universal argument, prompt to edit aidermacs-args before running."
 Dispatches to the appropriate backend."
   (if-let ((aidermacs-buffer (get-buffer (aidermacs-buffer-name))))
       (let ((processed-command (aidermacs--process-message-if-multi-line command)))
-        (aidermacs-reset-font-lock-state)
         (aidermacs--send-command-backend aidermacs-buffer processed-command switch-to-buffer)
         (when switch-to-buffer
           (aidermacs-switch-to-buffer))
         (sleep-for 0.2))
     (message "Buffer %s does not exist. Please start aidermacs with 'M-x aidermacs-run-aidermacs'." aidermacs-buffer-name)))
-
-(defun aidermacs-kill-buffer ()
-  "Clean-up fontify buffer."
-  (when (bufferp aidermacs--font-lock-buffer)
-    (kill-buffer aidermacs--font-lock-buffer)))
-
-(defun aidermacs-input-sender (proc string)
-  "Reset font-lock state before executing a command."
-  (aidermacs-reset-font-lock-state)
-  (comint-simple-send proc (aidermacs--process-message-if-multi-line string)))
-
-;; Buffer-local variables for block processing state
-(defvar-local aidermacs--block-end-marker nil
-  "The end marker for the current block being processed.")
-
-(defvar-local aidermacs--block-start nil
-  "The starting position of the current block being processed.")
-
-(defvar-local aidermacs--block-end nil
-  "The end position of the current block being processed.")
-
-(defvar-local aidermacs--last-output-start nil
-  "an alternative to `comint-last-output-start' used in aidermacs.")
-
-(defvar-local aidermacs--block-mode nil
-  "The major mode for the current block being processed.")
-
-(defvar-local aidermacs--font-lock-buffer nil
-  "Temporary buffer for fontification.")
-
-(defconst aidermacs-search-marker "<<<<<<< SEARCH")
-(defconst aidermacs-diff-marker "=======")
-(defconst aidermacs-replace-marker ">>>>>>> REPLACE")
-(defconst aidermacs-fence-marker "```")
-(defvar aidermacs-block-re
-  (format "^\\(?:\\(?1:%s\\|%s\\)\\|\\(?1:%s\\).+\\)$" aidermacs-search-marker aidermacs-diff-marker aidermacs-fence-marker))
 
 
 ;; Function to switch to the aidermacs buffer
