@@ -3,7 +3,7 @@
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Original Author: Kang Tu <tninja@gmail.com>
 ;; Version: 0.2.0
-;; Package-Requires: ((emacs "26.1") (transient "0.3.0") (magit "2.1.0"))
+;; Package-Requires: ((emacs "26.1") (transient "0.3.0"))
 ;; Keywords: convenience, tools
 ;; URL: https://github.com/MatthewZMD/aidermacs.el
 
@@ -15,7 +15,7 @@
 (require 'comint)
 (require 'dired)
 (require 'transient)
-(require 'magit)
+(require 'vc-git)
 (require 'which-func)
 (require 'ansi-color)
 
@@ -198,15 +198,13 @@ Affects the system message too.")
 (defun aidermacs-buffer-name ()
   "Generate the aidermacs buffer name based on the git repo or current buffer file path.
 If not in a git repository and no buffer file exists, an error is raised."
-  (let ((git-repo-path (magit-toplevel))
+  (let ((git-repo-path (vc-git-root default-directory))
         (current-file (buffer-file-name)))
     (cond
-     ;; Case 1: Valid git repo path (not nil and not containing "fatal")
-     ((and git-repo-path
-           (stringp git-repo-path)
-           (not (string-match-p "fatal" git-repo-path)))
+     ;; Case 1: Valid git repo path
+     (git-repo-path
       (format "*aidermacs:%s*" (file-truename git-repo-path)))
-     ;; Case 2: Has buffer file (handles both nil and "fatal" git-repo-path cases)
+     ;; Case 2: Has buffer file
      (current-file
       (format "*aidermacs:%s*"
               (file-truename (file-name-directory current-file))))
@@ -904,7 +902,7 @@ When sending paragraph content, preserve cursor position and deactivate mark aft
   "Open aidermacs prompt file under git repo root.
 If file doesn't exist, create it with command binding help and sample prompt."
   (interactive)
-  (let* ((git-root (magit-toplevel))
+  (let* ((git-root (vc-git-root default-directory))
          (prompt-file (when git-root
                         (expand-file-name aidermacs-prompt-file-name git-root))))
     (if prompt-file
