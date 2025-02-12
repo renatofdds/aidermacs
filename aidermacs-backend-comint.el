@@ -138,15 +138,15 @@ This allows for multi-line input without sending the command."
   (let* ((last-bol (save-excursion
                      (goto-char (point-max))
                      (line-beginning-position)))
-         (last-output-start aidermacs--block-end)
+         (last-output-start aidermacs--syntax-block-end-pos)
          end-of-block-p)
 
-    (setq aidermacs--block-end
-          (cond ((re-search-forward (concat "^" aidermacs--block-end-marker "$") nil t)
+    (setq aidermacs--syntax-block-end-pos
+          (cond ((re-search-forward (concat "^" aidermacs--syntax-block-delimiter "$") nil t)
                  ;; Found the end of the block
                  (setq end-of-block-p t)
                  (line-beginning-position))
-                ((string-prefix-p (buffer-substring last-bol (point-max)) aidermacs--block-end-marker)
+                ((string-prefix-p (buffer-substring last-bol (point-max)) aidermacs--syntax-block-delimiter)
                  ;; The end of the text *might* be the end marker. back up to
                  ;; make sure we don't process it until we know for sure
                  last-bol)
@@ -156,8 +156,8 @@ This allows for multi-line input without sending the command."
     ;; Append new content to temp buffer and fontify
     (let ((new-content (buffer-substring-no-properties
                         last-output-start
-                        aidermacs--block-end))
-          (pos aidermacs--block-start)
+                        aidermacs--syntax-block-end-pos))
+          (pos aidermacs--syntax-block-start-pos)
           (font-pos 0)
           fontified)
 
