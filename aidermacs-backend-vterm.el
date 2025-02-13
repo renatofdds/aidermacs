@@ -7,6 +7,10 @@
 
 (require 'vterm nil 'noerror)
 
+;; we want to ensure these two variables are dynamic binding
+(defvar vterm-shell)
+(defvar vterm-buffer-name)
+
 (defun aidermacs--vterm-output-advice (orig-fun &rest args)
   "Capture output before and after executing `vterm-send-return'.
 This advice records the current prompt position as START-POINT,
@@ -67,17 +71,12 @@ and BUFFER-NAME is the name of the vterm buffer."
                      "--dark-mode"
                    "--light-mode"))
            (cmd (mapconcat 'identity (append (list program mode) args) " "))
-           (vterm-buffer-name-orig vterm-buffer-name)
+           (vterm-buffer-name buffer-name)
+           (vterm-shell cmd)
            (vterm-shell-orig vterm-shell))
-      ;; Temporarily set globals so that the new buffer uses our values.
-      (setq vterm-buffer-name buffer-name)
-      (setq vterm-shell cmd)
       (with-current-buffer (vterm-other-window)
         (aidermacs-minor-mode 1)
-        (advice-add 'vterm-send-return :around #'aidermacs--vterm-output-advice))
-      ;; Restore the original globals.
-      (setq vterm-buffer-name vterm-buffer-name-orig)
-      (setq vterm-shell vterm-shell-orig)))
+        (advice-add 'vterm-send-return :around #'aidermacs--vterm-output-advice))))
   buffer-name)
 
 (defun aidermacs--send-command-vterm (buffer command)
