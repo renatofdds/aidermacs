@@ -57,8 +57,8 @@ This is a covoluted HACK of capturing aider output until someone comes up with a
                    (let ((output (buffer-substring-no-properties start-point seq-start)))
                      (aidermacs--store-output (string-trim output))
                      ;; Restore the original filter.
-                     (set-process-filter proc orig-filter))))))))))
-    (apply orig-fun args)))
+                     (set-process-filter proc orig-filter)))))))))))
+    (apply orig-fun args))
 
 (defun aidermacs-run-aidermacs-vterm (program args buffer-name)
   "Create a vterm-based buffer and run aidermacs PROGRAM with ARGS in BUFFER-NAME.
