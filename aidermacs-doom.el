@@ -16,7 +16,7 @@
           (:prefix ("A" . "aidermacs")
                    (:prefix ("a" . "Add")
                             :desc "Current file" "c" #'aidermacs-add-current-file
-                            :desc "File read-only" "f" #'aidermacs-current-file-read-only
+                            :desc "File read-only" "f" #'aidermacs-add-current-file-read-only
                             :desc "Files in window" "w" #'aidermacs-add-files-in-current-window
                             :desc "Add Same Type Files under dir" "d" #'aidermacs-add-same-type-files-under-dir
                             :desc "Batch direct marked files" "b" #'aidermacs-batch-add-dired-marked-files

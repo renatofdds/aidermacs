@@ -107,33 +107,11 @@ This function can be customized or redefined by the user."
   ;; Ensure the alias is always available in both compiled and interpreted modes.
   (defalias 'aidermacs-read-string 'aidermacs-plain-read-string))
 
-(defvar aidermacs--add-file-read-only nil
-  "Set model parameters from `aidermacs-menu' buffer-locally.
-Affects the system message too.")
-
-(defun aidermacs--get-add-command-prefix ()
-  "Return the appropriate command prefix based on aidermacs--add-file-read-only."
-  (if aidermacs--add-file-read-only "/read-only" "/add"))
-
-(defclass aidermacs--add-file-type (transient-lisp-variable)
-  ((variable :initform 'aidermacs--add-file-read-only)
-   (format :initform "%k %d %v")
-   (reader :initform #'transient-lisp-variable--read-value))
-  "Class for toggling aidermacs--add-file-read-only.")
-
 (defclass aidermacs--switch-to-buffer-type (transient-lisp-variable)
   ((variable :initform 'aidermacs--switch-to-buffer-other-frame)
    (format :initform "%k %d %v")
    (reader :initform #'transient-lisp-variable--read-value))
   "Class for toggling aidermacs--switch-to-buffer-other-frame.")
-
-(transient-define-infix aidermacs--infix-add-file-read-only ()
-  "Toggle aidermacs--add-file-read-only between nil and t."
-  :class 'aidermacs--add-file-type
-  :key "@"
-  :description "Read-only mode"
-  :reader (lambda (_prompt _initial-input _history)
-            (not aidermacs--add-file-read-only)))
 
 (transient-define-infix aidermacs--infix-switch-to-buffer-other-frame ()
   "Toggle aidermacs--switch-to-buffer-other-frame between nil and t."
@@ -161,14 +139,14 @@ Affects the system message too.")
     ("x" "Exit Session"               aidermacs-exit)]
 
    ["File Management"
-    (aidermacs--infix-add-file-read-only)
     ("f" "Add Current File"           aidermacs-add-current-file)
-    ("R" "Add File Read-Only"         aidermacs-current-file-read-only)
+    ("R" "Add File Read-Only"         aidermacs-add-current-file-read-only)
     ("w" "Add Files in Window"        aidermacs-add-files-in-current-window)
     ("d" "Add Files by Type"          aidermacs-add-same-type-files-under-dir)
     ("b" "Add Marked Files"           aidermacs-batch-add-dired-marked-files)
     ("L" "List Added Files"           aidermacs-list-added-files)
-    ("D" "Drop File from Chat"        aidermacs-drop-file)]
+    ("D" "Drop File from Chat"        aidermacs-drop-file)
+    ("O" "Drop Current File"          aidermacs-drop-current-file)]
 
    ["Code Actions"
     ("c" "Code Change"                aidermacs-code-change)
@@ -309,7 +287,7 @@ wrap it in {aidermacs\nstr\naidermacs}. Otherwise return STR unchanged."
     str))
 
 ;;;###autoload
-(defun aidermacs-add-or-read-current-file (command-prefix)
+(defun aidermacs-act-on-current-file (command-prefix)
   "Send the command \"COMMAND-PREFIX <current buffer file full path>\" to the corresponding aidermacs comint buffer."
   ;; Ensure the current buffer is associated with a file
   (if (not buffer-file-name)
@@ -323,20 +301,26 @@ wrap it in {aidermacs\nstr\naidermacs}. Otherwise return STR unchanged."
       ;; Use the shared helper function to send the command
       (aidermacs--send-command command))))
 
-;; Function to send "/add <current buffer file full path>" to corresponding aidermacs buffer
 ;;;###autoload
 (defun aidermacs-add-current-file ()
   "Send the command \"/add <current buffer file full path>\" to the corresponding aidermacs comint buffer."
   (interactive)
-  (aidermacs-add-or-read-current-file (aidermacs--get-add-command-prefix)))
+  (aidermacs-act-on-current-file "/add"))
 
 ;;;###autoload
-(defun aidermacs-current-file-read-only ()
+(defun aidermacs-add-current-file-read-only ()
   "Send the command \"/read-only <current buffer file full path>\" to the corresponding aidermacs comint buffer."
   (interactive)
-  (aidermacs-add-or-read-current-file "/read-only"))
+  (aidermacs-act-on-current-file "/read-only"))
 
-;; New function to add files in all buffers in current emacs window
+
+;;;###autoload
+(defun aidermacs-drop-current-file ()
+  "Send the command \"/drop <current buffer file full path>\" to the corresponding aider comint buffer."
+  (interactive)
+  (aidermacs-act-on-current-file "/drop"))
+
+
 ;;;###autoload
 (defun aidermacs-add-files-in-current-window ()
   "Add files in all buffers in the current Emacs window to the aidermacs buffer."
@@ -348,7 +332,7 @@ wrap it in {aidermacs\nstr\naidermacs}. Otherwise return STR unchanged."
                        (mapcar 'window-buffer (window-list)))))
     (setq files (delq nil files))
     (if files
-        (let ((command (concat (aidermacs--get-add-command-prefix) " " (mapconcat 'identity files " "))))
+        (let ((command (concat "/add " (mapconcat 'identity files " "))))
           (aidermacs--send-command command nil))
       (message "No files found in the current window."))))
 
@@ -461,7 +445,6 @@ Sends the \"/ls\" command and returns the list of files via callback."
   aidermacs--current-output)
 
 
-;; New function to get command from user and send it prefixed with "/ask "
 ;;;###autoload
 (defun aidermacs-ask-question ()
   "Prompt the user for a command and send it to the corresponding aidermacs comint buffer prefixed with \"/ask \".
@@ -493,7 +476,6 @@ If cursor is inside a function, include the function name as context."
     (let ((command (format "/ask %s" question)))
       (aidermacs--send-command command t))))
 
-;; New function to get command from user and send it prefixed with "/help "
 ;;;###autoload
 (defun aidermacs-help ()
   "Prompt the user for a command and send it to the corresponding aidermacs comint buffer prefixed with \"/help \"."
@@ -501,7 +483,6 @@ If cursor is inside a function, include the function name as context."
   (let ((command (aidermacs-read-string "Enter help question: ")))
     (aidermacs-send-command-with-prefix "/help " command)))
 
-;; New function to get command from user and send it prefixed with "/architect "
 ;;;###autoload
 (defun aidermacs-architect-discussion ()
   "Prompt the user for a command and send it to the corresponding aidermacs comint buffer prefixed with \"/architect \"."
@@ -509,7 +490,6 @@ If cursor is inside a function, include the function name as context."
   (let ((command (aidermacs-read-string "Enter architect discussion question: ")))
     (aidermacs-send-command-with-prefix "/architect " command)))
 
-;; New function to get command from user and send it prefixed with "/ask ", might be tough for AI at this moment
 ;;;###autoload
 (defun aidermacs-debug-exception ()
   "Prompt the user for a command and send it to the corresponding aidermacs comint buffer prefixed with \"/debug \",
@@ -524,7 +504,6 @@ replacing all newline characters except for the one at the end."
   (interactive)
   (aidermacs--send-command "go ahead" t))
 
-;; New function to show the last commit using magit
 ;;;###autoload
 (defun aidermacs-magit-show-last-commit ()
   "Show the last commit message using Magit.
@@ -534,7 +513,6 @@ If Magit is not installed, report that it is required."
       (magit-show-commit "HEAD")
     (message "Magit is required to show the last commit.")))
 
-;; Modified function to get command from user and send it based on selected region
 ;;;###autoload
 (defun aidermacs-undo-last-change ()
   "Undo the last change made by aidermacs."
@@ -566,7 +544,6 @@ If point is in a function, refactor that function."
           (aidermacs--send-command command t))
       (message "No region selected and no function found at point."))))
 
-;; New function to explain the code in the selected region
 ;;;###autoload
 (defun aidermacs-region-explain ()
   "Get a command from the user and send it to the corresponding aidermacs comint buffer based on the selected region.
@@ -586,7 +563,6 @@ The command will be formatted as \"/ask \" followed by the text from the selecte
         (aidermacs--send-command command t))
     (message "No region selected.")))
 
-;; New function to ask aidermacs to explain the function under the cursor
 ;;;###autoload
 (defun aidermacs-function-explain ()
   "Ask aidermacs to explain the function under the cursor.
@@ -608,7 +584,6 @@ Prompts user for specific questions about the function."
       (aidermacs-region-explain)
     (aidermacs-function-explain)))
 
-;; New function to explain the symbol at line
 ;;;###autoload
 (defun aidermacs-explain-symbol-under-point ()
   "Ask aidermacs to explain symbol under point, given the code line as background info."
@@ -627,9 +602,6 @@ Prompts user for specific questions about the function."
   (aidermacs-add-current-file)
   (aidermacs--send-command (concat prefix command) t))
 
-;;; functions for dired related
-
-;; New function to add multiple Dired marked files to aidermacs buffer
 ;;;###autoload
 (defun aidermacs-batch-add-dired-marked-files ()
   "Add multiple Dired marked files to the aidermacs buffer with the \"/add\" command."
@@ -640,7 +612,6 @@ Prompts user for specific questions about the function."
           (aidermacs--send-command command t))
       (message "No files marked in Dired."))))
 
-;; New function to add all files with same suffix as current file under current directory
 ;;;###autoload
 (defun aidermacs-add-same-type-files-under-dir ()
   "Add all files with same suffix as current file under current directory to aidermacs.
@@ -661,8 +632,6 @@ If there are more than 40 files, refuse to add and show warning message."
           (aidermacs--send-command command t))
         (message "Added %d files with suffix .%s"
                  (length files) current-suffix)))))
-
-;;; functions for test fixing
 
 ;;;###autoload
 (defun aidermacs-write-unit-test ()

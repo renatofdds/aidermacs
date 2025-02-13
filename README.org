@@ -23,10 +23,11 @@ Aidermacs thrives on community involvement. We believe that the best software is
 
 Your contributions are essential to making Aidermacs the best AI pair programming tool for Emacs!
 
-* Why Aidermacs over aider.el?
-Aidermacs begins as a fork of [[https://github.com/tninja/aider.el][aider.el]], intended to offer more Emacs-native experience integrating with [[https://github.com/paul-gauthier/aider][Aider]].
+** Why Aidermacs over aider.el?
 
-=Aidermacs= and =aider.el= are different development philosophies, =Aidermacs= prioritizes Emacs workflow integration, but =aider.el= emphasizes on replicating Aider's CLI behavior.
+Aidermacs is designed to provide a more Emacs-native experience while still integrating with [[https://github.com/paul-gauthier/aider][Aider]]. It began as a fork of [[https://github.com/tninja/aider.el][aider.el]], but has since diverged significantly to prioritize Emacs workflow integration.
+
+While =aider.el= strictly mirrors Aider's CLI behavior, =Aidermacs= is built around Emacs-specific features and paradigms. This design philosophy allows you to harness Aider's powerful capabilities through a natural, Emacs-native coding experience.
 
 With =Aidermacs=, you get:
 
@@ -138,7 +139,7 @@ This section provides a step-by-step guide on how to use Aidermacs for AI-assist
 To provide context to the AI, you need to add relevant files to the Aidermacs session:
 
 - Add current file: =M-x aidermacs-add-current-file= (=f= in transient menu)
-- Add current file in read-only mode: =M-x aidermacs-current-file-read-only= (=R= in transient menu)
+- Add current file in read-only mode: =M-x aidermacs-add-current-file-read-only= (=R= in transient menu)
 - Add all files in current window: =M-x aidermacs-add-files-in-current-window= (=w= in transient menu)
 - Add all files with same suffix in current directory: =M-x aidermacs-add-same-type-files-under-dir= (=d= in transient menu)
 - In dired-mode, add marked files: =M-x aidermacs-batch-add-dired-marked-files= (=b= in transient menu)
@@ -165,12 +166,13 @@ After adding files to the session, switch to the =*aidermacs*= buffer to interac
 
 *** File Management
 - Add Current File: =M-x aidermacs-add-current-file= (=f= in transient menu)
-- Add File Read-Only: =M-x aidermacs-current-file-read-only= (=R= in transient menu)
+- Add File Read-Only: =M-x aidermacs-add-current-file-read-only= (=R= in transient menu)
 - Add Files in Window: =M-x aidermacs-add-files-in-current-window= (=w= in transient menu)
 - Add Files by Type: =M-x aidermacs-add-same-type-files-under-dir= (=d= in transient menu)
 - Add Marked Files: =M-x aidermacs-batch-add-dired-marked-files= (=b= in transient menu)
 - List Added Files: =M-x aidermacs-list-added-files= (=L= in transient menu)
 - Drop File from Chat: =M-x aidermacs-drop-file= (=D= in transient menu)
+- Drop Current File: =M-x aidermacs-drop-current-file= (=O= in transient menu)
 
 *** Code Actions
 - Code Change: =M-x aidermacs-code-change= (=c= in transient menu)
@@ -233,11 +235,10 @@ Session management commands:
 - The transient menu is a popup menu that provides a convenient way to access all aidermacs commands.
 - The menu groups commands into categories:
   - "Session Control": Basic session management (=a=, =.=, =z=, =o=, =l=, =s=, =x=)
-  - "File Management": File management (=f=, =R=, =w=, =d=, =b=, =L=, =D=)
+  - "File Management": File management (=f=, =w=, =d=, =b=, =L=, =D=, =O=)
   - "Code Actions": Code modifications (=c=, =r=, =i=, =t=, =u=)
   - "Testing": Unit tests and debugging (=U=, =T=, =X=)
   - "Help & Documentation": Questions and explanations (=q=, =e=, =p=, =h=, =Q=)
   - "History & Output": History and output management (=H=, =C=, =m=, =y=, =g=, =P=)
-- Toggle options are available at the top of relevant sections
 
 Note: The default keybindings in the minor mode map (=C-c C-n=, =C-<return>=, =C-c C-c=, and =C-c C-z=) are always available when the minor mode is active. All other commands can be accessed either through =M-x= or through the transient menu after invoking =M-x aidermacs-transient-menu=.
