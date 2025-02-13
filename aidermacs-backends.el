@@ -52,7 +52,8 @@ Returns a list of (timestamp . output-text) pairs, most recent first."
 
 (defun aidermacs-get-last-output ()
   "Get the most recent output from aidermacs."
-  (car (aidermacs-get-output-history 1)))
+  (interactive)
+  (message aidermacs--current-output))
 
 (defun aidermacs-clear-output-history ()
   "Clear the output history."
