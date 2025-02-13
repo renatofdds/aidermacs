@@ -129,10 +129,20 @@ This section provides a step-by-step guide on how to use Aidermacs for AI-assist
 
 ** 1. Start an Aidermacs Session
 
-- Use the command =M-x aidermacs-run-aidermacs= (=a= in transient menu) to start an Aidermacs session.
-- This will open a new buffer named =*aidermacs:your-repo-name*= where you can interact with the AI.
-- If you want to use a specific AI model, you can customize the =Aidermacs-args= variable in your Emacs configuration.
-- You can also select a model interactively by using =M-x aidermacs-change-model= (=o= in transient menu).
+Aidermacs automatically determines the best root directory for your session using this priority:
+
+1. =project-current= if available (via project.el)
+2. =vc-git-root= if in a Git repository
+3. Directory of =buffer-file-name= if visiting a file
+4. =default-directory= as fallback
+
+Start a session with these options:
+
+- =C-c a a= or =M-x aidermacs-run-aidermacs=: Start with automatic root detection
+- =C-c a .= or =M-x aidermacs-run-in-current-dir=: Start in current directory with =--subtree-only=, good for large mono repos
+- =M-x aidermacs-change-model= (=o= in transient menu): Select AI model interactively
+
+The session buffer will be named =*aidermacs:your-repo-name*= where you can interact with the AI.
 
 ** 2. Add Files to the Session
 
