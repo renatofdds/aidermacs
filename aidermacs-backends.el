@@ -59,31 +59,6 @@ Returns a list of (timestamp . output-text) pairs, most recent first."
   (interactive)
   (setq aidermacs--output-history nil))
 
-
-(defun aidermacs-show-output-history ()
-  "Display the AI output history in a new buffer."
-  (interactive)
-  (let ((buf (get-buffer-create "*aidermacs-history*"))
-        (history aidermacs--output-history)) ; Get history from current buffer
-    (with-current-buffer buf
-      (erase-buffer)
-      (display-line-numbers-mode 1)
-      (dolist (entry history) ; Use passed history
-        (let ((timestamp (format-time-string "%Y-%m-%d %H:%M:%S" (car entry)))
-              (output (cdr entry)))
-          (insert (format "=== %s ===\n%s\n\n" timestamp output))))
-      (goto-char (point-min)))
-    (display-buffer buf)))
-
-(defun aidermacs-copy-last-output ()
-  "Copy the most recent AI output to the kill ring."
-  (interactive)
-  (if-let ((last-output (cdr (aidermacs-get-last-output))))
-      (progn
-        (kill-new last-output)
-        (message "Copied last AI output to kill ring"))
-    (message "No AI output available")))
-
 (defun aidermacs--store-output (output)
   "Store OUTPUT in the history with timestamp."
   (setq aidermacs--current-output output)

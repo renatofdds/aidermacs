@@ -322,6 +322,38 @@ wrap it in {aidermacs\nstr\naidermacs}. Otherwise return STR unchanged."
   (let ((command (aidermacs-read-string "Enter code change requirement: ")))
     (aidermacs-send-command-with-prefix "/code " command)))
 
+;;;###autoload
+(defun aidermacs-show-output-history ()
+  "Display the AI output history in a new buffer."
+  (interactive)
+  (let ((buf (get-buffer-create "*aidermacs-history*"))
+        (history aidermacs--output-history))
+    (with-current-buffer buf
+      (org-mode)
+      (setq buffer-read-only nil)
+      (erase-buffer)
+      (display-line-numbers-mode 1)
+      (dolist (entry history)
+        (let ((timestamp (format-time-string "%Y-%m-%d %H:%M:%S" (car entry)))
+              (output (cdr entry)))
+          (insert (format "* %s\n#+BEGIN_SRC\n%s\n#+END_SRC\n" timestamp output))))
+      (goto-char (point-min))
+      (setq buffer-read-only t)
+      (local-set-key (kbd "q") 'kill-this-buffer)
+    (switch-to-buffer-other-frame buf))))
+
+;;;###autoload
+(defun aidermacs-copy-last-output ()
+  "Copy the most recent AI output to the kill ring."
+  (interactive)
+  (if-let ((last-output (cdr (aidermacs-get-last-output))))
+      (progn
+        (kill-new last-output)
+        (message "Copied last AI output to kill ring"))
+    (message "No AI output available")))
+
+
+
 ;; New function to get command from user and send it prefixed with "/ask "
 ;;;###autoload
 (defun aidermacs-ask-question ()
