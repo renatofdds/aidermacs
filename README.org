@@ -83,6 +83,7 @@ With =aidermacs=, you get:
 * Configuration
 
 ** Terminal Backend Selection
+
 Choose your preferred terminal backend by setting =aidermacs-backend=:
 
 =vterm= provides better terminal compatibility and bracketed paste support, while =comint= is a simpler, built-in option.
@@ -96,7 +97,19 @@ Available backends:
 - =comint= (default): Uses Emacs' built-in terminal emulation
 - =vterm=: Leverages vterm for better terminal compatibility
 
+** Disabling Auto-Commits
+
+By default, Aidermacs automatically commits changes made by the AI. Some users may find this behavior disruptive. You can disable auto-commits by setting =aidermacs-auto-commits= to =nil=:
+
+#+BEGIN_SRC emacs-lisp
+;; Disable auto-commits
+(setq aidermacs-auto-commits nil)
+#+END_SRC
+
+With auto-commits disabled, you'll need to manually commit changes using your preferred Git workflow.
+
 ** Multiline Input Configuration
+
 When using the comint backend, you can customize the key binding for multiline input:
 
 #+BEGIN_SRC emacs-lisp
@@ -140,6 +153,7 @@ After adding files to the session, switch to the =*aidermacs*= buffer to interac
 
 *** Session Control
 - Run aidermacs: =M-x aidermacs-run-aidermacs= (=a= in transient menu)
+- Run in current directory: =M-x aidermacs-run-in-current-dir= (=.= in transient menu)
 - Switch to Buffer: =M-x aidermacs-switch-to-buffer= (=z= in transient menu)
 - Select Model: =M-x aidermacs-change-model= (=o= in transient menu)
 - Clear Session: =M-x aidermacs-clear= (=l= in transient menu)
@@ -215,11 +229,12 @@ Session management commands:
 - Access all commands through the transient menu: =M-x aidermacs-transient-menu=
 - The transient menu is a popup menu that provides a convenient way to access all aidermacs commands.
 - The menu groups commands into categories:
-  - "aidermacs Process": Basic session management (=a=, =z=, =o=, =l=, =s=, =x=)
-  - "Add File to aidermacs": File management (=f=, =R=, =w=, =d=, =b=)
-  - "Code Change": Code modifications (=t=, =c=, =r=, =i=, =U=, =T=, =m=, =u=)
-  - "Discussion": Questions and explanations (=q=, =y=, =e=, =p=, =D=)
-  - "Other": Additional commands (=g=, =Q=, =p=, =h=)
-- Toggle options are available at the top of some sections
+  - "Session Control": Basic session management (=a=, .=, =z=, =o=, =l=, =s=, =x=)
+  - "File Management": File management (=f=, =R=, =w=, =d=, =b=, =L=, =D=)
+  - "Code Actions": Code modifications (=c=, =r=, =i=, =t=, =u=)
+  - "Testing": Unit tests and debugging (=U=, =T=, =X=)
+  - "Help & Documentation": Questions and explanations (=q=, =e=, =p=, =h=, =Q=)
+  - "History & Output": History and output management (=H=, =C=, =m=, =y=, =g=, =P=)
+- Toggle options are available at the top of relevant sections
 
 Note: The default keybindings in the minor mode map (=C-c C-n=, =C-<return>=, =C-c C-c=, and =C-c C-z=) are always available when the minor mode is active. All other commands can be accessed either through =M-x= or through the transient menu after invoking =M-x aidermacs-transient-menu=.

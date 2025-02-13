@@ -40,6 +40,27 @@
   :type '(repeat string)
   :group 'aidermacs)
 
+(defcustom aidermacs-subtree-only nil
+  "When non-nil, run aider with --subtree-only flag to only consider files in current directory.
+This is useful for working in monorepos where you want to limit aider's scope."
+  :type 'boolean
+  :group 'aidermacs)
+
+(defcustom aidermacs-auto-commits t
+  "When non-nil, enable auto-commits of LLM changes.
+When nil, disable auto-commits requiring manual git commits."
+  :type 'boolean
+  :group 'aidermacs)
+
+(defun aidermacs-project-root ()
+  "Get the project root using project.el, VC, or fallback to file directory."
+  (or (when (fboundp 'project-current)
+        (project-root (project-current)))
+      (vc-git-root default-directory)
+      (when buffer-file-name
+        (file-name-directory buffer-file-name))
+      default-directory))
+
 (defcustom aidermacs--switch-to-buffer-other-frame nil
   "When non-nil, open aidermacs buffer in a new frame using `switch-to-buffer-other-frame'.
 When nil, use standard `display-buffer' behavior."
@@ -131,7 +152,8 @@ Affects the system message too.")
   ["aidermacs: AI Pair Programming"
    ["Session Control"
     (aidermacs--infix-switch-to-buffer-other-frame)
-    ("a" "Run aidermacs"              aidermacs-run-aidermacs)
+    ("a" "Start/Open Aidermacs"       aidermacs-run-aidermacs)
+    ("." "Run in Current Dir"         aidermacs-run-in-current-dir)
     ("z" "Switch to Buffer"           aidermacs-switch-to-buffer)
     ("o" "Select Model"               aidermacs-change-model)
     ("l" "Clear Session"              aidermacs-clear)
@@ -193,18 +215,34 @@ If not in a git repository and no buffer file exists, an error is raised."
       (error "Not in a git repository and current buffer is not associated with a file.  Please open a file or start aidermacs from within a git repository.")))))
 
 ;;;###autoload
-(defun aidermacs-run-aidermacs (&optional edit-args)
+(defun aidermacs-run-aidermacs (&optional edit-args directory)
   "Run aidermacs process using the selected backend.
-With the universal argument, prompt to edit aidermacs-args before running."
+With the universal argument EDIT-ARGS, prompt to edit aidermacs-args before running.
+Optional DIRECTORY parameter sets working directory, defaults to project root."
   (interactive "P")
-  (let* ((buffer-name (aidermacs-buffer-name))
+  (let* ((default-directory (or directory (aidermacs-project-root)))
+         (buffer-name (aidermacs-buffer-name))
          (current-args (if edit-args
                            (split-string (read-string "Edit aidermacs arguments: "
                                                       (mapconcat 'identity aidermacs-args " ")))
-                         aidermacs-args)))
+                         aidermacs-args))
+         (final-args (append current-args
+                             (when (not aidermacs-auto-commits)
+                               '("--no-auto-commits"))
+                             (when aidermacs-subtree-only
+                               '("--subtree-only")))))
     (if (get-buffer buffer-name)
         (aidermacs-switch-to-buffer)
-      (aidermacs-run-aidermacs-backend aidermacs-program current-args buffer-name))))
+      (aidermacs-run-aidermacs-backend aidermacs-program final-args buffer-name)
+      (aidermacs-switch-to-buffer))))
+
+;;;###autoload
+(defun aidermacs-run-in-current-dir ()
+  "Run aidermacs in the current directory with --subtree-only flag.
+This is useful for working in monorepos where you want to limit aider's scope."
+  (interactive)
+  (let ((aidermacs-subtree-only t))
+    (aidermacs-run-aidermacs nil default-directory)))
 
 (defun aidermacs--send-command (command &optional switch-to-buffer callback)
   "Send COMMAND to the corresponding aidermacs process.
