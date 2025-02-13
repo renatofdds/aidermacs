@@ -45,9 +45,16 @@ With =aidermacs=, you get:
    - Easy configuration to choose your preferred terminal emulation
    - Extensible architecture for adding new backends
 
-4. Community-Focused Development
+4. Enhanced File Management from Emacs
+   - List files currently in chat with =M-x aidermacs-list-added-files=
+   - Drop specific files from chat with =M-x aidermacs-drop-file=
+   - View complete chat history with =M-x aidermacs-show-output-history=
+   - and more
+
+5. Community-Driven Development
    - =aidermacs= is actively developed and maintained by the community, incorporating user feedback and contributions.
    - We prioritize features and improvements that directly benefit Emacs users, ensuring a tool that evolves with your needs.
+
 
 ... and more to come 🚀
 
@@ -131,22 +138,49 @@ After adding files to the session, switch to the =*aidermacs*= buffer to interac
 - Start architectural discussion: =M-x aidermacs-architect-discussion= (=t= in transient menu)
 - Undo last AI change: =M-x aidermacs-undo-last-change= (=u= in transient menu)
 
-*** Questions and Explanations
-- Ask the AI questions about the current code context: =M-x aidermacs-ask-question= (=q= in transient menu)
-- Ask the AI a general question: =M-x aidermacs-general-question= (=Q= in transient menu)
-- Explain a function or region of code: =M-x aidermacs-function-or-region-explain= (=e= in transient menu)
-- Explain the symbol at point: =M-x aidermacs-explain-symbol-under-point= (=p= in transient menu)
-- Get help on aidermacs commands: =M-x aidermacs-help= (=h= in transient menu)
+*** Session Control
+- Run aidermacs: =M-x aidermacs-run-aidermacs= (=a= in transient menu)
+- Switch to Buffer: =M-x aidermacs-switch-to-buffer= (=z= in transient menu)
+- Select Model: =M-x aidermacs-change-model= (=o= in transient menu)
+- Clear Session: =M-x aidermacs-clear= (=l= in transient menu)
+- Reset Session: =M-x aidermacs-reset= (=s= in transient menu)
+- Exit Session: =M-x aidermacs-exit= (=x= in transient menu)
 
-*** Testing and Debugging
-- Generate unit tests: =M-x aidermacs-write-unit-test= (=U= in transient menu)
-- Fix failing test: =M-x aidermacs-fix-failing-test-under-cursor= (=T= in transient menu)
-- Debug exception: =M-x aidermacs-debug-exception= (=D= in transient menu)
+*** File Management
+- Add Current File: =M-x aidermacs-add-current-file= (=f= in transient menu)
+- Add File Read-Only: =M-x aidermacs-current-file-read-only= (=R= in transient menu)
+- Add Files in Window: =M-x aidermacs-add-files-in-current-window= (=w= in transient menu)
+- Add Files by Type: =M-x aidermacs-add-same-type-files-under-dir= (=d= in transient menu)
+- Add Marked Files: =M-x aidermacs-batch-add-dired-marked-files= (=b= in transient menu)
+- List Added Files: =M-x aidermacs-list-added-files= (=L= in transient menu)
+- Drop File from Chat: =M-x aidermacs-drop-file= (=D= in transient menu)
 
-*** Other Interactions
-- Continue with last task: =M-x aidermacs-go-ahead= (=y= in transient menu)
-- General command: =M-x aidermacs-general-command= (=g= in transient menu)
-- Show last commit with Magit: =M-x aidermacs-magit-show-last-commit= (=m= in transient menu)
+*** Code Actions
+- Code Change: =M-x aidermacs-code-change= (=c= in transient menu)
+- Refactor Code: =M-x aidermacs-function-or-region-refactor= (=r= in transient menu)
+- Implement TODO: =M-x aidermacs-implement-todo= (=i= in transient menu)
+- Architect Discussion: =M-x aidermacs-architect-discussion= (=t= in transient menu)
+- Undo Last Change: =M-x aidermacs-undo-last-change= (=u= in transient menu)
+
+*** Testing
+- Write Unit Test: =M-x aidermacs-write-unit-test= (=U= in transient menu)
+- Fix Failing Test: =M-x aidermacs-fix-failing-test-under-cursor= (=T= in transient menu)
+- Debug Exception: =M-x aidermacs-debug-exception= (=X= in transient menu)
+
+*** Help & Documentation
+- Ask Question: =M-x aidermacs-ask-question= (=q= in transient menu)
+- Explain Code: =M-x aidermacs-function-or-region-explain= (=e= in transient menu)
+- Explain Symbol: =M-x aidermacs-explain-symbol-under-point= (=p= in transient menu)
+- Get Help: =M-x aidermacs-help= (=h= in transient menu)
+- General Question: =M-x aidermacs-general-question= (=Q= in transient menu)
+
+*** History & Output
+- Show History: =M-x aidermacs-show-output-history= (=H= in transient menu)
+- Copy Last Output: =M-x aidermacs-get-last-output= (=C= in transient menu)
+- Show Last Commit: =M-x aidermacs-magit-show-last-commit= (=m= in transient menu)
+- Go Ahead: =M-x aidermacs-go-ahead= (=y= in transient menu)
+- General Command: =M-x aidermacs-general-command= (=g= in transient menu)
+- Open Prompt File: =M-x aidermacs-open-prompt-file= (=P= in transient menu)
 
 ** 4. Send Code Blocks
 

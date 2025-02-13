@@ -137,7 +137,7 @@ Affects the system message too.")
     ("l" "Clear Session"              aidermacs-clear)
     ("s" "Reset Session"              aidermacs-reset)
     ("x" "Exit Session"               aidermacs-exit)]
-   
+
    ["File Management"
     (aidermacs--infix-add-file-read-only)
     ("f" "Add Current File"           aidermacs-add-current-file)
@@ -147,28 +147,28 @@ Affects the system message too.")
     ("b" "Add Marked Files"           aidermacs-batch-add-dired-marked-files)
     ("L" "List Added Files"           aidermacs-list-added-files)
     ("D" "Drop File from Chat"        aidermacs-drop-file)]
-   
+
    ["Code Actions"
     ("c" "Code Change"                aidermacs-code-change)
     ("r" "Refactor Code"              aidermacs-function-or-region-refactor)
     ("i" "Implement TODO"             aidermacs-implement-todo)
     ("t" "Architect Discussion"       aidermacs-architect-discussion)
     ("u" "Undo Last Change"           aidermacs-undo-last-change)]
-   
+
    ["Testing"
     ("U" "Write Unit Test"            aidermacs-write-unit-test)
     ("T" "Fix Failing Test"           aidermacs-fix-failing-test-under-cursor)
     ("X" "Debug Exception"            aidermacs-debug-exception)]
-   
+
    ["Help & Documentation"
     ("q" "Ask Question"               aidermacs-ask-question)
     ("e" "Explain Code"               aidermacs-function-or-region-explain)
     ("p" "Explain Symbol"             aidermacs-explain-symbol-under-point)
     ("h" "Get Help"                   aidermacs-help)
     ("Q" "General Question"           aidermacs-general-question)]
-   
+
    ["History & Output"
-    ("H" "Show History"               aidermacs-show-output-history)
+    ("H" "Show Output History"        aidermacs-show-output-history)
     ("C" "Copy Last Output"           aidermacs-get-last-output)
     ("m" "Show Last Commit"           aidermacs-magit-show-last-commit)
     ("y" "Go Ahead"                   aidermacs-go-ahead)
