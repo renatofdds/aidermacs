@@ -535,7 +535,7 @@ If cursor is inside a function, include the function name as context."
   "Prompt the user for a command and send it to the corresponding aidermacs comint buffer prefixed with \"/debug \",
 replacing all newline characters except for the one at the end."
   (interactive)
-  (let ((command (aidermacs-plain-read-string "Enter exception, can be multiple lines: ")))
+  (let ((command (aidermacs-read-string "Enter exception, can be multiple lines: ")))
     (aidermacs--send-command (concat "/ask Investigate the following exception, with current added files as context: " command) t)))
 
 ;;;###autoload
