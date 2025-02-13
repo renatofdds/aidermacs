@@ -375,7 +375,19 @@ Returns a deduplicated list of such file names."
       (progn
         (message "%s" (prin1-to-string files))
         files)
-    (message "No files currently in chat or unable to parse output")))
+    (error "No files currently added to chat or unable to parse output")))
+
+;;;###autoload
+(defun aidermacs-drop-file ()
+  "Drop a file from the chat session by selecting from currently added files."
+  (interactive)
+  (aidermacs--send-command "/ls" t)
+  ;; Wait briefly for output to be processed
+  (sleep-for 0.5)
+  (if-let* ((files (aidermacs-list-added-files))
+            (file (completing-read "Select file to drop: " files nil t)))
+      (aidermacs--send-command (format "/drop %s" file) t)
+    (error "No files available to drop")))
 
 ;;;###autoload
 (defun aidermacs-show-output-history ()
