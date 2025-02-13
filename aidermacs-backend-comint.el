@@ -257,9 +257,6 @@ This allows for multi-line input without sending the command."
   (with-current-buffer buffer
     (let ((process (get-buffer-process buffer))
           (inhibit-read-only t))
-      ;; Store command before sending
-      (setq aidermacs--last-command command
-            aidermacs--current-output nil)
       (goto-char (process-mark process))
       (aidermacs-reset-font-lock-state)
       (insert (propertize command

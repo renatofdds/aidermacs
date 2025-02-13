@@ -206,15 +206,17 @@ With the universal argument, prompt to edit aidermacs-args before running."
         (aidermacs-switch-to-buffer)
       (aidermacs-run-aidermacs-backend aidermacs-program current-args buffer-name))))
 
-(defun aidermacs--send-command (command &optional switch-to-buffer)
-  "Send COMMAND to the corresponding aidermacs process after performing necessary checks.
-Dispatches to the appropriate backend."
+(defun aidermacs--send-command (command &optional switch-to-buffer callback)
+  "Send COMMAND to the corresponding aidermacs process.
+If SWITCH-TO-BUFFER is non-nil, switch to the aidermacs buffer.
+If CALLBACK is provided, it will be called with the command output when available."
   (if-let ((aidermacs-buffer (get-buffer (aidermacs-buffer-name))))
       (let ((processed-command (aidermacs--process-message-if-multi-line command)))
-        (aidermacs--send-command-backend aidermacs-buffer processed-command)
-        (when switch-to-buffer
+        (when (and switch-to-buffer aidermacs-buffer)
           (aidermacs-switch-to-buffer))
-        (sleep-for 0.2))
+        (aidermacs--send-command-backend aidermacs-buffer processed-command callback)
+        (when (and switch-to-buffer (not (string= (buffer-name) (aidermacs-buffer-name))))
+          (aidermacs-switch-to-buffer)))
     (message "Buffer %s does not exist. Please start aidermacs with 'M-x aidermacs-run-aidermacs'." aidermacs-buffer-name)))
 
 
@@ -228,8 +230,7 @@ If the current buffer is already the aidermacs buffer, do nothing."
   (interactive)
   (let ((buffer (get-buffer (aidermacs-buffer-name))))
     (cond
-     ((string= (buffer-name) (aidermacs-buffer-name))
-      (message "Already in aidermacs buffer"))
+     ((string= (buffer-name) (aidermacs-buffer-name)) t)
      ((and buffer (get-buffer-window buffer))
       (select-window (get-buffer-window buffer)))  ;; Switch to existing window
      (buffer
@@ -332,7 +333,6 @@ wrap it in {aidermacs\nstr\naidermacs}. Otherwise return STR unchanged."
 
 (defun aidermacs--parse-ls-output (output)
   "Parse the /ls command OUTPUT to extract files in chat.
-
 After the \"Files in chat:\" header, each subsequent line that begins with
 whitespace is processed. The first non-whitespace token is taken as the file name.
 Relative paths are resolved using the repository root (if available) or
@@ -351,11 +351,12 @@ Returns a deduplicated list of such file names."
         (let ((base (or (vc-git-root default-directory)
                         default-directory))
               files)
-          ;; Process lines that start with whitespace.
+          ;; Process each line that begins with whitespace.
           (while (and (not (eobp))
                       (string-match-p "^[[:space:]]" (thing-at-point 'line t)))
             (let* ((line (string-trim (thing-at-point 'line t)))
-                   (file (car (split-string line))))
+                   (parts (split-string line))
+                   (file (if parts (car parts) "")))
               (unless (string-empty-p file)
                 (let ((file-abs (if (file-name-absolute-p file)
                                     file
@@ -367,28 +368,31 @@ Returns a deduplicated list of such file names."
 
 ;;;###autoload
 (defun aidermacs-list-added-files ()
-  "List all files currently added to the chat session."
+  "List all files currently added to the chat session.
+Sends the \"/ls\" command and returns the list of files via callback."
   (interactive)
-  (aidermacs--send-command "/ls" t)
-  ;; Wait briefly for output to be processed
-  (sleep-for 0.5)
-  (if-let ((files (aidermacs--parse-ls-output aidermacs--current-output)))
-      (progn
-        (message "%s" (prin1-to-string files))
-        files)
-    (error "No files currently added to chat or unable to parse output")))
+  (aidermacs--send-command
+   "/ls" t
+   (lambda (output)
+     (let ((files (aidermacs--parse-ls-output output)))
+       (message "%s" (prin1-to-string files))
+       files))))
 
 ;;;###autoload
 (defun aidermacs-drop-file ()
   "Drop a file from the chat session by selecting from currently added files."
   (interactive)
-  (aidermacs--send-command "/ls" t)
-  ;; Wait briefly for output to be processed
-  (sleep-for 0.5)
-  (if-let* ((files (aidermacs-list-added-files))
-            (file (completing-read "Select file to drop: " files nil t)))
-      (aidermacs--send-command (format "/drop %s" file) t)
-    (error "No files available to drop")))
+  (aidermacs--send-command
+   "/ls" t
+   (lambda (output)
+     (condition-case nil
+         (if-let* ((files (aidermacs--parse-ls-output output))
+                   (file (completing-read "Select file to drop: " files nil t)))
+             (progn
+               (aidermacs--send-command (format "/drop %s" file)))
+           (message "No files available to drop"))
+       (quit (message "Drop file cancelled"))))))
+
 
 ;;;###autoload
 (defun aidermacs-show-output-history ()
@@ -408,7 +412,7 @@ Returns a deduplicated list of such file names."
       (goto-char (point-min))
       (setq buffer-read-only t)
       (local-set-key (kbd "q") 'kill-this-buffer)
-    (switch-to-buffer-other-frame buf))))
+      (switch-to-buffer-other-frame buf))))
 
 ;;;###autoload
 (defun aidermacs-get-last-output ()

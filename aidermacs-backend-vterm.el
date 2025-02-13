@@ -11,54 +11,62 @@
 (defvar vterm-shell)
 (defvar vterm-buffer-name)
 
+(defun aidermacs--vterm-check-finish-sequence-repeated (proc orig-filter start-point expected)
+  "Check for the finish sequence repeatedly in PROC’s buffer.
+Force a vterm render and redisplay. If the finish sequence is detected,
+store the output via `aidermacs--store-output`, restore ORIG-FILTER, and return t."
+  (when (buffer-live-p (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
+      ;; Force vterm to update its display.
+      (when (fboundp 'vterm--render)
+        (vterm--render))
+      (force-window-update (selected-window))
+      (redisplay t)
+      (let* ((prompt-point (vterm--get-prompt-point))
+             (seq-start (or (save-excursion
+                              (goto-char prompt-point)
+                              (search-backward "\n" nil t))
+                            (point-min)))
+             (seq-end (or (save-excursion
+                            (goto-char prompt-point)
+                            (search-forward "\n" nil t))
+                          (point-max)))
+             (finish-seq (buffer-substring-no-properties seq-start seq-end)))
+        (when (and (string-match-p expected finish-seq)
+                   (< start-point prompt-point))
+          (let ((output (buffer-substring-no-properties start-point seq-start)))
+            (aidermacs--store-output (string-trim output)))
+          (set-process-filter proc orig-filter)
+          t)))))
+
 (defun aidermacs--vterm-output-advice (orig-fun &rest args)
-  "Capture output before and after executing `vterm-send-return'.
-This advice records the current prompt position as START-POINT,
-calls ORIG-FUN (with ARGS) and then waits until the expected finish
-sequence appears.  The expected finish sequence is defined as the
-substring from the newline before `(vterm--get-prompt-point)` to the
-newline after `(vterm--get-prompt-point)`, matching a regex of `\\n>.*`
-or `\\ndiff>.*`.
-
-Once that is detected, the output from START-POINT up to the beginning
-of the finish sequence is captured and stored via `aidermacs--store-output`.
-
-This is a covoluted HACK of capturing aider output until someone comes up with a better idea."
-  (when (and (bound-and-true-p aidermacs-minor-mode)
-             (eq major-mode 'vterm-mode))
-    (let* ((start-point (vterm--get-prompt-point))
-           (proc (get-buffer-process (current-buffer)))
-           (expected "\n[^[:space:]]*>[[:space:]].*\n"))
-      ;; Save the original process filter.
-      (let ((orig-filter (process-filter proc)))
-        ;; Set up our temporary filter.
+  "Advice for vterm output: capture output until the finish sequence appears.
+This sets a temporary process filter and installs a repeating timer
+to force vterm to update until the expected finish sequence is detected."
+  (if (and (bound-and-true-p aidermacs-minor-mode)
+           (eq major-mode 'vterm-mode))
+      (let* ((start-point (vterm--get-prompt-point))
+             (proc (get-buffer-process (current-buffer)))
+             (expected "\n[^[:space:]]*>[[:space:]].*\n")
+             (orig-filter (process-filter proc))
+             (timer nil))
+        ;; Set our temporary process filter.
         (set-process-filter
          proc
          (lambda (proc string)
-           ;; Call the original filter first.
+           ;; Call the original filter.
            (funcall orig-filter proc string)
-           ;; Then check for our finish sequence.
-           (let ((buffer (process-buffer proc)))
-             (with-current-buffer buffer
-               (let* ((prompt-point (vterm--get-prompt-point))
-                      (seq-start (or (save-excursion
-                                       (goto-char prompt-point)
-                                       (search-backward "\n" nil t))
-                                     (point-min)))
-                      (seq-end (or (save-excursion
-                                     (goto-char prompt-point)
-                                     (search-forward "\n" nil t))
-                                   (point-max)))
-                      (finish-seq (buffer-substring-no-properties seq-start seq-end)))
-                 (when (and (string-match-p expected finish-seq)
-                            (< start-point prompt-point))
-                   ;; Capture the output from the original start-point up to
-                   ;; the beginning of the finish sequence.
-                   (let ((output (buffer-substring-no-properties start-point seq-start)))
-                     (aidermacs--store-output (string-trim output))
-                     ;; Restore the original filter.
-                     (set-process-filter proc orig-filter)))))))))))
-    (apply orig-fun args))
+           ;; If we haven't yet started our repeating timer, do so.
+           (unless timer
+             (setq timer (run-with-timer
+                          0.05 0.05
+                          (lambda ()
+                            (when (aidermacs--vterm-check-finish-sequence-repeated
+                                   proc orig-filter start-point expected)
+                              (cancel-timer timer)
+                              (setq timer nil))))))))
+        (apply orig-fun args))
+    (apply orig-fun args)))
 
 (defun aidermacs-run-aidermacs-vterm (program args buffer-name)
   "Create a vterm-based buffer and run aidermacs PROGRAM with ARGS in BUFFER-NAME.
@@ -82,9 +90,6 @@ and BUFFER-NAME is the name of the vterm buffer."
 (defun aidermacs--send-command-vterm (buffer command)
   "Send COMMAND to the aidermacs vterm BUFFER."
   (with-current-buffer buffer
-    ;; Store command before sending
-    (setq aidermacs--last-command command
-          aidermacs--current-output nil)
     (vterm-send-string command)
     (vterm-send-return)))
 

@@ -55,13 +55,25 @@ Returns a list of (timestamp . output-text) pairs, most recent first."
   (interactive)
   (setq aidermacs--output-history nil))
 
+(defvar aidermacs--current-callback nil
+  "Store the callback function for the current command.")
+
+(defvar aidermacs--in-callback nil
+  "Flag to prevent recursive callbacks.")
+
 (defun aidermacs--store-output (output)
-  "Store OUTPUT string in the history with timestamp."
+  "Store OUTPUT string in the history with timestamp.
+If there's a callback function, call it with the output."
   (setq aidermacs--current-output (substring-no-properties output))
   (push (cons (current-time) (substring-no-properties output)) aidermacs--output-history)
   (when (> (length aidermacs--output-history) aidermacs-output-limit)
     (setq aidermacs--output-history
-          (seq-take aidermacs--output-history aidermacs-output-limit))))
+          (seq-take aidermacs--output-history aidermacs-output-limit)))
+  (unless aidermacs--in-callback
+    (when aidermacs--current-callback
+      (let ((aidermacs--in-callback t))
+        (funcall aidermacs--current-callback output)
+        (setq aidermacs--current-callback nil)))))
 
 ;; Backend dispatcher functions
 (defun aidermacs-run-aidermacs-backend (program args buffer-name)
@@ -74,8 +86,12 @@ and BUFFER-NAME is the name for the aidermacs buffer."
    (t
     (aidermacs-run-aidermacs-comint program args buffer-name))))
 
-(defun aidermacs--send-command-backend (buffer command)
-  "Send COMMAND to BUFFER using the appropriate backend."
+(defun aidermacs--send-command-backend (buffer command &optional callback)
+  "Send COMMAND to BUFFER using the appropriate backend.
+CALLBACK if provided will be called with the command output when available."
+  (setq aidermacs--last-command command
+        aidermacs--current-output nil
+        aidermacs--current-callback callback)
   (cond
    ((eq aidermacs-backend 'vterm)
     (aidermacs--send-command-vterm buffer command))

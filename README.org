@@ -48,7 +48,7 @@ With =aidermacs=, you get:
 4. Enhanced File Management from Emacs
    - List files currently in chat with =M-x aidermacs-list-added-files=
    - Drop specific files from chat with =M-x aidermacs-drop-file=
-   - View complete chat history with =M-x aidermacs-show-output-history=
+   - View output history with =M-x aidermacs-show-output-history=
    - and more
 
 5. Community-Driven Development
