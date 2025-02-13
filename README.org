@@ -24,9 +24,9 @@ Aidermacs thrives on community involvement. We believe that the best software is
 Your contributions are essential to making Aidermacs the best AI pair programming tool for Emacs!
 
 * Why Aidermacs over aider.el?
-Aidermacs begins as a fork of [[https://github.com/tninja/aider.el][aider.el]], created to offer a more Emacs-native experience while still integrating with [[https://github.com/paul-gauthier/aider][Aider]].
+Aidermacs begins as a fork of [[https://github.com/tninja/aider.el][aider.el]], intended to offer more Emacs-native experience integrating with [[https://github.com/paul-gauthier/aider][Aider]].
 
-While =aider.el= strictly mirrors Aider's CLI behavior, =Aidermacs= prioritizes Emacs workflow integration. This design philosophy allows you to harness Aider's powerful capabilities through a natural, Emacs-native coding experience.
+=Aidermacs= and =aider.el= are different development philosophies, =Aidermacs= prioritizes Emacs workflow integration, but =aider.el= emphasizes on replicating Aider's CLI behavior.
 
 With =Aidermacs=, you get:
 
