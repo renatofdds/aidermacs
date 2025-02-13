@@ -39,8 +39,8 @@ Each entry is a cons cell (timestamp . output-text).")
 (defvar aidermacs--last-command nil
   "Store the last command sent to aidermacs.")
 
-(defvar aidermacs--current-output nil
-  "Accumulator for current output being captured.")
+(defvar aidermacs--current-output ""
+  "Accumulator for current output being captured as a string.")
 
 (defun aidermacs-get-output-history (&optional limit)
   "Get the output history, optionally limited to LIMIT entries.
@@ -50,20 +50,15 @@ Returns a list of (timestamp . output-text) pairs, most recent first."
         (seq-take history limit)
       history)))
 
-(defun aidermacs-get-last-output ()
-  "Get the most recent output from aidermacs."
-  (interactive)
-  (message aidermacs--current-output))
-
 (defun aidermacs-clear-output-history ()
   "Clear the output history."
   (interactive)
   (setq aidermacs--output-history nil))
 
 (defun aidermacs--store-output (output)
-  "Store OUTPUT in the history with timestamp."
-  (setq aidermacs--current-output output)
-  (push (cons (current-time) output) aidermacs--output-history)
+  "Store OUTPUT string in the history with timestamp."
+  (setq aidermacs--current-output (substring-no-properties output))
+  (push (cons (current-time) (substring-no-properties output)) aidermacs--output-history)
   (when (> (length aidermacs--output-history) aidermacs-output-limit)
     (setq aidermacs--output-history
           (seq-take aidermacs--output-history aidermacs-output-limit))))
@@ -79,14 +74,13 @@ and BUFFER-NAME is the name for the aidermacs buffer."
    (t
     (aidermacs-run-aidermacs-comint program args buffer-name))))
 
-(defun aidermacs--send-command-backend (buffer command &optional switch-to-buffer)
-  "Send COMMAND to BUFFER using the appropriate backend.
-If SWITCH-TO-BUFFER is non-nil, switch to the buffer after sending."
+(defun aidermacs--send-command-backend (buffer command)
+  "Send COMMAND to BUFFER using the appropriate backend."
   (cond
    ((eq aidermacs-backend 'vterm)
-    (aidermacs--send-command-vterm buffer command switch-to-buffer))
+    (aidermacs--send-command-vterm buffer command))
    (t
-    (aidermacs--send-command-comint buffer command switch-to-buffer))))
+    (aidermacs--send-command-comint buffer command))))
 
 (provide 'aidermacs-backends)
 

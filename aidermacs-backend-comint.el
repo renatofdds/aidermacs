@@ -216,7 +216,7 @@ This allows for multi-line input without sending the command."
     (kill-buffer aidermacs--syntax-work-buffer)))
 
 (defvar-local aidermacs--comint-output-temp ""
-  "Temporary output variable storing the output log.")
+  "Temporary output variable storing the raw output string.")
 
 (defun aidermacs-input-sender (proc string)
   "Reset font-lock state before executing a command."
@@ -224,10 +224,10 @@ This allows for multi-line input without sending the command."
   (comint-simple-send proc (aidermacs--process-message-if-multi-line string)))
 
 (defun aidermacs--comint-output-filter (output)
-  "Accumulate OUTPUT until a prompt is detected, then store it."
+  "Accumulate OUTPUT string until a prompt is detected, then store it."
   (unless (string-empty-p output)
     (setq aidermacs--comint-output-temp
-          (concat aidermacs--comint-output-temp output))
+          (concat aidermacs--comint-output-temp (substring-no-properties output)))
     ;; Check if the output contains a prompt
     (when (string-match-p "\n[^[:space:]]*>[[:space:]]$" aidermacs--comint-output-temp)
       (aidermacs--store-output aidermacs--comint-output-temp)
@@ -252,9 +252,8 @@ This allows for multi-line input without sending the command."
           (use-local-map local-map))
         (font-lock-add-keywords nil aidermacs-font-lock-keywords t)))))
 
-(defun aidermacs--send-command-comint (buffer command &optional switch-to-buffer)
-  "Send COMMAND to the aidermacs comint BUFFER.
-If SWITCH-TO-BUFFER is non-nil, switch to the buffer after sending."
+(defun aidermacs--send-command-comint (buffer command)
+  "Send COMMAND to the aidermacs comint BUFFER."
   (with-current-buffer buffer
     (let ((process (get-buffer-process buffer))
           (inhibit-read-only t))

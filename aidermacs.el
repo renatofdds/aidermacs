@@ -169,7 +169,8 @@ Affects the system message too.")
     ("p" "Open Prompt File"           aidermacs-open-prompt-file)
     ("h" "Help"                       aidermacs-help)
     ("H" "Show Output History"        aidermacs-show-output-history)
-    ("C" "Copy Last Output"           aidermacs-copy-last-output)
+    ("C" "Copy Last Output"           aidermacs-get-last-output)
+    ("L" "List Files in Chat"         aidermacs-list-added-files)
     ]
    ])
 
@@ -209,7 +210,7 @@ With the universal argument, prompt to edit aidermacs-args before running."
 Dispatches to the appropriate backend."
   (if-let ((aidermacs-buffer (get-buffer (aidermacs-buffer-name))))
       (let ((processed-command (aidermacs--process-message-if-multi-line command)))
-        (aidermacs--send-command-backend aidermacs-buffer processed-command switch-to-buffer)
+        (aidermacs--send-command-backend aidermacs-buffer processed-command)
         (when switch-to-buffer
           (aidermacs-switch-to-buffer))
         (sleep-for 0.2))
@@ -221,15 +222,21 @@ Dispatches to the appropriate backend."
 (defun aidermacs-switch-to-buffer ()
   "Switch to the aidermacs buffer.
 When `aidermacs--switch-to-buffer-other-frame' is non-nil, open in a new frame.
+If the buffer is already visible in a window, switch to that window.
 If the current buffer is already the aidermacs buffer, do nothing."
   (interactive)
-  (if (string= (buffer-name) (aidermacs-buffer-name))
-      (message "Already in aidermacs buffer")
-    (if-let ((buffer (get-buffer (aidermacs-buffer-name))))
-        (if aidermacs--switch-to-buffer-other-frame
-            (switch-to-buffer-other-frame buffer)
-          (pop-to-buffer buffer))
-      (message "Buffer '%s' does not exist." (aidermacs-buffer-name)))))
+  (let ((buffer (get-buffer (aidermacs-buffer-name))))
+    (cond
+     ((string= (buffer-name) (aidermacs-buffer-name))
+      (message "Already in aidermacs buffer"))
+     ((and buffer (get-buffer-window buffer))
+      (select-window (get-buffer-window buffer)))  ;; Switch to existing window
+     (buffer
+      (if aidermacs--switch-to-buffer-other-frame
+          (switch-to-buffer-other-frame buffer)
+        (pop-to-buffer buffer)))
+     (t
+      (message "Buffer '%s' does not exist." (aidermacs-buffer-name))))))
 
 ;; Function to reset the aidermacs buffer
 ;;;###autoload
@@ -322,6 +329,54 @@ wrap it in {aidermacs\nstr\naidermacs}. Otherwise return STR unchanged."
   (let ((command (aidermacs-read-string "Enter code change requirement: ")))
     (aidermacs-send-command-with-prefix "/code " command)))
 
+(defun aidermacs--parse-ls-output (output)
+  "Parse the /ls command OUTPUT to extract files in chat.
+
+After the \"Files in chat:\" header, each subsequent line that begins with
+whitespace is processed. The first non-whitespace token is taken as the file name.
+Relative paths are resolved using the repository root (if available) or
+`default-directory`. Only files that exist on disk are included in the result.
+Returns a deduplicated list of such file names."
+  (when output
+    (with-temp-buffer
+      (insert output)
+      (goto-char (point-min))
+      (when (search-forward "Files in chat:" nil t)
+        ;; Skip header and any blank lines.
+        (forward-line 1)
+        (while (and (not (eobp))
+                    (string-empty-p (string-trim (thing-at-point 'line t))))
+          (forward-line 1))
+        (let ((base (or (vc-git-root default-directory)
+                        default-directory))
+              files)
+          ;; Process lines that start with whitespace.
+          (while (and (not (eobp))
+                      (string-match-p "^[[:space:]]" (thing-at-point 'line t)))
+            (let* ((line (string-trim (thing-at-point 'line t)))
+                   (file (car (split-string line))))
+              (unless (string-empty-p file)
+                (let ((file-abs (if (file-name-absolute-p file)
+                                    file
+                                  (expand-file-name file base))))
+                  (when (file-exists-p file-abs)
+                    (push file files)))))
+            (forward-line 1))
+          (delete-dups (nreverse files)))))))
+
+;;;###autoload
+(defun aidermacs-list-added-files ()
+  "List all files currently added to the chat session."
+  (interactive)
+  (aidermacs--send-command "/ls" t)
+  ;; Wait briefly for output to be processed
+  (sleep-for 0.5)
+  (if-let ((files (aidermacs--parse-ls-output aidermacs--current-output)))
+      (progn
+        (message "%s" (prin1-to-string files))
+        files)
+    (message "No files currently in chat or unable to parse output")))
+
 ;;;###autoload
 (defun aidermacs-show-output-history ()
   "Display the AI output history in a new buffer."
@@ -343,15 +398,12 @@ wrap it in {aidermacs\nstr\naidermacs}. Otherwise return STR unchanged."
     (switch-to-buffer-other-frame buf))))
 
 ;;;###autoload
-(defun aidermacs-copy-last-output ()
-  "Copy the most recent AI output to the kill ring."
+(defun aidermacs-get-last-output ()
+  "Get the most recent output from aidermacs."
   (interactive)
-  (if-let ((last-output (cdr (aidermacs-get-last-output))))
-      (progn
-        (kill-new last-output)
-        (message "Copied last AI output to kill ring"))
-    (message "No AI output available")))
-
+  (message aidermacs--current-output)
+  (kill-new aidermacs--current-output)
+  aidermacs--current-output)
 
 
 ;; New function to get command from user and send it prefixed with "/ask "

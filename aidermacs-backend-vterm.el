@@ -80,17 +80,14 @@ and BUFFER-NAME is the name of the vterm buffer."
       (setq vterm-shell vterm-shell-orig)))
   buffer-name)
 
-(defun aidermacs--send-command-vterm (buffer command &optional switch-to-buffer)
-  "Send COMMAND to the aidermacs vterm BUFFER.
-If SWITCH-TO-BUFFER is non-nil, switch to BUFFER after sending the command."
+(defun aidermacs--send-command-vterm (buffer command)
+  "Send COMMAND to the aidermacs vterm BUFFER."
   (with-current-buffer buffer
     ;; Store command before sending
     (setq aidermacs--last-command command
           aidermacs--current-output nil)
     (vterm-send-string command)
-    (vterm-send-return)
-    (when switch-to-buffer
-      (switch-to-buffer buffer))))
+    (vterm-send-return)))
 
 (provide 'aidermacs-backend-vterm)
 
