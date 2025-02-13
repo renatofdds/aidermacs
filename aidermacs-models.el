@@ -9,6 +9,9 @@
   "Model selection customization for aidermacs."
   :group 'aidermacs)
 
+(defvar aidermacs--cached-models nil
+  "Cache of available AI models.")
+
 (require 'json)
 (require 'url)
 
@@ -72,24 +75,32 @@
       models)))
 
 (defun aidermacs--get-available-models ()
-  "Get list of available models from multiple providers."
-  (let ((models nil)
-        (supported-models (aidermacs--get-supported-models)))
-    (dolist (url '("https://api.openai.com/v1"
-                   "https://openrouter.ai/api/v1"
-                   "https://api.deepseek.com"
-                   "https://api.anthropic.com/v1"
-                   "https://generativelanguage.googleapis.com/v1beta"))
-      (condition-case err
-          (let* ((fetched-models (fetch-openai-compatible-models url))
-                 (filtered-models (seq-filter (lambda (model)
-                                             (member model supported-models))
-                                           fetched-models)))
-            (message "Fetched models from %s: %S" url fetched-models)
-            (message "Filtered models from %s: %S" url filtered-models)
-            (setq models (append models filtered-models)))
-        (error (message "Failed to fetch models from %s: %s" url err))))
-    models))
+  "Get list of available models from multiple providers, using cache if available."
+  (unless aidermacs--cached-models
+    (let ((models nil)
+          (supported-models (aidermacs--get-supported-models)))
+      (dolist (url '("https://api.openai.com/v1"
+                     "https://openrouter.ai/api/v1"
+                     "https://api.deepseek.com"
+                     "https://api.anthropic.com/v1"
+                     "https://generativelanguage.googleapis.com/v1beta"))
+        (condition-case err
+            (let* ((fetched-models (fetch-openai-compatible-models url))
+                   (filtered-models (seq-filter (lambda (model)
+                                               (member model supported-models))
+                                             fetched-models)))
+              (message "Fetched models from %s: %S" url fetched-models)
+              (message "Filtered models from %s: %S" url filtered-models)
+              (setq models (append models filtered-models)))
+          (error (message "Failed to fetch models from %s: %s" url err))))
+      (setq aidermacs--cached-models models)))
+  aidermacs--cached-models)
+
+(defun aidermacs-clear-model-cache ()
+  "Clear the cached models, forcing a fresh fetch on next use."
+  (interactive)
+  (setq aidermacs--cached-models nil)
+  (message "Model cache cleared"))
 
 (defun aidermacs--select-model ()
   "Private function for model selection with completion."
