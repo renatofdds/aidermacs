@@ -129,50 +129,51 @@ Affects the system message too.")
 (transient-define-prefix aidermacs-transient-menu ()
   "Transient menu for aidermacs commands."
   ["aidermacs: AI Pair Programming"
-   ["aidermacs Process"
+   ["Session Control"
     (aidermacs--infix-switch-to-buffer-other-frame)
     ("a" "Run aidermacs"              aidermacs-run-aidermacs)
-    ("z" "Switch to aidermacs Buffer" aidermacs-switch-to-buffer)
-    ("o" "Select Model"                aidermacs-change-model)
-    ("l" "Clear aidermacs"              aidermacs-clear)
-    ("s" "Reset aidermacs"              aidermacs-reset)
-    ("x" "Exit aidermacs"               aidermacs-exit)
-    ]
-   ["Add File to aidermacs"
+    ("z" "Switch to Buffer"           aidermacs-switch-to-buffer)
+    ("o" "Select Model"               aidermacs-change-model)
+    ("l" "Clear Session"              aidermacs-clear)
+    ("s" "Reset Session"              aidermacs-reset)
+    ("x" "Exit Session"               aidermacs-exit)]
+   
+   ["File Management"
     (aidermacs--infix-add-file-read-only)
     ("f" "Add Current File"           aidermacs-add-current-file)
-    ("R" "Add Current File Read-Only" aidermacs-current-file-read-only)
-    ("w" "Add All Files in Current Window" aidermacs-add-files-in-current-window)
-    ("d" "Add Same Type Files under dir" aidermacs-add-same-type-files-under-dir)
-    ("b" "Batch Add Dired Marked Files"  aidermacs-batch-add-dired-marked-files)
-    ]
-   ["Code Change"
-    ("t" "Architect Discuss and Change" aidermacs-architect-discussion)
-    ("c" "Code Change"                  aidermacs-code-change)
-    ("r" "Refactor Function or Region"  aidermacs-function-or-region-refactor)
-    ("i" "Implement Requirement in-place" aidermacs-implement-todo)
-    ("U" "Write Unit Test"              aidermacs-write-unit-test)
-    ("T" "Fix Failing Test Under Cursor" aidermacs-fix-failing-test-under-cursor)
-    ("m" "Show Last Commit with Magit"  aidermacs-magit-show-last-commit)
-    ("u" "Undo Last Change"             aidermacs-undo-last-change)
-    ]
-   ["Discussion"
-    ("q" "Ask Question given Context" aidermacs-ask-question)
-    ("y" "Go Ahead"                     aidermacs-go-ahead)
-    ("e" "Explain Function or Region"   aidermacs-function-or-region-explain)
-    ("p" "Explain Symbol Under Point"   aidermacs-explain-symbol-under-point)
-    ("D" "Debug Exception"            aidermacs-debug-exception)
-    ]
-   ["Other"
-    ("g" "General Command"            aidermacs-general-command)
-    ("Q" "Ask General Question"         aidermacs-general-question)
-    ("p" "Open Prompt File"           aidermacs-open-prompt-file)
-    ("h" "Help"                       aidermacs-help)
-    ("H" "Show Output History"        aidermacs-show-output-history)
+    ("R" "Add File Read-Only"         aidermacs-current-file-read-only)
+    ("w" "Add Files in Window"        aidermacs-add-files-in-current-window)
+    ("d" "Add Files by Type"          aidermacs-add-same-type-files-under-dir)
+    ("b" "Add Marked Files"           aidermacs-batch-add-dired-marked-files)
+    ("L" "List Added Files"           aidermacs-list-added-files)
+    ("D" "Drop File from Chat"        aidermacs-drop-file)]
+   
+   ["Code Actions"
+    ("c" "Code Change"                aidermacs-code-change)
+    ("r" "Refactor Code"              aidermacs-function-or-region-refactor)
+    ("i" "Implement TODO"             aidermacs-implement-todo)
+    ("t" "Architect Discussion"       aidermacs-architect-discussion)
+    ("u" "Undo Last Change"           aidermacs-undo-last-change)]
+   
+   ["Testing"
+    ("U" "Write Unit Test"            aidermacs-write-unit-test)
+    ("T" "Fix Failing Test"           aidermacs-fix-failing-test-under-cursor)
+    ("X" "Debug Exception"            aidermacs-debug-exception)]
+   
+   ["Help & Documentation"
+    ("q" "Ask Question"               aidermacs-ask-question)
+    ("e" "Explain Code"               aidermacs-function-or-region-explain)
+    ("p" "Explain Symbol"             aidermacs-explain-symbol-under-point)
+    ("h" "Get Help"                   aidermacs-help)
+    ("Q" "General Question"           aidermacs-general-question)]
+   
+   ["History & Output"
+    ("H" "Show History"               aidermacs-show-output-history)
     ("C" "Copy Last Output"           aidermacs-get-last-output)
-    ("L" "List Files in Chat"         aidermacs-list-added-files)
-    ]
-   ])
+    ("m" "Show Last Commit"           aidermacs-magit-show-last-commit)
+    ("y" "Go Ahead"                   aidermacs-go-ahead)
+    ("g" "General Command"            aidermacs-general-command)
+    ("P" "Open Prompt File"           aidermacs-open-prompt-file)]])
 
 (defun aidermacs-buffer-name ()
   "Generate the aidermacs buffer name based on the git repo or current buffer file path.
