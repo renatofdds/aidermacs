@@ -9,6 +9,19 @@
   "Model selection customization for aidermacs."
   :group 'aidermacs)
 
+(defcustom aidermacs-popular-models
+  '("anthropic/claude-3-5-sonnet-20241022"  ;; really good in practical
+    "o3-mini" ;; very powerful
+    "gemini/gemini-2.0-flash"  ;; free
+    "r1"  ;; performance match o1, price << claude sonnet. weakness: small context
+    "deepseek/deepseek-chat"  ;; chatgpt-4o level performance, price is 1/100. weakness: small context
+    )
+  "List of available AI models for selection.
+Each model should be in the format expected by the aidermacs command line interface.
+Also based on aidermacs LLM benchmark: https://aidermacs.chat/docs/leaderboards/"
+  :type '(repeat string)
+  :group 'aidermacs-models)
+
 (defvar aidermacs--cached-models nil
   "Cache of available AI models.")
 
@@ -61,13 +74,16 @@
                 models)))))
 
 (defun aidermacs--get-supported-models ()
-  "Get list of models supported by aider."
-  (with-temp-buffer
-    (call-process "aider" nil t nil "--list-models" "/")
-    (let ((models (seq-filter
-                  (lambda (line)
-                    (string-prefix-p "- " line))
-                  (split-string (buffer-string) "\n" t))))
+  "Get list of models supported by aider using the /models command."
+  (let ((current-output aidermacs--current-output))
+    (aidermacs--send-command-backend (get-buffer (aidermacs-buffer-name)) "/models /")
+    ;; Wait briefly for output
+    (sleep-for 0.5)
+    (let* ((output aidermacs--current-output)
+           (models (seq-filter
+                   (lambda (line)
+                     (string-prefix-p "- " line))
+                   (split-string output "\n" t))))
       (setq models (mapcar (lambda (line)
                             (substring line 2)) ; Remove "- " prefix
                           models))
@@ -76,24 +92,33 @@
 
 (defun aidermacs--get-available-models ()
   "Get list of available models from multiple providers, using cache if available."
+  (when (and aidermacs--cached-models
+             (equal aidermacs--cached-models aidermacs-popular-models)
+             (fboundp 'aidermacs-buffer-name)
+             (get-buffer (aidermacs-buffer-name)))
+    (setq aidermacs--cached-models nil))
+
   (unless aidermacs--cached-models
-    (let ((models nil)
-          (supported-models (aidermacs--get-supported-models)))
-      (dolist (url '("https://api.openai.com/v1"
-                     "https://openrouter.ai/api/v1"
-                     "https://api.deepseek.com"
-                     "https://api.anthropic.com/v1"
-                     "https://generativelanguage.googleapis.com/v1beta"))
-        (condition-case err
-            (let* ((fetched-models (fetch-openai-compatible-models url))
-                   (filtered-models (seq-filter (lambda (model)
-                                               (member model supported-models))
-                                             fetched-models)))
-              (message "Fetched models from %s: %S" url fetched-models)
-              (message "Filtered models from %s: %S" url filtered-models)
-              (setq models (append models filtered-models)))
-          (error (message "Failed to fetch models from %s: %s" url err))))
-      (setq aidermacs--cached-models models)))
+    (if (and (fboundp 'aidermacs-buffer-name)
+             (get-buffer (aidermacs-buffer-name)))
+        (let ((models nil)
+              (supported-models (aidermacs--get-supported-models)))
+          (dolist (url '("https://api.openai.com/v1"
+                        "https://openrouter.ai/api/v1"
+                        "https://api.deepseek.com"
+                        "https://api.anthropic.com/v1"
+                        "https://generativelanguage.googleapis.com/v1beta"))
+            (condition-case err
+                (let* ((fetched-models (fetch-openai-compatible-models url))
+                       (filtered-models (seq-filter (lambda (model)
+                                                   (member model supported-models))
+                                                 fetched-models)))
+                  (message "Fetched models from %s: %S" url fetched-models)
+                  (message "Filtered models from %s: %S" url filtered-models)
+                  (setq models (append models filtered-models)))
+              (error (message "Failed to fetch models from %s: %s" url err))))
+          (setq aidermacs--cached-models models))
+      (setq aidermacs--cached-models aidermacs-popular-models)))
   aidermacs--cached-models)
 
 (defun aidermacs-clear-model-cache ()
