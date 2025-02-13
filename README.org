@@ -55,6 +55,10 @@ With =aidermacs=, you get:
    - =aidermacs= is actively developed and maintained by the community, incorporating user feedback and contributions.
    - We prioritize features and improvements that directly benefit Emacs users, ensuring a tool that evolves with your needs.
 
+6. Greater Configurability
+    - =aidermacs= offers more customization options to tailor the experience to your preferences.
+    - You can easily disable automatic commits, choose to operate only within a specific directory, and customize keybindings.
+    - =aider.el= lacks these configuration options, offering a less flexible experience.
 
 ... and more to come 🚀
 
