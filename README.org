@@ -127,128 +127,88 @@ This key allows you to enter multiple lines without sending the command to Aider
 
 This section provides a step-by-step guide on how to use Aidermacs for AI-assisted pair programming in Emacs.
 
-** 1. Start an Aidermacs Session
+** Getting Started
 
-Aidermacs automatically determines the best root directory for your session using this priority:
+The main interface to Aidermacs is through its transient menu system (similar to Magit). Access it with:
 
-1. =project-current= if available (via project.el)
-2. =vc-git-root= if in a Git repository
-3. Directory of =buffer-file-name= if visiting a file
-4. =default-directory= as fallback
+#+BEGIN_SRC
+M-x aidermacs-transient-menu
+#+END_SRC
 
-Start a session with these options:
+Or bind it to a key in your config:
 
-- =C-c a a= or =M-x aidermacs-run-aidermacs=: Start with automatic root detection
-- =C-c a .= or =M-x aidermacs-run-in-current-dir=: Start in current directory with =--subtree-only=, good for large mono repos
-- =M-x aidermacs-change-model= (=o= in transient menu): Select AI model interactively
+#+BEGIN_SRC emacs-lisp
+(global-set-key (kbd "C-c a") 'aidermacs-transient-menu)
+#+END_SRC
+
+** Core Workflow
+
+*** 1. Start a Session
+From the transient menu:
+- =a= Start/open session (auto-detects project root)
+- =.= Start in current directory (good for monorepos)
+- =^= Toggle "Start in New Frame" option
+- =o= Change AI model
 
 The session buffer will be named =*aidermacs:your-repo-name*= where you can interact with the AI.
 
-** 2. Add Files to the Session
+*** 2. Quick Actions
+Most common operations are available directly:
+- =f= Add current file to chat
+- =c= Request code changes
+- =r= Refactor code at point/region
+- =d= Drop current file from chat
+- =g= Accept AI's proposal ("go ahead")
 
-To provide context to the AI, you need to add relevant files to the Aidermacs session:
+*** 3. Specialized Commands
+Access more specific commands through submenus:
 
-- Add current file: =M-x aidermacs-add-current-file= (=f= in transient menu)
-- Add current file in read-only mode: =M-x aidermacs-add-current-file-read-only= (=R= in transient menu)
-- Add all files in current window: =M-x aidermacs-add-files-in-current-window= (=w= in transient menu)
-- Add all files with same suffix in current directory: =M-x aidermacs-add-same-type-files-under-dir= (=d= in transient menu)
-- In dired-mode, add marked files: =M-x aidermacs-batch-add-dired-marked-files= (=b= in transient menu)
+**** File Commands (=F=)
+- Add files: current (=f=), read-only (=r=), window (=w=), directory (=d=), marked in dired (=m=)
+- Drop files: specific (=j=), current (=k=)
+- List files in chat (=l=)
 
-** 3. Interact with the AI
+**** Code Commands (=C=)
+- Code changes (=c=)
+- Refactoring (=r=)
+- Implement TODOs (=i=)
+- Testing: write (=t=), fix (=T=)
+- Debug exceptions (=x=)
+- Undo changes (=u=)
 
-After adding files to the session, switch to the =*aidermacs*= buffer to interact with the AI using these commands:
+**** Understanding Code (Under "Understanding")
+- =m= Show last commit
+- =q= Ask questions
+- =e= Explain code at point/region
+- =p= Explain symbol under point
 
-*** Code Changes
-- Request code changes: =M-x aidermacs-code-change= (=c= in transient menu)
-- Refactor function/region: =M-x aidermacs-function-or-region-refactor= (=r= in transient menu)
-- Implement TODO comments: =M-x aidermacs-implement-todo= (=i= in transient menu)
-- Start architectural discussion: =M-x aidermacs-architect-discussion= (=t= in transient menu)
-- Undo last AI change: =M-x aidermacs-undo-last-change= (=u= in transient menu)
+**** Other Features
+- =H= View session history
+- =C= Copy last AI output
+- =l= Clear buffer
+- =h= Get help
 
-*** Session Control
-- Run aidermacs: =M-x aidermacs-run-aidermacs= (=a= in transient menu)
-- Run in current directory: =M-x aidermacs-run-in-current-dir= (=.= in transient menu)
-- Switch to Buffer: =M-x aidermacs-switch-to-buffer= (=z= in transient menu)
-- Select Model: =M-x aidermacs-change-model= (=o= in transient menu)
-- Clear Session: =M-x aidermacs-clear= (=l= in transient menu)
-- Reset Session: =M-x aidermacs-reset= (=s= in transient menu)
-- Exit Session: =M-x aidermacs-exit= (=x= in transient menu)
+** Working with Code Blocks
 
-*** File Management
-- Add Current File: =M-x aidermacs-add-current-file= (=f= in transient menu)
-- Add File Read-Only: =M-x aidermacs-add-current-file-read-only= (=R= in transient menu)
-- Add Files in Window: =M-x aidermacs-add-files-in-current-window= (=w= in transient menu)
-- Add Files by Type: =M-x aidermacs-add-same-type-files-under-dir= (=d= in transient menu)
-- Add Marked Files: =M-x aidermacs-batch-add-dired-marked-files= (=b= in transient menu)
-- List Added Files: =M-x aidermacs-list-added-files= (=L= in transient menu)
-- Drop File from Chat: =M-x aidermacs-drop-file= (=D= in transient menu)
-- Drop Current File: =M-x aidermacs-drop-current-file= (=O= in transient menu)
+When editing =.aider.prompt.org= or other files, these keybindings are available:
 
-*** Code Actions
-- Code Change: =M-x aidermacs-code-change= (=c= in transient menu)
-- Refactor Code: =M-x aidermacs-function-or-region-refactor= (=r= in transient menu)
-- Implement TODO: =M-x aidermacs-implement-todo= (=i= in transient menu)
-- Architect Discussion: =M-x aidermacs-architect-discussion= (=t= in transient menu)
-- Undo Last Change: =M-x aidermacs-undo-last-change= (=u= in transient menu)
+- =C-c C-n= or =C-<return>=: Send line/region line-by-line
+- =C-c C-c=: Send block/region as whole
+- =C-c C-z=: Switch to Aidermacs buffer
 
-*** Testing
-- Write Unit Test: =M-x aidermacs-write-unit-test= (=U= in transient menu)
-- Fix Failing Test: =M-x aidermacs-fix-failing-test-under-cursor= (=T= in transient menu)
-- Debug Exception: =M-x aidermacs-debug-exception= (=X= in transient menu)
+** Prompt Files
 
-*** Help & Documentation
-- Ask Question: =M-x aidermacs-ask-question= (=q= in transient menu)
-- Explain Code: =M-x aidermacs-function-or-region-explain= (=e= in transient menu)
-- Explain Symbol: =M-x aidermacs-explain-symbol-under-point= (=p= in transient menu)
-- Get Help: =M-x aidermacs-help= (=h= in transient menu)
-- General Question: =M-x aidermacs-general-question= (=Q= in transient menu)
+The =.aider.prompt.org= file (created with =M-x aidermacs-open-prompt-file=) is useful for:
+- Storing frequently used prompts
+- Documenting common workflows
+- Quick access to complex instructions
 
-*** History & Output
-- Show History: =M-x aidermacs-show-output-history= (=H= in transient menu)
-- Copy Last Output: =M-x aidermacs-get-last-output= (=C= in transient menu)
-- Show Last Commit: =M-x aidermacs-magit-show-last-commit= (=m= in transient menu)
-- Go Ahead: =M-x aidermacs-go-ahead= (=y= in transient menu)
-- General Command: =M-x aidermacs-general-command= (=g= in transient menu)
-- Open Prompt File: =M-x aidermacs-open-prompt-file= (=P= in transient menu)
+The file is automatically recognized and enables Aidermacs minor mode with the above keybindings.
 
-** 4. Send Code Blocks
+** Tips
 
-When working with code blocks, you can use these commands:
-
-- Send line or region line-by-line: =C-c C-n= or =C-<return>=
-- Send block/region as whole: =C-c C-c=
-
-These keybindings are available in the minor mode.
-
-** 5. Manage the Aidermacs Session
-
-Session management commands:
-
-- Switch to Aidermacs buffer: =C-c C-z= or =M-x aidermacs-switch-to-buffer= (=z= in transient menu)
-- Clear buffer: =M-x aidermacs-clear= (=l= in transient menu)
-- Reset session: =M-x aidermacs-reset= (=s= in transient menu)
-- Exit session: =M-x aidermacs-exit= (=x= in transient menu)
-
-** 6. Prompt Files
-
-- Open/create prompt file: =M-x aidermacs-open-prompt-file= (=p= in transient menu)
-- The prompt file (=.aider.prompt.org=) is created in your Git repository root
-- Use it to store frequently used prompts
-- When the prompt file is open, you can use these keybindings:
-  - =C-c C-n= or =C-<return>=: Send current line/region line-by-line
-  - =C-c C-c=: Send current block/region as whole
-  - =C-c C-z=: Switch to Aidermacs buffer
-
-** 7. Transient Menu
-
-- Access all commands through the transient menu: =M-x aidermacs-transient-menu=
-- The transient menu is a popup menu that provides a convenient way to access all aidermacs commands.
-- The menu groups commands into categories:
-  - "Session Control": Basic session management (=a=, =.=, =z=, =o=, =l=, =s=, =x=)
-  - "File Management": File management (=f=, =w=, =d=, =b=, =L=, =D=, =O=)
-  - "Code Actions": Code modifications (=c=, =r=, =i=, =t=, =u=)
-  - "Testing": Unit tests and debugging (=U=, =T=, =X=)
-  - "Help & Documentation": Questions and explanations (=q=, =e=, =p=, =h=, =Q=)
-  - "History & Output": History and output management (=H=, =C=, =m=, =y=, =g=, =P=)
-
-Note: The default keybindings in the minor mode map (=C-c C-n=, =C-<return>=, =C-c C-c=, and =C-c C-z=) are always available when the minor mode is active. All other commands can be accessed either through =M-x= or through the transient menu after invoking =M-x aidermacs-transient-menu=.
+1. Start with Core Actions to begin a session
+2. Use Quick Actions for common tasks
+3. Explore specialized commands through submenus for more specific needs
+4. The transient interface shows all available commands - no need to memorize!
+5. Use =C-g= to cancel any transient menu operation

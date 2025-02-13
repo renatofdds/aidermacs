@@ -233,7 +233,7 @@ This allows for multi-line input without sending the command."
       (aidermacs--store-output aidermacs--comint-output-temp)
       (setq aidermacs--comint-output-temp ""))))
 
-(defun aidermacs-run-aidermacs-comint (program args buffer-name)
+(defun aidermacs-run-comint (program args buffer-name)
   "Create a comint-based buffer and run aidermacs PROGRAM with ARGS in BUFFER-NAME."
   (let ((comint-terminfo-terminal "dumb"))
     (unless (comint-check-proc buffer-name)

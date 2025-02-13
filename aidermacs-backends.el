@@ -76,15 +76,15 @@ If there's a callback function, call it with the output."
         (setq aidermacs--current-callback nil)))))
 
 ;; Backend dispatcher functions
-(defun aidermacs-run-aidermacs-backend (program args buffer-name)
+(defun aidermacs-run-backend (program args buffer-name)
   "Run aidermacs using the selected backend.
 PROGRAM is the aidermacs executable path, ARGS are command line arguments,
 and BUFFER-NAME is the name for the aidermacs buffer."
   (cond
    ((eq aidermacs-backend 'vterm)
-    (aidermacs-run-aidermacs-vterm program args buffer-name))
+    (aidermacs-run-vterm program args buffer-name))
    (t
-    (aidermacs-run-aidermacs-comint program args buffer-name))))
+    (aidermacs-run-comint program args buffer-name))))
 
 (defun aidermacs--send-command-backend (buffer command &optional callback)
   "Send COMMAND to BUFFER using the appropriate backend.

@@ -125,93 +125,133 @@ This function can be customized or redefined by the user."
 ;; The instruction in the autoload comment is needed, see
 ;; https://github.com/magit/transient/issues/280.
 ;;;###autoload (autoload 'aidermacs-transient-menu "aidermacs" "Transient menu for aidermacs commands." t)
+;; Define secondary transient menus
+(transient-define-prefix aidermacs-transient-file-commands ()
+  "File management commands."
+  ["File Actions"
+   ["Add File Actions"
+    ("f" "Add Current File" aidermacs-add-current-file)
+    ("r" "Add Read-Only" aidermacs-add-current-file-read-only)
+    ("w" "Add Window Files" aidermacs-add-files-in-current-window)
+    ("d" "Add Directory Files" aidermacs-add-same-type-files-under-dir)
+    ("m" "Add Marked Files" aidermacs-batch-add-dired-marked-files)]
+
+   ["Drop Actions"
+    ("j" "Drop File" aidermacs-drop-file)
+    ("k" "Drop Current File" aidermacs-drop-current-file)]
+
+   [("l" "List Files" aidermacs-list-added-files)]])
+
+(transient-define-prefix aidermacs-transient-code-commands ()
+  "Code modification commands."
+  ["Code Actions"
+   ("c" "Code Change" aidermacs-code-change)
+   ("r" "Refactor Code" aidermacs-function-or-region-refactor)
+   ("i" "Implement TODO" aidermacs-implement-todo)
+   ("t" "Write Tests" aidermacs-write-unit-test)
+   ("T" "Fix Test" aidermacs-fix-failing-test-under-cursor)
+   ("x" "Debug Exception" aidermacs-debug-exception)
+   ("u" "Undo Change" aidermacs-undo-last-change)])
+
+;; Main transient menu
 (transient-define-prefix aidermacs-transient-menu ()
-  "Transient menu for aidermacs commands."
-  ["aidermacs: AI Pair Programming"
-   ["Session Control"
-    (aidermacs--infix-switch-to-buffer-other-frame)
-    ("a" "Start/Open Aidermacs"       aidermacs-run-aidermacs)
-    ("." "Run in Current Dir"         aidermacs-run-in-current-dir)
-    ("z" "Switch to Buffer"           aidermacs-switch-to-buffer)
-    ("o" "Select Model"               aidermacs-change-model)
-    ("l" "Clear Session"              aidermacs-clear)
-    ("s" "Reset Session"              aidermacs-reset)
-    ("x" "Exit Session"               aidermacs-exit)]
+  "AI Pair Programming Interface"
+  ["Aidermacs: AI Pair Programming"
+   ["Core Actions"
+    ("^" "Start in New Frame" aidermacs--infix-switch-to-buffer-other-frame)
+    ("a" "Start/Open Session" aidermacs-run)
+    ("." "Start in Current Dir" aidermacs-run-in-current-dir)
+    ("o" "Change Model" aidermacs-change-model)
+    ("s" "Reset Session" aidermacs-reset)
+    ("x" "Exit Session" aidermacs-exit)]
 
-   ["File Management"
-    ("f" "Add Current File"           aidermacs-add-current-file)
-    ("R" "Add File Read-Only"         aidermacs-add-current-file-read-only)
-    ("w" "Add Files in Window"        aidermacs-add-files-in-current-window)
-    ("d" "Add Files by Type"          aidermacs-add-same-type-files-under-dir)
-    ("b" "Add Marked Files"           aidermacs-batch-add-dired-marked-files)
-    ("L" "List Added Files"           aidermacs-list-added-files)
-    ("D" "Drop File from Chat"        aidermacs-drop-file)
-    ("O" "Drop Current File"          aidermacs-drop-current-file)]
+   ["Quick Actions"
+    ("f" "Add Current File" aidermacs-add-current-file)
+    ("c" "Code Change" aidermacs-code-change)
+    ("r" "Refactor" aidermacs-function-or-region-refactor)
+    ("d" "Drop Current File" aidermacs-drop-current-file)
+    ("g" "Go Ahead" aidermacs-go-ahead)]
 
-   ["Code Actions"
-    ("c" "Code Change"                aidermacs-code-change)
-    ("r" "Refactor Code"              aidermacs-function-or-region-refactor)
-    ("i" "Implement TODO"             aidermacs-implement-todo)
-    ("t" "Architect Discussion"       aidermacs-architect-discussion)
-    ("u" "Undo Last Change"           aidermacs-undo-last-change)]
+   ["Code & Files"
+    ("F" "File Commands" aidermacs-transient-file-commands)
+    ("C" "Code Commands" aidermacs-transient-code-commands)]
 
-   ["Testing"
-    ("U" "Write Unit Test"            aidermacs-write-unit-test)
-    ("T" "Fix Failing Test"           aidermacs-fix-failing-test-under-cursor)
-    ("X" "Debug Exception"            aidermacs-debug-exception)]
+   ["Understanding"
+    ("m" "Show Last Commit" aidermacs-magit-show-last-commit)
+    ("q" "Ask Question" aidermacs-ask-question)
+    ("e" "Explain Code" aidermacs-function-or-region-explain)
+    ("p" "Explain Symbol" aidermacs-explain-symbol-under-point)]
 
-   ["Help & Documentation"
-    ("q" "Ask Question"               aidermacs-ask-question)
-    ("e" "Explain Code"               aidermacs-function-or-region-explain)
-    ("p" "Explain Symbol"             aidermacs-explain-symbol-under-point)
-    ("h" "Get Help"                   aidermacs-help)
-    ("Q" "General Question"           aidermacs-general-question)]
-
-   ["History & Output"
-    ("H" "Show Output History"        aidermacs-show-output-history)
-    ("C" "Copy Last Output"           aidermacs-get-last-output)
-    ("m" "Show Last Commit"           aidermacs-magit-show-last-commit)
-    ("y" "Go Ahead"                   aidermacs-go-ahead)
-    ("g" "General Command"            aidermacs-general-command)
-    ("P" "Open Prompt File"           aidermacs-open-prompt-file)]])
+   ["Others"
+    ("H" "Session History" aidermacs-show-output-history)
+    ("C" "Copy Last Aidermacs Output" aidermacs-get-last-output)
+    ("l" "Clear Buffer" aidermacs-clear)
+    ("h" "Aider Help" aidermacs-help)]])
 
 (defun aidermacs-buffer-name ()
-  "Generate the aidermacs buffer name based on the git repo or current buffer file path.
-If not in a git repository and no buffer file exists, an error is raised."
-  (let ((git-repo-path (vc-git-root default-directory))
-        (current-file (buffer-file-name)))
-    (cond
-     ;; Case 1: Valid git repo path
-     (git-repo-path
-      (format "*aidermacs:%s*" (file-truename git-repo-path)))
-     ;; Case 2: Has buffer file
-     (current-file
-      (format "*aidermacs:%s*"
-              (file-truename (file-name-directory current-file))))
-     ;; Case 3: No git repo and no buffer file
-     (t
-      (error "Not in a git repository and current buffer is not associated with a file.  Please open a file or start aidermacs from within a git repository.")))))
+  "Generate the aidermacs buffer name based on project root or current directory.
+Prefers existing sessions closer to current directory."
+  (let* ((root (aidermacs-project-root))
+         (current-dir (file-truename default-directory))
+         ;; Get all existing aidermacs buffers
+         (aidermacs-buffers
+          (cl-remove-if-not
+           (lambda (buf)
+             (string-match-p "^\\*aidermacs:" (buffer-name buf)))
+           (buffer-list)))
+         ;; Extract directory paths and subtree status from buffer names
+         (buffer-dirs
+          (mapcar
+           (lambda (buf)
+             (when (string-match "^\\*aidermacs:\\(.*?\\)\\*$"
+                               (buffer-name buf))
+               (cons (match-string 1 (buffer-name buf))
+                     (match-string 2 (buffer-name buf)))))
+           aidermacs-buffers))
+         ;; Find closest parent directory that has an aidermacs session
+         (closest-parent
+          (car
+           (car
+            (sort
+             (cl-remove-if-not
+              (lambda (dir-info)
+                (and (car dir-info)
+                     (string-prefix-p (car dir-info) current-dir)
+                     (file-exists-p (car dir-info))))
+              buffer-dirs)
+             (lambda (a b)
+               ;; Sort by path length (deeper paths first)
+               (> (length (car a)) (length (car b))))))))
+         (display-root (cond
+                       ;; Use current directory for new subtree session
+                       (aidermacs-subtree-only current-dir)
+                       ;; Use closest parent if it exists
+                       (closest-parent closest-parent)
+                       ;; Fall back to project root for new non-subtree session
+                       (t root))))
+    (format "*aidermacs:%s*"
+            (file-truename display-root))))
 
 ;;;###autoload
-(defun aidermacs-run-aidermacs (&optional edit-args directory)
+(defun aidermacs-run (&optional edit-args)
   "Run aidermacs process using the selected backend.
-With the universal argument EDIT-ARGS, prompt to edit aidermacs-args before running.
-Optional DIRECTORY parameter sets working directory, defaults to project root."
+With the universal argument EDIT-ARGS, prompt to edit aidermacs-args before running."
   (interactive "P")
-  (let* ((default-directory (or directory (aidermacs-project-root)))
-         (buffer-name (aidermacs-buffer-name))
+  (let* ((buffer-name (aidermacs-buffer-name))
          (current-args (if edit-args
-                           (split-string (read-string "Edit aidermacs arguments: "
-                                                      (mapconcat 'identity aidermacs-args " ")))
-                         aidermacs-args))
+                          (split-string (read-string "Edit aidermacs arguments: "
+                                                   (mapconcat 'identity aidermacs-args " ")))
+                        aidermacs-args))
          (final-args (append current-args
-                             (when (not aidermacs-auto-commits)
-                               '("--no-auto-commits"))
-                             (when aidermacs-subtree-only
-                               '("--subtree-only")))))
+                           (when (not aidermacs-auto-commits)
+                             '("--no-auto-commits"))
+                           (when aidermacs-subtree-only
+                             '("--subtree-only")))))
+    ;; Check if a matching buffer exists (handled by aidermacs-buffer-name)
     (if (get-buffer buffer-name)
         (aidermacs-switch-to-buffer)
-      (aidermacs-run-aidermacs-backend aidermacs-program final-args buffer-name)
+      ;; Start new session with proper directory and args
+      (aidermacs-run-backend aidermacs-program final-args buffer-name)
       (aidermacs-switch-to-buffer))))
 
 ;;;###autoload
@@ -219,8 +259,9 @@ Optional DIRECTORY parameter sets working directory, defaults to project root."
   "Run aidermacs in the current directory with --subtree-only flag.
 This is useful for working in monorepos where you want to limit aider's scope."
   (interactive)
-  (let ((aidermacs-subtree-only t))
-    (aidermacs-run-aidermacs nil default-directory)))
+  (let ((aidermacs-subtree-only t)
+        (default-directory (file-truename default-directory)))
+    (aidermacs-run nil)))
 
 (defun aidermacs--send-command (command &optional switch-to-buffer callback)
   "Send COMMAND to the corresponding aidermacs process.
@@ -233,7 +274,7 @@ If CALLBACK is provided, it will be called with the command output when availabl
         (aidermacs--send-command-backend aidermacs-buffer processed-command callback)
         (when (and switch-to-buffer (not (string= (buffer-name) (aidermacs-buffer-name))))
           (aidermacs-switch-to-buffer)))
-    (message "Buffer %s does not exist. Please start aidermacs with 'M-x aidermacs-run-aidermacs'." aidermacs-buffer-name)))
+    (message "Buffer %s does not exist. Please start aidermacs with 'M-x aidermacs-run'." aidermacs-buffer-name)))
 
 
 ;; Function to switch to the aidermacs buffer
@@ -455,7 +496,7 @@ If cursor is inside a function, include the function name as context."
   (when (string= (buffer-name) (aidermacs-buffer-name))
     (call-interactively 'aidermacs-general-question)
     (cl-return-from aidermacs-ask-question))
-
+  (aidermacs-add-current-file)
   (let* ((function-name (which-function))
          (initial-input (when function-name
                           (format "About function '%s': " function-name)))
@@ -465,7 +506,6 @@ If cursor is inside a function, include the function name as context."
          (command (if region-text
                       (format "/ask %s: %s" question region-text)
                     (format "/ask %s" question))))
-    (aidermacs-add-current-file)
     (aidermacs--send-command command t)))
 
 ;;;###autoload
@@ -525,6 +565,7 @@ If Magit is not installed, report that it is required."
 If region is active, refactor that region.
 If point is in a function, refactor that function."
   (interactive)
+  (aidermacs-add-current-file)
   (if (use-region-p)
       (let* ((region-text (buffer-substring-no-properties (region-beginning) (region-end)))
              (function-name (which-function))
@@ -534,13 +575,11 @@ If point is in a function, refactor that function."
                                   function-name user-command region-text)
                         (format "/architect \"for the following code block, %s: %s\"\n"
                                 user-command region-text))))
-        (aidermacs-add-current-file)
         (aidermacs--send-command command t))
     (if-let ((function-name (which-function)))
         (let* ((initial-input (format "refactor %s: " function-name))
                (user-command (aidermacs-read-string "Enter refactor instruction: " initial-input))
                (command (format "/architect %s" user-command)))
-          (aidermacs-add-current-file)
           (aidermacs--send-command command t))
       (message "No region selected and no function found at point."))))
 
@@ -549,6 +588,7 @@ If point is in a function, refactor that function."
   "Get a command from the user and send it to the corresponding aidermacs comint buffer based on the selected region.
 The command will be formatted as \"/ask \" followed by the text from the selected region."
   (interactive)
+  (aidermacs-add-current-file)
   (if (use-region-p)
       (let* ((region-text (buffer-substring-no-properties (region-beginning) (region-end)))
              (function-name (which-function))
@@ -559,7 +599,6 @@ The command will be formatted as \"/ask \" followed by the text from the selecte
                                   processed-region-text)
                         (format "/ask explain the following code block: %s"
                                 processed-region-text))))
-        (aidermacs-add-current-file)
         (aidermacs--send-command command t))
     (message "No region selected.")))
 
@@ -568,11 +607,11 @@ The command will be formatted as \"/ask \" followed by the text from the selecte
   "Ask aidermacs to explain the function under the cursor.
 Prompts user for specific questions about the function."
   (interactive)
+  (aidermacs-add-current-file)
   (if-let ((function-name (which-function)))
       (let* ((initial-input (format "explain %s: " function-name))
              (user-question (aidermacs-read-string "Enter your question about the function: " initial-input))
              (command (format "/ask %s" user-question)))
-        (aidermacs-add-current-file)
         (aidermacs--send-command command t))
     (message "No function found at cursor position.")))
 
@@ -588,13 +627,13 @@ Prompts user for specific questions about the function."
 (defun aidermacs-explain-symbol-under-point ()
   "Ask aidermacs to explain symbol under point, given the code line as background info."
   (interactive)
+  (aidermacs-add-current-file)
   (let* ((symbol (thing-at-point 'symbol))
          (line (buffer-substring-no-properties
                 (line-beginning-position)
                 (line-end-position)))
          (prompt (format "/ask Please explain what '%s' means in the context of this code line: %s"
                          symbol line)))
-    (aidermacs-add-current-file)
     (aidermacs--send-command prompt t)))
 
 (defun aidermacs-send-command-with-prefix (prefix command)
@@ -608,7 +647,7 @@ Prompts user for specific questions about the function."
   (interactive)
   (let ((files (dired-get-marked-files)))
     (if files
-        (let ((command (concat (aidermacs--get-add-command-prefix) " " (mapconcat 'expand-file-name files " "))))
+        (let ((command (concat "/add " (mapconcat 'expand-file-name files " "))))
           (aidermacs--send-command command t))
       (message "No files marked in Dired."))))
 
@@ -628,7 +667,7 @@ If there are more than 40 files, refuse to add and show warning message."
       (if (> (length files) max-files)
           (message "Too many files (%d, > %d) found with suffix .%s. Aborting."
                    (length files) max-files current-suffix)
-        (let ((command (concat (aidermacs--get-add-command-prefix) " " (mapconcat 'identity files " "))))
+        (let ((command (concat "/add " (mapconcat 'identity files " "))))
           (aidermacs--send-command command t))
         (message "Added %d files with suffix .%s"
                  (length files) current-suffix)))))
@@ -644,6 +683,7 @@ Otherwise:
   - If cursor is on a function, generate unit test for that function
   - Otherwise generate unit tests for the entire file"
   (interactive)
+  (aidermacs-add-current-file)
   (if (not buffer-file-name)
       (message "Current buffer is not visiting a file.")
     (let ((is-test-file (string-match-p "test" (file-name-nondirectory buffer-file-name)))
@@ -658,7 +698,6 @@ Otherwise:
                                 function-name))
                        (user-command (aidermacs-read-string "Test implementation instruction: " initial-input))
                        (command (format "/architect %s" user-command)))
-                  (aidermacs-add-current-file)
                   (aidermacs--send-command command t))
               (message "Current function '%s' does not appear to be a test function." function-name))
           (message "Please place cursor inside a test function to implement.")))
@@ -673,7 +712,6 @@ Otherwise:
                           (file-name-nondirectory buffer-file-name) common-instructions)))
                (user-command (aidermacs-read-string "Unit test generation instruction: " initial-input))
                (command (format "/architect %s" user-command)))
-          (aidermacs-add-current-file)
           (aidermacs--send-command command t)))))))
 
 ;;;###autoload
@@ -681,12 +719,12 @@ Otherwise:
   "Report the current test failure to aidermacs and ask it to fix the code.
 This function assumes the cursor is on or inside a test function."
   (interactive)
+  (aidermacs-add-current-file)
   (if-let ((test-function-name (which-function)))
       (let* ((initial-input (format "The test '%s' is failing. Please analyze and fix the code to make the test pass. Don't break any other test"
                                     test-function-name))
              (test-output (aidermacs-read-string "Architect question: " initial-input))
              (command (format "/architect %s" test-output)))
-        (aidermacs-add-current-file)
         (aidermacs--send-command command t))
     (message "No test function found at cursor position.")))
 
@@ -711,6 +749,7 @@ Otherwise implement TODOs for the entire current file."
   (interactive)
   (if (not buffer-file-name)
       (message "Current buffer is not visiting a file.")
+    (aidermacs-add-current-file)
     (let* ((current-line (string-trim (thing-at-point 'line t)))
            (is-comment (aidermacs--is-comment-line current-line))
            (function-name (which-function))
@@ -734,7 +773,6 @@ Otherwise implement TODOs for the entire current file."
                       (file-name-nondirectory buffer-file-name)))))
            (user-command (aidermacs-read-string "TODO implementation instruction: " initial-input))
            (command (format "/architect %s" user-command)))
-      (aidermacs-add-current-file)
       (aidermacs--send-command command t))))
 
 

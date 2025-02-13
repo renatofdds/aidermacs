@@ -68,7 +68,7 @@ to force vterm to update until the expected finish sequence is detected."
         (apply orig-fun args))
     (apply orig-fun args)))
 
-(defun aidermacs-run-aidermacs-vterm (program args buffer-name)
+(defun aidermacs-run-vterm (program args buffer-name)
   "Create a vterm-based buffer and run aidermacs PROGRAM with ARGS in BUFFER-NAME.
 PROGRAM is the command to run, ARGS is a list of arguments,
 and BUFFER-NAME is the name of the vterm buffer."

@@ -58,7 +58,7 @@
                             :desc "Help" "h" #'aidermacs-help
                             )
 
-                   :desc "Open aidermacs" "o" #'aidermacs-run-aidermacs
+                   :desc "Open aidermacs" "o" #'aidermacs-run
                    :desc "Reset aidermacs" "r" #'aidermacs-reset
                    :desc "Exit aidermacs" "x" #'aidermacs-exit
                    ))))
