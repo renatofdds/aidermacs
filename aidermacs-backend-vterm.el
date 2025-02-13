@@ -53,9 +53,8 @@ Thisis a covoluted way of capturing aider output until someone comes up with a b
                    (let ((output (buffer-substring-no-properties start-point seq-start)))
                      (aidermacs--store-output (string-trim output))
                      ;; Restore the original filter.
-                     (set-process-filter proc orig-filter))))))))
-        ;; Finally, call the original function.
-        (apply orig-fun args)))))
+                     (set-process-filter proc orig-filter))))))))))
+    (apply orig-fun args)))
 
 (defun aidermacs-run-aidermacs-vterm (program args buffer-name)
   "Create a vterm-based buffer and run aidermacs PROGRAM with ARGS in BUFFER-NAME.
@@ -85,6 +84,9 @@ and BUFFER-NAME is the name of the vterm buffer."
   "Send COMMAND to the aidermacs vterm BUFFER.
 If SWITCH-TO-BUFFER is non-nil, switch to BUFFER after sending the command."
   (with-current-buffer buffer
+    ;; Store command before sending
+    (setq aidermacs--last-command command
+          aidermacs--current-output nil)
     (vterm-send-string command)
     (vterm-send-return)
     (when switch-to-buffer
