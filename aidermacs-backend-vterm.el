@@ -19,7 +19,7 @@ or `\\ndiff>.*`.
 Once that is detected, the output from START-POINT up to the beginning
 of the finish sequence is captured and stored via `aidermacs--store-output`.
 
-Thisis a covoluted way of capturing aider output until someone comes up with a better idea."
+This is a covoluted HACK of capturing aider output until someone comes up with a better idea."
   (when (and (bound-and-true-p aidermacs-minor-mode)
              (eq major-mode 'vterm-mode))
     (let* ((start-point (vterm--get-prompt-point))
