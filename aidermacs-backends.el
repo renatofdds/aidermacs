@@ -93,16 +93,14 @@ and BUFFER-NAME is the name for the aidermacs buffer."
     (aidermacs-run-comint program args buffer-name))))
 
 (defun aidermacs--send-command-backend (buffer command)
-  "Send COMMAND to BUFFER using the appropriate backend.
-CALLBACK if provided will be called with the command output when available."
+  "Send COMMAND to BUFFER using the appropriate backend."
   (setq aidermacs--last-command command
-        aidermacs--current-output nil
-        aidermacs--current-callback nil)
+        aidermacs--current-output nil)
   (if (eq aidermacs-backend 'vterm)
       (aidermacs--send-command-vterm buffer command)
     (aidermacs--send-command-comint buffer command)))
 
-(defun aidermacs--redirect-send-command-backend (buffer command &optional callback)
+(defun aidermacs--send-command-redirect-backend (buffer command &optional callback)
   "Send COMMAND to BUFFER using the appropriate backend.
 CALLBACK if provided will be called with the command output when available."
   (setq aidermacs--last-command command
@@ -110,7 +108,7 @@ CALLBACK if provided will be called with the command output when available."
         aidermacs--current-callback callback)
   (if (eq aidermacs-backend 'vterm)
       (aidermacs--send-command-vterm buffer command)
-    (aidermacs--redirect-send-command-comint buffer command)))
+    (aidermacs--send-command-redirect-comint buffer command)))
 
 (provide 'aidermacs-backends)
 

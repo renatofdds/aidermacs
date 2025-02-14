@@ -260,7 +260,7 @@ This allows for multi-line input without sending the command."
       (set-marker (process-mark process) (point))
       (comint-send-string process (concat command "\n")))))
 
-(defun aidermacs--redirect-send-command-comint (buffer command)
+(defun aidermacs--send-command-redirect-comint (buffer command)
   "Send COMMAND to the aidermacs comint BUFFER and collect result into OUTPUT-BUFFER."
   (with-current-buffer buffer
     (let ((process (get-buffer-process buffer))

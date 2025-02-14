@@ -275,7 +275,7 @@ If SWITCH-TO-BUFFER is non-nil, switch to the aidermacs buffer."
     (when (and switch-to-buffer (not (string= (buffer-name) buffer-name)))
       (aidermacs-switch-to-buffer))))
 
-(defun aidermacs--redirect-send-command (command callback)
+(defun aidermacs--send-command-redirect (command callback)
   "Send COMMAND to the corresponding aidermacs process in the background.
 CALLBACK will be called with the command output when available."
   (let* ((buffer-name (aidermacs-buffer-name))
@@ -283,7 +283,7 @@ CALLBACK will be called with the command output when available."
                      (progn (aidermacs-run)
                             (get-buffer buffer-name))))
          (processed-command (aidermacs--process-message-if-multi-line command)))
-    (aidermacs--redirect-send-command-backend buffer processed-command callback)))
+    (aidermacs--send-command-redirect-backend buffer processed-command callback)))
 
 
 ;; Function to switch to the aidermacs buffer
@@ -443,7 +443,7 @@ Returns a deduplicated list of such file names."
   "List all files currently added to the chat session.
 Sends the \"/ls\" command and returns the list of files via callback."
   (interactive)
-  (aidermacs--redirect-send-command
+  (aidermacs--send-command-redirect
    "/ls"
    (lambda (output)
      (let ((files (aidermacs--parse-ls-output output)))
@@ -454,7 +454,7 @@ Sends the \"/ls\" command and returns the list of files via callback."
 (defun aidermacs-drop-file ()
   "Drop a file from the chat session by selecting from currently added files."
   (interactive)
-  (aidermacs--redirect-send-command
+  (aidermacs--send-command-redirect
    "/ls"
    (lambda (output)
      (if-let* ((files (aidermacs--parse-ls-output output))
