@@ -1,11 +1,10 @@
 ;;; aidermacs-helm.el --- Helm completion for aidermacs.el -*- lexical-binding: t; -*-
-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
-;; Original Author: Kang Tu <tninja@gmail.com>
-;; Version: 0.2.0
-;; Package-Requires: ((emacs "25.1") (helm "3.0"))
-;; Keywords: convenience, tools
+;; Version: 0.5.0
+;; Package-Requires: ((emacs "26.1") (transient "0.3.0"))
+;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
 ;; URL: https://github.com/MatthewZMD/aidermacs.el
+;; Originally inspired by: Kang Tu <tninja@gmail.com> Aider.el
 
 ;;; Commentary:
 ;; Optional Helm completion interface for aidermacs.el

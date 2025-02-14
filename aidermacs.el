@@ -1,11 +1,10 @@
 ;;; aidermacs.el --- aidermacs package for interactive conversation with aidermacs -*- lexical-binding: t; -*-a
-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
-;; Original Author: Kang Tu <tninja@gmail.com>
-;; Version: 0.2.0
+;; Version: 0.5.0
 ;; Package-Requires: ((emacs "26.1") (transient "0.3.0"))
-;; Keywords: convenience, tools
+;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
 ;; URL: https://github.com/MatthewZMD/aidermacs.el
+;; Originally inspired by: Kang Tu <tninja@gmail.com> Aider.el
 
 ;;; Commentary:
 ;; This package provides an interactive interface to communicate with https://github.com/paul-gauthier/aidermacs.

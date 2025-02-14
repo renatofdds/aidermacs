@@ -1,4 +1,10 @@
 ;;; aidermacs-models.el --- Model selection for aidermacs.el -*- lexical-binding: t; -*-
+;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
+;; Version: 0.5.0
+;; Package-Requires: ((emacs "26.1") (transient "0.3.0"))
+;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
+;; URL: https://github.com/MatthewZMD/aidermacs.el
+;; Originally inspired by: Kang Tu <tninja@gmail.com> Aider.el
 
 ;;; Commentary:
 ;; Model selection functionality for aidermacs.el
