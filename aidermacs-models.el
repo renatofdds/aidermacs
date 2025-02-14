@@ -92,8 +92,8 @@ Returns a list of model names with appropriate prefixes based on the API provide
 
 (defun aidermacs--get-available-models ()
   "Get list of models supported by aider using the /models command."
-  (aidermacs--send-command
-   "/models /" t
+  (aidermacs--send-command-redirect
+   "/models /"
    (lambda (output)
      (let* ((supported-models
              (seq-filter
@@ -115,8 +115,6 @@ Returns a list of model names with appropriate prefixes based on the API provide
                     (filtered-models (seq-filter (lambda (model)
                                                    (member model supported-models))
                                                  fetched-models)))
-               ;; (message "Fetched models from %s: %S" url fetched-models)
-               ;; (message "Filtered models from %s: %S" url filtered-models)
                (setq models (append models filtered-models)))
            (error (message "Failed to fetch models from %s: %s" url err))))
        (setq aidermacs--cached-models models)
