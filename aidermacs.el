@@ -185,6 +185,7 @@ This function can be customized or redefined by the user."
    ["Others"
     ("H" "Session History" aidermacs-show-output-history)
     ("C" "Copy Last Aidermacs Output" aidermacs-get-last-output)
+    ("O" "Clear Model Selection Cache" aidermacs-clear-model-cache)
     ("l" "Clear Buffer" aidermacs-clear)
     ("h" "Aider Help" aidermacs-help)]])
 
@@ -448,13 +449,11 @@ Sends the \"/ls\" command and returns the list of files via callback."
   (aidermacs--send-command
    "/ls" t
    (lambda (output)
-     (condition-case nil
-         (if-let* ((files (aidermacs--parse-ls-output output))
-                   (file (completing-read "Select file to drop: " files nil t)))
-             (progn
-               (aidermacs--send-command (format "/drop %s" file)))
-           (message "No files available to drop"))
-       (quit (message "Drop file cancelled"))))))
+     (with-local-quit
+       (if-let* ((files (aidermacs--parse-ls-output output))
+                 (file (completing-read "Select file to drop: " files nil t)))
+           (aidermacs--send-command (format "/drop %s" file))
+         (message "No files available to drop"))))))
 
 
 ;;;###autoload

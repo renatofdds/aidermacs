@@ -31,34 +31,45 @@ While =aider.el= strictly mirrors Aider's CLI behavior, =Aidermacs= is built aro
 
 With =Aidermacs=, you get:
 
-1. Better Support for Multiline Input
+1. Intelligent Model Selection
+   - Automatic discovery of available models from multiple providers
+   - Real-time model compatibility checking
+   - Seamless integration with your configured API keys
+   - Caching for quick access to frequently used models
+   - Support for both popular pre-configured models and dynamically discovered ones
+
+2. Flexible Terminal Backend Support
+   - =Aidermacs= supports multiple terminal backends (comint and vterm) for better compatibility and performance
+   - Easy configuration to choose your preferred terminal emulation
+   - Extensible architecture for adding new backends
+
+3. Smarter Syntax Highlighting
+   - AI-generated code appears with proper syntax highlighting in major languages.
+   - Ensures clarity and readability without additional configuration.
+
+4. Greater Configurability
+   - =Aidermacs= offers more customization options to tailor the experience to your preferences.
+   - You can easily disable automatic commits, choose to operate only within a specific directory, and customize keybindings.
+   - The model selection system provides fine-grained control over which AI models are available and how they're used.
+   - Terminal backend selection allows choosing between comint and vterm for different performance characteristics.
+   - Multiline input configuration adapts to your preferred editing style.
+
+5. Better Support for Multiline Input
    - =aider= is primarily designed as a command-line program, where multiline input is restricted by terminal limitations.
    - Terminal-based tools require special syntax or manual formatting to handle multiline input, which can be cumbersome and unintuitive.
    - =Aidermacs= eliminates these restrictions by handling multiline prompts natively within Emacs, allowing you to compose complex AI requests just like any other text input.
    - Whether you're pasting blocks of code or refining AI-generated responses, multiline interactions in =Aidermacs= feel natural and seamless.
 
-2. Smarter Syntax Highlighting
-   - AI-generated code appears with proper syntax highlighting in major languages.
-   - Ensures clarity and readability without additional configuration.
-
-3. Flexible Terminal Backend Support
-   - =Aidermacs= supports multiple terminal backends (comint and vterm) for better compatibility and performance
-   - Easy configuration to choose your preferred terminal emulation
-   - Extensible architecture for adding new backends
-
-4. Enhanced File Management from Emacs
+6. Enhanced File Management from Emacs
    - List files currently in chat with =M-x aidermacs-list-added-files=
    - Drop specific files from chat with =M-x aidermacs-drop-file=
    - View output history with =M-x aidermacs-show-output-history=
    - and more
 
-6. Greater Configurability
-    - =Aidermacs= offers more customization options to tailor the experience to your preferences.
-    - You can easily disable automatic commits, choose to operate only within a specific directory, and customize keybindings.
-
-5. Community-Driven Development
+7. Community-Driven Development
    - =Aidermacs= is actively developed and maintained by the community, incorporating user feedback and contributions.
    - We prioritize features and improvements that directly benefit Emacs users, ensuring a tool that evolves with your needs.
+
 
 ... and more to come 🚀
 
@@ -204,6 +215,27 @@ The =.aider.prompt.org= file (created with =M-x aidermacs-open-prompt-file=) is 
 - Quick access to complex instructions
 
 The file is automatically recognized and enables Aidermacs minor mode with the above keybindings.
+
+** Dynamic Model Selection
+
+Aidermacs provides intelligent model selection that automatically detects and integrates with multiple AI providers:
+
+- Automatically fetches available models from supported providers (OpenAI, Anthropic, DeepSeek, Google Gemini, OpenRouter)
+- Caches model lists for quick access
+- Supports both popular pre-configured models and dynamically discovered ones
+- Handles API keys and authentication automatically
+- Provides model compatibility checking
+
+To change models:
+1. Use =M-x aidermacs-change-model= or press =o= in the transient menu
+2. Select from either:
+   - Popular pre-configured models (fast)
+   - Dynamically fetched models from all supported providers (comprehensive)
+
+The system will automatically filter models to only show ones that are:
+- Supported by your current Aider version
+- Available through your configured API keys
+- Compatible with your current workflow
 
 ** Tips
 
