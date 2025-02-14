@@ -34,7 +34,7 @@ Also based on aidermacs LLM benchmark: https://aidermacs.chat/docs/leaderboards/
 (require 'json)
 (require 'url)
 
-(defun fetch-openai-compatible-models (url)
+(defun aidermacs--fetch-openai-compatible-models (url)
   "Fetch available models from an OpenAI compatible API endpoint at URL.
 URL should be the base API endpoint, e.g. https://api.openai.com/v1.
 Returns a list of model names with appropriate prefixes based on the API provider."
@@ -111,7 +111,7 @@ Returns a list of model names with appropriate prefixes based on the API provide
                       "https://api.anthropic.com/v1"
                       "https://generativelanguage.googleapis.com/v1beta"))
          (condition-case err
-             (let* ((fetched-models (fetch-openai-compatible-models url))
+             (let* ((fetched-models (aidermacs--fetch-openai-compatible-models url))
                     (filtered-models (seq-filter (lambda (model)
                                                    (member model supported-models))
                                                  fetched-models)))
