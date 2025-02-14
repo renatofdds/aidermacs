@@ -4,7 +4,7 @@
 ;; Package-Requires: ((emacs "26.1") (transient "0.3.0"))
 ;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
 ;; URL: https://github.com/MatthewZMD/aidermacs.el
-;; Originally inspired by: Kang Tu <tninja@gmail.com> Aider.el
+;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
 
 ;;; Commentary:
 ;; Optional Helm completion interface for aidermacs.el
