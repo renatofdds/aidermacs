@@ -267,14 +267,14 @@ This is useful for working in monorepos where you want to limit aider's scope."
   "Send COMMAND to the corresponding aidermacs process.
 If SWITCH-TO-BUFFER is non-nil, switch to the aidermacs buffer.
 If CALLBACK is provided, it will be called with the command output when available."
-  (if-let ((aidermacs-buffer (get-buffer (aidermacs-buffer-name))))
-      (let ((processed-command (aidermacs--process-message-if-multi-line command)))
-        (when (and switch-to-buffer aidermacs-buffer)
-          (aidermacs-switch-to-buffer))
-        (aidermacs--send-command-backend aidermacs-buffer processed-command callback)
-        (when (and switch-to-buffer (not (string= (buffer-name) (aidermacs-buffer-name))))
-          (aidermacs-switch-to-buffer)))
-    (message "Buffer %s does not exist. Please start aidermacs with 'M-x aidermacs-run'." aidermacs-buffer-name)))
+  (let* ((buffer-name (aidermacs-buffer-name))
+         (buffer (or (get-buffer buffer-name)
+                     (progn (aidermacs-run)
+                            (get-buffer buffer-name))))
+         (processed-command (aidermacs--process-message-if-multi-line command)))
+    (aidermacs--send-command-backend buffer processed-command callback)
+    (when (and switch-to-buffer (not (string= (buffer-name) buffer-name)))
+      (aidermacs-switch-to-buffer))))
 
 
 ;; Function to switch to the aidermacs buffer
