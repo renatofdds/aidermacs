@@ -183,7 +183,7 @@ This function can be customized or redefined by the user."
 
    ["Others"
     ("H" "Session History" aidermacs-show-output-history)
-    ("C" "Copy Last Aidermacs Output" aidermacs-get-last-output)
+    ("L" "Copy Last Aidermacs Output" aidermacs-get-last-output)
     ("O" "Clear Model Selection Cache" aidermacs-clear-model-cache)
     ("l" "Clear Buffer" aidermacs-clear)
     ("h" "Aider Help" aidermacs-help)]])

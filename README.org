@@ -186,7 +186,7 @@ Access more specific commands through submenus:
 - Debug exceptions (=x=)
 - Undo changes (=u=)
 
-**** Understanding Code (Under "Understanding")
+**** Understanding Code
 - =m= Show last commit
 - =q= Ask questions
 - =e= Explain code at point/region
@@ -194,7 +194,7 @@ Access more specific commands through submenus:
 
 **** Other Features
 - =H= View session history
-- =C= Copy last AI output
+- =L= Copy last AI output
 - =l= Clear buffer
 - =h= Get help
 
