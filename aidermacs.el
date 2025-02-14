@@ -45,7 +45,7 @@ This is useful for working in monorepos where you want to limit aider's scope."
   :type 'boolean
   :group 'aidermacs)
 
-(defcustom aidermacs-auto-commits t
+(defcustom aidermacs-auto-commits nil
   "When non-nil, enable auto-commits of LLM changes.
 When nil, disable auto-commits requiring manual git commits."
   :type 'boolean
