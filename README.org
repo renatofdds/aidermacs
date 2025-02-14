@@ -111,13 +111,13 @@ Available backends:
 - =comint= (default): Uses Emacs' built-in terminal emulation
 - =vterm=: Leverages vterm for better terminal compatibility
 
-** Disabling Auto-Commits
+** Re-Enable Auto-Commits
 
-By default, Aidermacs automatically commits changes made by the AI. Some users may find this behavior disruptive. You can disable auto-commits by setting =Aidermacs-auto-commits= to =nil=:
+Aider by default automatically commits changes made by the AI. We find this behavior /very/ intrusive, so we disabled it for you. You can re-enable auto-commits by setting =aidermacs-auto-commits= to =t=:
 
 #+BEGIN_SRC emacs-lisp
-;; Disable auto-commits
-(setq aidermacs-auto-commits nil)
+;; Enable auto-commits
+(setq aidermacs-auto-commits t)
 #+END_SRC
 
 With auto-commits disabled, you'll need to manually commit changes using your preferred Git workflow.
