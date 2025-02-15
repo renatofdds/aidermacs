@@ -64,11 +64,6 @@ When nil, disable auto-commits requiring manual git commits."
         (file-name-directory buffer-file-name))
       default-directory))
 
-(defcustom aidermacs--switch-to-buffer-other-frame nil
-  "When non-nil, open aidermacs buffer in a new frame using `switch-to-buffer-other-frame'.
-When nil, use standard `display-buffer' behavior."
-  :type 'boolean
-  :group 'aidermacs)
 
 
 (defcustom aidermacs-language-name-map '(("elisp" . "emacs-lisp")
@@ -110,19 +105,6 @@ This function can be customized or redefined by the user."
   ;; Ensure the alias is always available in both compiled and interpreted modes.
   (defalias 'aidermacs-read-string 'aidermacs-plain-read-string))
 
-(defclass aidermacs--switch-to-buffer-type (transient-lisp-variable)
-  ((variable :initform 'aidermacs--switch-to-buffer-other-frame)
-   (format :initform "%k %d %v")
-   (reader :initform #'transient-lisp-variable--read-value))
-  "Class for toggling aidermacs--switch-to-buffer-other-frame.")
-
-(transient-define-infix aidermacs--infix-switch-to-buffer-other-frame ()
-  "Toggle aidermacs--switch-to-buffer-other-frame between nil and t."
-  :class 'aidermacs--switch-to-buffer-type
-  :key "^"
-  :description "Open in new frame"
-  :reader (lambda (_prompt _initial-input _history)
-            (not aidermacs--switch-to-buffer-other-frame)))
 
 ;; Transient menu for aidermacs commands
 ;; The instruction in the autoload comment is needed, see
@@ -162,7 +144,6 @@ This function can be customized or redefined by the user."
   "AI Pair Programming Interface"
   ["Aidermacs: AI Pair Programming"
    ["Core Actions"
-    ("^" "Start in New Frame" aidermacs--infix-switch-to-buffer-other-frame)
     ("a" "Start/Open Session" aidermacs-run)
     ("." "Start in Current Dir" aidermacs-run-in-current-dir)
     ("o" "Change Model" aidermacs-change-model)
@@ -294,7 +275,6 @@ CALLBACK will be called with the command output when available."
 ;;;###autoload
 (defun aidermacs-switch-to-buffer ()
   "Switch to the aidermacs buffer.
-When `aidermacs--switch-to-buffer-other-frame' is non-nil, open in a new frame.
 If the buffer is already visible in a window, switch to that window.
 If the current buffer is already the aidermacs buffer, do nothing."
   (interactive)
@@ -304,9 +284,7 @@ If the current buffer is already the aidermacs buffer, do nothing."
      ((and buffer (get-buffer-window buffer))
       (select-window (get-buffer-window buffer)))  ;; Switch to existing window
      (buffer
-      (if aidermacs--switch-to-buffer-other-frame
-          (switch-to-buffer-other-frame buffer)
-        (pop-to-buffer buffer)))
+      (pop-to-buffer buffer))
      (t
       (message "Buffer '%s' does not exist." (aidermacs-buffer-name))))))
 
