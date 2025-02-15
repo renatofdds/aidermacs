@@ -43,7 +43,10 @@ Your contributions are essential to making Aidermacs the best AI pair programmin
   :config
   (setq aidermacs-default-model "anthropic/claude-3-5-sonnet-20241022")
   (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
-  (global-set-key (kbd "C-c a") 'aidermacs-transient-menu))
+  (global-set-key (kbd "C-c a") 'aidermacs-transient-menu)
+  ; See the Configuration section below
+  (setq aidermacs-auto-commits t)
+  (setq aidermacs-use-architect-mode t))
 ```
 
 ### Sample Config With Doom Emacs
@@ -62,6 +65,8 @@ You can customize the default AI model used by Aidermacs by setting the `aiderma
 ```
 
 This allows you to easily switch between different AI models without modifying the `aidermacs-extra-args` variable.
+
+*Note: This will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File))*
 
 ### Dynamic Model Selection
 
@@ -90,16 +95,19 @@ The system will automatically filter models to only show ones that are:
 
 Aidermacs supports an experimental mode that leverages two models for each coding task: an Architect model for reasoning and an Editor model for generating code edits. This approach has **achieved state-of-the-art (SOTA) results on aider's code editing benchmark**, as detailed in [this blog post](https://aider.chat/2024/09/26/architect.html).
 
-To enable this mode, set `aidermacs-use-architect-mode` to `t`. You may also configure the `aidermacs-architect-model` and `aidermacs-editor-model` variables to specify the models to use for the Architect and Editor roles, respectively.
+To enable this mode, set `aidermacs-use-architect-mode` to `t`. You must also configure the `aidermacs-architect-model` variable to specify the model to use for the Architect role.
 
-When Architect mode is enabled, the `aidermacs-default-model` setting is ignored.
+By default, the `aidermacs-editor-model` is the same as `aidermacs-default-model`. You only need to set `aidermacs-editor-model` if you want to use a different model for the Editor role.
+
+When Architect mode is enabled, the `aidermacs-default-model` setting is ignored, and `aidermacs-architect-model` and `aidermacs-editor-model` are used instead.
 
 ```emacs-lisp
 (setq aidermacs-use-architect-mode t)
-(setq aidermacs-architect-model "o1-mini") ; default
-(setq aidermacs-editor-model "anthropic/claude-3-5-sonnet-20241022") ; default
+(setq aidermacs-architect-model "o1-mini") ; required
+;; (setq aidermacs-editor-model "anthropic/claude-3-5-sonnet-20241022") ; optional, defaults to aidermacs-default-model
 ```
 
+*Note: This will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File))*
 
 ### Terminal Backend Selection
 
@@ -116,16 +124,6 @@ Available backends:
 - `comint` (default): Uses Emacs' built-in terminal emulation
 - `vterm`: Leverages vterm for better terminal compatibility
 
-### Re-Enable Auto-Commits
-
-Aider by default automatically commits changes made by the AI. We find this behavior /very/ intrusive, so we disabled it for you. You can re-enable auto-commits by setting `aidermacs-auto-commits` to `t`:
-
-```emacs-lisp
-;; Enable auto-commits
-(setq aidermacs-auto-commits t)
-```
-
-With auto-commits disabled, you'll need to manually commit changes using your preferred Git workflow.
 
 ### Multiline Input Configuration
 
@@ -138,6 +136,18 @@ When using the comint backend, you can customize the key binding for multiline i
 
 This key allows you to enter multiple lines without sending the command to Aider. Press `RET` normally to send the command.
 
+### Re-Enable Auto-Commits
+
+Aider by default automatically commits changes made by the AI. We find this behavior /very/ intrusive, so we disabled it for you. You can re-enable auto-commits by setting `aidermacs-auto-commits` to `t`:
+
+```emacs-lisp
+;; Enable auto-commits
+(setq aidermacs-auto-commits t)
+```
+
+With auto-commits disabled, you'll need to manually commit changes using your preferred Git workflow.
+
+*Note: This will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File))*
 
 ### Customizing Aider Options with `aidermacs-extra-args`
 
@@ -151,6 +161,31 @@ See the [Aider configuration documentation](https://aider.chat/docs/config/optio
 ```
 
 These arguments will be appended to the Aider command when it is run. Note that the `--model` argument is automatically handled by `aidermacs-default-model` and should not be included in `aidermacs-extra-args`.
+
+
+### Overwrite Configuration with Configuration File
+
+Aidermacs supports project-specific configurations via `.aider.conf.yml` files. To enable this:
+
+1.  Create a `.aider.conf.yml` in your home dir, project's root, or the current directory, defining your desired settings. See the [Aider documentation](https://aider.chat/docs/config/aider_conf.html) for available options.
+
+2.  Tell Aidermacs to use the config file in one of two ways:
+
+    ```emacs-lisp
+    ;; Set the `aidermacs-config-file` variable in your Emacs config:
+    (setq aidermacs-config-file "/path/to/your/project/.aider.conf.yml")
+    ;; *Or*, include the `--config` or `-c` flag in `aidermacs-extra-args`:
+    (setq aidermacs-extra-args '("--config" "/path/to/your/project/.aider.conf.yml"))
+    ```
+
+*Note: You can also rely on Aider's default behavior of automatically searching for `.aider.conf.yml` in the home directory, project root, or current directory, in that order. In this case, you do not need to set `aidermacs-config-file` or include `--config` in `aidermacs-extra-args`.*
+
+**Important: When using a config file, all other Aidermacs configuration variables related to model selection (e.g., `aidermacs-default-model`, `aidermacs-architect-model`, `aidermacs-use-architect-mode`) are IGNORED.** Aider will *only* use the settings specified in your `.aider.conf.yml` file.  Do not attempt to combine these Emacs settings with a config file, as the results will be unpredictable.
+
+#### Notes
+
+*   **Precedence:** Settings in `.aider.conf.yml` *always* take precedence when a config file is explicitly specified.
+*   **Avoid Conflicts:** When using a config file, *do not* include model-related arguments (like `--model`, `--architect`, etc.) in `aidermacs-extra-args`.  Configure *all* settings within your `.aider.conf.yml` file.
 
 ## Usage
 

@@ -17,7 +17,7 @@
 (require 'vc-git)
 (require 'which-func)
 (require 'ansi-color)
-
+(require 'cl-lib)
 
 (require 'aidermacs-backends)
 (require 'aidermacs-models)
@@ -37,7 +37,15 @@
 (define-obsolete-variable-alias 'aidermacs-args 'aidermacs-extra-args "0.5.0"
   "Old name for `aidermacs-extra-args', please update your config to use the new name.")
 
-(defcustom aidermacs-extra-args nil
+(defcustom aidermacs-config-file nil
+  "Path to aider configuration file.
+When set, Aidermacs will pass this to aider via --config flag,
+ignoring other configuration settings except aidermacs-extra-args."
+  :type '(choice (const :tag "None" nil)
+                 (file :tag "Config file"))
+  :group 'aidermacs)
+
+(defcustom aidermacs-extra-args '()
   "Additional arguments to pass to the aidermacs command.
 The model argument will be added automatically based on `aidermacs-default-model'."
   :type '(repeat string)
@@ -224,24 +232,37 @@ Prefers existing sessions closer to current directory."
   "Run aidermacs process using the selected backend."
   (interactive)
   (let* ((buffer-name (aidermacs-buffer-name))
-         (has-model-arg (seq-position aidermacs-extra-args "--model"))
-         (final-args (append
-                      (when aidermacs-use-architect-mode
-                        (list "--architect"
-                              "--model" aidermacs-architect-model
-                              "--editor-model" aidermacs-editor-model))
-                      (unless aidermacs-use-architect-mode
-                        (unless has-model-arg
-                          (list "--model" aidermacs-default-model)))
-                      (unless aidermacs-auto-commits
-                        '("--no-auto-commits"))
-                      (when aidermacs-subtree-only
-                        '("--subtree-only"))
-                      aidermacs-extra-args)))
-    ;; Check if a matching buffer exists (handled by aidermacs-buffer-name)
+         ;; Process extra args: split each string on whitespace.
+         (flat-extra-args
+          (cl-mapcan (lambda (s)
+                       (if (stringp s)
+                           (split-string s "[[:space:]]+" t)
+                         (list s)))
+                     aidermacs-extra-args))
+         (has-model-arg (cl-some (lambda (x) (member x flat-extra-args))
+                                 '("--model" "--opus" "--sonnet" "--haiku"
+                                   "--4" "--4o" "--mini" "--4-turbo" "--35turbo"
+                                   "--deepseek" "--o1-mini" "--o1-preview")))
+         (has-config-arg (cl-some (lambda (x) (member x flat-extra-args))
+                                  '("--config" "-c")))
+         (backend-args
+          (if has-config-arg
+              (when aidermacs-config-file
+                (list "--config" aidermacs-config-file))
+            (append
+             (if aidermacs-use-architect-mode
+                 (list "--architect"
+                       "--model" aidermacs-architect-model
+                       "--editor-model" aidermacs-editor-model)
+               (unless has-model-arg
+                 (list "--model" aidermacs-default-model)))
+             (when (not aidermacs-auto-commits)
+               '("--no-auto-commits"))
+             (when aidermacs-subtree-only
+               '("--subtree-only")))))
+         (final-args (append backend-args flat-extra-args)))
     (if (get-buffer buffer-name)
         (aidermacs-switch-to-buffer)
-      ;; Start new session with proper directory and args
       (aidermacs-run-backend aidermacs-program final-args buffer-name)
       (aidermacs-switch-to-buffer))))
 

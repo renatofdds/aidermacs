@@ -28,8 +28,9 @@
   :type 'string
   :group 'aidermacs-models)
 
-(defcustom aidermacs-editor-model "anthropic/claude-3-5-sonnet-20241022"
-  "Default AI model to use for code editing in aidermacs sessions."
+(defcustom aidermacs-editor-model aidermacs-default-model
+  "Default AI model to use for code editing in aidermacs sessions.
+Defaults to `aidermacs-default-model` if not explicitly set."
   :type 'string
   :group 'aidermacs-models)
 
