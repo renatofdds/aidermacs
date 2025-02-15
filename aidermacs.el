@@ -168,8 +168,8 @@ This function can be customized or redefined by the user."
     ("f" "Add Current File" aidermacs-add-current-file)
     ("c" "Code Change" aidermacs-code-change)
     ("r" "Refactor" aidermacs-function-or-region-refactor)
-    ("d" "Drop Current File" aidermacs-drop-current-file)
-    ("g" "Go Ahead" aidermacs-go-ahead)]
+    ("g" "Go Ahead" aidermacs-go-ahead)
+    ("u" "Undo Change" aidermacs-undo-last-change)]
 
    ["Code & Files"
     ("F" "File Commands" aidermacs-transient-file-commands)
@@ -177,9 +177,10 @@ This function can be customized or redefined by the user."
 
    ["Understanding"
     ("m" "Show Last Commit" aidermacs-magit-show-last-commit)
+    ("Q" "Ask General Question" aidermacs-ask-question-general)
     ("q" "Ask Question" aidermacs-ask-question)
-    ("e" "Explain Code" aidermacs-function-or-region-explain)
-    ("p" "Explain Symbol" aidermacs-explain-symbol-under-point)]
+    ("e" "Explain This Code" aidermacs-function-or-region-explain)
+    ("p" "Explain This Symbol" aidermacs-explain-symbol-under-point)]
 
    ["Others"
     ("H" "Session History" aidermacs-show-output-history)
@@ -243,7 +244,7 @@ With the universal argument EDIT-ARGS, prompt to edit aidermacs-args before runn
                                                    (mapconcat 'identity aidermacs-args " ")))
                         aidermacs-args))
          (final-args (append current-args
-                           (when (not aidermacs-auto-commits)
+                           (unless aidermacs-auto-commits
                              '("--no-auto-commits"))
                            (when aidermacs-subtree-only
                              '("--subtree-only")))))
@@ -500,19 +501,18 @@ If cursor is inside a function, include the function name as context."
   (interactive)
   ;; Dispatch to general question if in aidermacs buffer
   (when (string= (buffer-name) (aidermacs-buffer-name))
-    (call-interactively 'aidermacs-general-question)
+    (call-interactively 'aidermacs-ask-question-general)
     (cl-return-from aidermacs-ask-question))
   (aidermacs-add-current-file)
-  (when-let ((command (aidermacs--get-context-command "Enter question" "/ask")))
+  (when-let ((command (aidermacs--form-prompt "Ask" "/ask")))
     (aidermacs--send-command command t)))
 
 ;;;###autoload
-(defun aidermacs-general-question ()
+(defun aidermacs-ask-question-general ()
   "Prompt the user for a general question and send it to the corresponding aidermacs comint buffer prefixed with \"/ask \"."
   (interactive)
-  (let ((question (aidermacs-read-string "Enter general question to ask: ")))
-    (let ((command (format "/ask %s" question)))
-      (aidermacs--send-command command t))))
+  (when-let ((command (aidermacs--form-prompt "/ask" "Ask general question" t)))
+    (aidermacs--send-command command t)))
 
 ;;;###autoload
 (defun aidermacs-help ()
@@ -557,34 +557,26 @@ If Magit is not installed, report that it is required."
   (interactive)
   (aidermacs--send-command "/undo"))
 
+
 ;;;###autoload
-(defun aidermacs--get-context-command (prompt-prefix command-prefix &optional initial-input)
-  "Get command based on context (region or function) with PROMPT-PREFIX.
+(defun aidermacs--form-prompt (command prompt-prefix &optional ignore-context)
+  "Get command based on context with COMMAND and PROMPT-PREFIX.
+If IGNORE-CONTEXT is non-nil, skip function and region context.
 If region is active, use that region's text.
-If point is in a function, use function name.
-COMMAND-PREFIX is added before the final command (e.g. \"/architect\" or \"/ask\").
-INITIAL-INPUT is optional initial input for the prompt."
-  (if (use-region-p)
-      (let* ((region-text (buffer-substring-no-properties (region-beginning) (region-end)))
-             (function-name (which-function))
-             (preview (concat (substring region-text 0 (min 10 (length region-text)))
-                            (if (> (length region-text) 10) "..." "")))
-             ;; Add preview to prompt
-             (prompt (format "%s (selected: %s): " prompt-prefix preview))
-             (user-command (aidermacs-read-string prompt initial-input))
-             (command (if function-name
-                         (format "%s \"in function %s, for the following code block, %s: %s\"\n"
-                                 command-prefix function-name user-command region-text)
-                       (format "%s \"for the following code block, %s: %s\"\n"
-                               command-prefix user-command region-text))))
-        command)
-    (if-let ((function-name (which-function)))
-        (let* ((func-initial-input (or initial-input (format "%s %s: " prompt-prefix function-name)))
-               (user-command (aidermacs-read-string (concat prompt-prefix ": ") func-initial-input))
-               (command (format "%s %s" command-prefix user-command)))
-          command)
-      (message "No region selected and no function found at point.")
-      nil)))
+If point is in a function, use function name."
+  (let* ((on-function (unless ignore-context (which-function)))
+         (region-text (when (and (use-region-p) (not ignore-context))
+                        (buffer-substring-no-properties (region-beginning) (region-end))))
+         (context (concat (when on-function
+                            (format " function `%s`" on-function))
+                          (when region-text
+                            (format " on the following code block:\n```\n%s\n```\n" region-text))))
+         (user-prompt (concat prompt-prefix context ": "))
+         (user-command (aidermacs-read-string user-prompt)))
+    (concat (when command (concat command " "))
+            (when prompt-prefix prompt-prefix)
+            context
+            ": " user-command)))
 
 (defun aidermacs-function-or-region-refactor ()
   "Refactor code at point or region.
@@ -592,7 +584,7 @@ If region is active, refactor that region.
 If point is in a function, refactor that function."
   (interactive)
   (aidermacs-add-current-file)
-  (when-let ((command (aidermacs--get-context-command "Enter refactor instruction" "/architect")))
+  (when-let ((command (aidermacs--form-prompt "/architect" "Refactor")))
     (aidermacs--send-command command t)))
 
 ;;;###autoload
@@ -602,7 +594,7 @@ If region is active, explain that region.
 If point is in a function, explain that function."
   (interactive)
   (aidermacs-add-current-file)
-  (when-let ((command (aidermacs--get-context-command "Enter explanation request" "/ask" "explain this code")))
+  (when-let ((command (aidermacs--form-prompt "/ask" "Explain")))
     (aidermacs--send-command command t)))
 
 ;;;###autoload
@@ -733,43 +725,42 @@ Otherwise implement TODOs for the entire current file."
       (message "Current buffer is not visiting a file.")
     (aidermacs-add-current-file)
     (let* ((current-line (string-trim (thing-at-point 'line t)))
-           (is-comment (aidermacs--is-comment-line current-line))
-           (initial-input
-            (if is-comment
-                (format "Please implement this comment: '%s'. Keep existing code structure." current-line)
-              "Please implement the TODO items. Keep existing code structure.")))
-      (when-let ((command (aidermacs--get-context-command "Enter TODO implementation instruction"
-                                                         "/architect"
-                                                         initial-input)))
+           (is-comment (aidermacs--is-comment-line current-line)))
+      (when-let ((command
+                  (aidermacs--form-prompt
+                   "/architect"
+                   (concat "Please implement the TODO items."
+                           (when is-comment
+                             (format " on this comment: `%s`." current-line))
+                           " Keep existing code structure"))))
         (aidermacs--send-command command t)))))
 
 
-;;; functions for sending text blocks
-
-;; New function to send "<line under cursor>" or region line by line to the aidermacs buffer
 ;;;###autoload
 (defun aidermacs-send-line-or-region ()
   "Send text to the aidermacs buffer.
 If region is active, send the selected region.
 Otherwise, send the line under cursor."
   (interactive)
-  (if-let ((text (aidermacs--get-context-command nil nil nil)))
-      (aidermacs--send-command text t)
-    (let ((line (string-trim (thing-at-point 'line t))))
-      (unless (string-empty-p line)
-        (aidermacs--send-command line t)))))
+  (let ((text (if (use-region-p)
+                  (buffer-substring-no-properties (region-beginning) (region-end))
+                (string-trim (thing-at-point 'line t)))))
+    (when text
+      (aidermacs--send-command text t))))
 
 ;;;###autoload
 (defun aidermacs-send-region-by-line ()
   "Get the text of the current selected region, split into lines,
-strip the newline character from each line,
-for each non-empty line, send it to aidermacs session."
+and send each non-empty line to aidermacs session."
   (interactive)
-  (if-let ((text (aidermacs--get-context-command nil nil nil)))
-      (mapc (lambda (line)
-              (unless (string-empty-p line)
-                (aidermacs--send-command line t)))
-            (split-string text "\n" t))
+  (if (use-region-p)
+      (let* ((text (buffer-substring-no-properties (region-beginning) (region-end)))
+             (lines (split-string text "\n" t)))
+        (mapc (lambda (line)
+                (let ((trimmed (string-trim line)))
+                  (when (not (string-empty-p trimmed))
+                    (aidermacs--send-command trimmed t))))
+              lines))
     (message "No region selected.")))
 
 ;;;###autoload
@@ -777,16 +768,15 @@ for each non-empty line, send it to aidermacs session."
   "Send the current active region text or current paragraph content.
 When sending paragraph content, preserve cursor position."
   (interactive)
-  (if-let ((text (aidermacs--get-context-command nil nil nil)))
-      (unless (string-empty-p text)
-        (aidermacs--send-command text t))
-    (save-excursion
-      (let ((para-text (progn
-                        (mark-paragraph)
-                        (buffer-substring-no-properties (region-beginning) (region-end)))))
-        (unless (string-empty-p para-text)
-          (aidermacs--send-command para-text t))
-        (deactivate-mark)))))
+  (let ((text (if (use-region-p)
+                  (buffer-substring-no-properties (region-beginning) (region-end))
+                (save-excursion
+                  (mark-paragraph)
+                  (prog1
+                      (buffer-substring-no-properties (region-beginning) (region-end))
+                    (deactivate-mark))))))
+    (when text
+      (aidermacs--send-command text t))))
 
 ;;;###autoload
 (defun aidermacs-open-prompt-file ()
