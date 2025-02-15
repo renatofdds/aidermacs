@@ -34,6 +34,9 @@
   :type 'string
   :group 'aidermacs)
 
+(define-obsolete-variable-alias 'aidermacs-args 'aidermacs-extra-args "0.5.0"
+  "Old name for `aidermacs-extra-args', please update your config to use the new name.")
+
 (defcustom aidermacs-extra-args nil
   "Additional arguments to pass to the aidermacs command.
 The model argument will be added automatically based on `aidermacs-default-model'."
@@ -240,12 +243,14 @@ Prefers existing sessions closer to current directory."
   "Run aidermacs process using the selected backend."
   (interactive)
   (let* ((buffer-name (aidermacs-buffer-name))
-         (final-args (append (list "--model" aidermacs-default-model)
-                             (unless aidermacs-auto-commits
-                               '("--no-auto-commits"))
-                             (when aidermacs-subtree-only
-                               '("--subtree-only"))
-                             aidermacs-extra-args)))
+         (has-model-arg (seq-position aidermacs-extra-args "--model"))
+         (final-args (append (unless has-model-arg
+                             (list "--model" aidermacs-default-model))
+                           (unless aidermacs-auto-commits
+                             '("--no-auto-commits"))
+                           (when aidermacs-subtree-only
+                             '("--subtree-only"))
+                           aidermacs-extra-args)))
     ;; Check if a matching buffer exists (handled by aidermacs-buffer-name)
     (if (get-buffer buffer-name)
         (aidermacs-switch-to-buffer)
