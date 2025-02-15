@@ -1,7 +1,7 @@
 ;;; aidermacs-helm.el --- Helm completion for aidermacs.el -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Version: 0.5.0
-;; Package-Requires: ((emacs "26.1") (transient "0.3.0"))
+;; Package-Requires: ((emacs "26.1") (helm "3.9.0"))
 ;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
 ;; URL: https://github.com/MatthewZMD/aidermacs.el
 ;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
@@ -15,40 +15,21 @@
 (require 'helm)
 (require 'cl-lib)  ; For `cl-subseq`
 
-(defun aidermacs-helm-read-string-with-history (prompt history-file-name &optional initial-input)
-  "Read a string with Helm completion using specified history file.
-PROMPT is the prompt string.
-HISTORY-FILE-NAME is the base name for history file.
-INITIAL-INPUT is optional initial input string."
-  ;; Load history from file
-  (let* ((history-file (expand-file-name history-file-name user-emacs-directory))
-         (history (when (file-exists-p history-file)
-                    (with-temp-buffer
-                      (insert-file-contents history-file)
-                      (delete-dups (read (buffer-string))))))
-         ;; Read input with helm
-         (input (helm-comp-read
-                 prompt
-                 history
-                 :must-match nil
-                 :name "Helm Read String"
-                 :fuzzy t
-                 :initial-input initial-input)))
-    ;; Add to history if non-empty and save
-    (unless (string-empty-p input)
-      (push input history)
-      (with-temp-file history-file
-        (let ((history-entries (cl-subseq history
-                                          0 (min (length history)
-                                                 10000))))  ; Keep last 10000 entries
-          (insert (prin1-to-string history-entries)))))
-    input))
-
 (defun aidermacs-helm-read-string (prompt &optional initial-input)
   "Read a string with Helm completion for aidermacs, showing historical inputs.
 PROMPT is the prompt string.
 INITIAL-INPUT is optional initial input string."
-  (aidermacs-helm-read-string-with-history prompt "aidermacs-helm-read-string-history.el" initial-input))
+  (let ((input (helm-comp-read
+                prompt
+                aidermacs-read-string-history
+                :must-match nil
+                :name "Aidermacs Input"
+                :fuzzy t
+                :initial-input initial-input)))
+    ;; Add to history if non-empty
+    (unless (string-empty-p input)
+      (add-to-history 'aidermacs-read-string-history input))
+    input))
 
 (declare-function aidermacs-read-string "aidermacs")
 

@@ -832,5 +832,4 @@ Returns t if the file matches any of the patterns in `aidermacs-auto-mode-files'
               (aidermacs-minor-mode 1))))
 
 (provide 'aidermacs)
-
 ;;; aidermacs.el ends here
