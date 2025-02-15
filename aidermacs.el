@@ -243,10 +243,19 @@ Prefers existing sessions closer to current directory."
                                  '("--model" "--opus" "--sonnet" "--haiku"
                                    "--4" "--4o" "--mini" "--4-turbo" "--35turbo"
                                    "--deepseek" "--o1-mini" "--o1-preview")))
-         (has-config-arg (cl-some (lambda (x) (member x flat-extra-args))
-                                  '("--config" "-c")))
+         (has-config-arg (or (cl-some (lambda (dir)
+                                        (let ((conf (expand-file-name ".aider.conf.yml" dir)))
+                                          (when (file-exists-p conf)
+                                            dir)))
+                                      (list (expand-file-name "~")
+                                            (aidermacs-project-root)
+                                            default-directory))
+                             aidermacs-config-file
+                             (cl-some (lambda (x) (member x flat-extra-args))
+                                      '("--config" "-c"))))
          (backend-args
           (if has-config-arg
+              ;; Only need to add aidermacs-config-file manually
               (when aidermacs-config-file
                 (list "--config" aidermacs-config-file))
             (append
@@ -588,7 +597,7 @@ If point is in a function, use function name."
          (region-text (when (and (use-region-p) (not ignore-context))
                         (buffer-substring-no-properties (region-beginning) (region-end))))
          (context (concat (when on-function
-                            (format " function `%s`" on-function))
+                            (format " in function `%s`" on-function))
                           (when region-text
                             (format " on the following code block:\n```\n%s\n```\n" region-text))))
          (prompt (concat command " " prompt-prefix context ": "))
