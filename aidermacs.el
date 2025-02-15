@@ -131,13 +131,14 @@ This function can be customized or redefined by the user."
   ["File Actions"
    ["Add File Actions"
     ("f" "Add Current File" aidermacs-add-current-file)
-    ("r" "Add Read-Only" aidermacs-add-current-file-read-only)
-    ("w" "Add Window Files" aidermacs-add-files-in-current-window)
-    ("d" "Add Directory Files" aidermacs-add-same-type-files-under-dir)
-    ("m" "Add Marked Files" aidermacs-batch-add-dired-marked-files)]
+    ("i" "Add File Interactively" aidermacs-add-files-interactively)
+    ("r" "Add Current Read-Only" aidermacs-add-current-file-read-only)
+    ("w" "Add Current Window Files" aidermacs-add-files-in-current-window)
+    ("d" "Add Current Directory Files" aidermacs-add-same-type-files-under-dir)
+    ("m" "Add Dired Marked Files" aidermacs-batch-add-dired-marked-files)]
 
    ["Drop Actions"
-    ("j" "Drop File" aidermacs-drop-file)
+    ("j" "Drop File Interactively" aidermacs-drop-file)
     ("k" "Drop Current File" aidermacs-drop-current-file)]
 
    [("l" "List Files" aidermacs-list-added-files)]])
@@ -621,6 +622,16 @@ If point is in a function, explain that function."
         (let ((command (concat "/add " (mapconcat 'expand-file-name files " "))))
           (aidermacs--send-command command t))
       (message "No files marked in Dired."))))
+
+;;;###autoload
+(defun aidermacs-add-files-interactively ()
+  "Add files to aidermacs by interactively selecting them using `find-file`.
+Multiple files can be selected by calling the command multiple times."
+  (interactive)
+  (when-let ((file (expand-file-name (read-file-name "Select file to add: "))))
+    (if (file-exists-p file)
+        (aidermacs--send-command (concat "/add " file) t)
+      (message "File does not exist: %s" file))))
 
 ;;;###autoload
 (defun aidermacs-add-same-type-files-under-dir ()

@@ -60,6 +60,7 @@ With `Aidermacs`, you get:
    - List files currently in chat with `M-x aidermacs-list-added-files`
    - Drop specific files from chat with `M-x aidermacs-drop-file`
    - View output history with `M-x aidermacs-show-output-history`
+   - Interactively select files to add with `M-x aidermacs-add-files-interactively`
    - and more
 
 6. Greater Configurability
@@ -183,6 +184,8 @@ From the transient menu:
 - `.` Start in current directory (good for monorepos)
 - `^` Toggle "Start in New Frame" option
 - `o` Change AI model
+- `s` Reset session
+- `x` Exit session
 
 The session buffer will be named `*aidermacs:your-repo-name*` where you can interact with the AI.
 
@@ -193,6 +196,11 @@ Most common operations are available directly:
 - `r` Refactor code at point/region
 - `d` Drop current file from chat
 - `g` Accept AI's proposal ("go ahead")
+- `u` Undo last change
+- `Q` Ask general question
+- `q` Ask question about current code
+- `e` Explain code at point/region
+- `p` Explain symbol under point
 
 #### 3. Specialized Commands
 Access more specific commands through submenus:
