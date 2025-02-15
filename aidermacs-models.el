@@ -11,14 +11,43 @@
 
 ;;; Code:
 
+(require 'json)
+(require 'url)
+
 (defgroup aidermacs-models nil
   "Model selection customization for aidermacs."
   :group 'aidermacs)
 
 (defcustom aidermacs-default-model "anthropic/claude-3-5-sonnet-20241022"
-  "Default AI model to use for aidermacs sessions."
+  "Default AI model to use for aidermacs sessions when not in Architect mode."
   :type 'string
   :group 'aidermacs-models)
+
+(defcustom aidermacs-architect-model "o1-mini"
+  "Default AI model to use for architectural reasoning in aidermacs sessions."
+  :type 'string
+  :group 'aidermacs-models)
+
+(defcustom aidermacs-editor-model "anthropic/claude-3-5-sonnet-20241022"
+  "Default AI model to use for code editing in aidermacs sessions."
+  :type 'string
+  :group 'aidermacs-models)
+
+(defcustom aidermacs-use-architect-mode nil
+  "If non-nil, use separate Architect/Editor mode."
+  :type 'boolean
+  :group 'aidermacs-models)
+
+(defun aidermacs-toggle-architect-mode ()
+  "Toggle the `aidermacs-use-architect-mode` variable."
+  (interactive)
+  (setq aidermacs-use-architect-mode (not aidermacs-use-architect-mode))
+  (message "Architect Mode: %s" (if aidermacs-use-architect-mode "ON" "OFF"))
+  (when (get-buffer (aidermacs-buffer-name))
+    (when (yes-or-no-p
+           (format "Aidermacs Architect Mode %s. Change will take affect next session. Close the session now? "
+                   (if aidermacs-use-architect-mode "ON" "OFF")))
+      (aidermacs-exit))))
 
 (defcustom aidermacs-popular-models
   '("anthropic/claude-3-5-sonnet-20241022"
@@ -35,9 +64,6 @@ Also based on aidermacs LLM benchmark: https://aidermacs.chat/docs/leaderboards/
 
 (defvar aidermacs--cached-models aidermacs-popular-models
   "Cache of available AI models.")
-
-(require 'json)
-(require 'url)
 
 (defun aidermacs--fetch-openai-compatible-models (url)
   "Fetch available models from an OpenAI compatible API endpoint at URL.
@@ -144,6 +170,7 @@ Returns a list of model names with appropriate prefixes based on the API provide
   (if aidermacs--cached-models
       (aidermacs--select-model)
     (aidermacs--get-available-models)))
+
 
 (provide 'aidermacs-models)
 

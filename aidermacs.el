@@ -65,7 +65,6 @@ When nil, disable auto-commits requiring manual git commits."
       default-directory))
 
 
-
 (defcustom aidermacs-language-name-map '(("elisp" . "emacs-lisp")
                                          ("bash" . "sh")
                                          ("objective-c" . "objc")
@@ -104,7 +103,6 @@ This function can be customized or redefined by the user."
 (eval-and-compile
   ;; Ensure the alias is always available in both compiled and interpreted modes.
   (defalias 'aidermacs-read-string 'aidermacs-plain-read-string))
-
 
 ;; Transient menu for aidermacs commands
 ;; The instruction in the autoload comment is needed, see
@@ -148,7 +146,7 @@ This function can be customized or redefined by the user."
    ["Core Actions"
     ("a" "Start/Open Session" aidermacs-run)
     ("." "Start in Current Dir" aidermacs-run-in-current-dir)
-    ("o" "Change Model" aidermacs-change-model)
+    ("o" "Change Solo Model" aidermacs-change-model)
     ("s" "Reset Session" aidermacs-reset)
     ("x" "Exit Session" aidermacs-exit)]
 
@@ -170,6 +168,7 @@ This function can be customized or redefined by the user."
     ("p" "Explain This Symbol" aidermacs-explain-symbol-under-point)]
 
    ["Others"
+    ("A" "Toggle Architect Mode (Separate Reasoner/Editor)" aidermacs-toggle-architect-mode)
     ("H" "Session History" aidermacs-show-output-history)
     ("L" "Copy Last Aidermacs Output" aidermacs-get-last-output)
     ("O" "Clear Model Selection Cache" aidermacs-clear-model-cache)
@@ -226,13 +225,19 @@ Prefers existing sessions closer to current directory."
   (interactive)
   (let* ((buffer-name (aidermacs-buffer-name))
          (has-model-arg (seq-position aidermacs-extra-args "--model"))
-         (final-args (append (unless has-model-arg
-                             (list "--model" aidermacs-default-model))
-                           (unless aidermacs-auto-commits
-                             '("--no-auto-commits"))
-                           (when aidermacs-subtree-only
-                             '("--subtree-only"))
-                           aidermacs-extra-args)))
+         (final-args (append
+                      (when aidermacs-use-architect-mode
+                        (list "--architect"
+                              "--model" aidermacs-architect-model
+                              "--editor-model" aidermacs-editor-model))
+                      (unless aidermacs-use-architect-mode
+                        (unless has-model-arg
+                          (list "--model" aidermacs-default-model)))
+                      (unless aidermacs-auto-commits
+                        '("--no-auto-commits"))
+                      (when aidermacs-subtree-only
+                        '("--subtree-only"))
+                      aidermacs-extra-args)))
     ;; Check if a matching buffer exists (handled by aidermacs-buffer-name)
     (if (get-buffer buffer-name)
         (aidermacs-switch-to-buffer)

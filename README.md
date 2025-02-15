@@ -16,7 +16,7 @@ Key features:
 
 ## Why Aidermacs?
 
-Aidermacs delivers an Emacs-centric experience by deeply integrating with Emacs paradigms, made by Emacs users, for Emacs users. This includes intelligent model selection, flexible terminal backend support (comint and vterm), smarter syntax highlighting, enhanced file management, streamlined transient menus, and more.
+Aidermacs delivers an Emacs-centric experience by deeply integrating with Emacs paradigms, made by Emacs users, for Emacs users. This includes ability to separate reasoning and code editing model, intelligent model selection, flexible terminal backend support (comint and vterm), smarter syntax highlighting, enhanced file management, streamlined transient menus, and more.
 
 ### Community-Driven Development
 
@@ -46,6 +46,13 @@ Your contributions are essential to making Aidermacs the best AI pair programmin
   (global-set-key (kbd "C-c a") 'aidermacs-transient-menu))
 ```
 
+### Sample Config With Doom Emacs
+```emacs-lisp
+(package! aidermacs :recipe (:host github :repo "MatthewZMD/aidermacs" :files ("*.el")))
+```
+
+## Configuration
+
 ### Default Model Selection
 
 You can customize the default AI model used by Aidermacs by setting the `aidermacs-default-model` variable:
@@ -56,24 +63,43 @@ You can customize the default AI model used by Aidermacs by setting the `aiderma
 
 This allows you to easily switch between different AI models without modifying the `aidermacs-extra-args` variable.
 
-### Customizing Aider Options with `aidermacs-extra-args`
+### Dynamic Model Selection
 
-The `aidermacs-extra-args` variable allows you to pass any command-line options supported by Aider. See the [Aider configuration documentation](https://aider.chat/docs/config/options.html) for a full list of available options.
+Aidermacs provides intelligent model selection for the solo (non-Architect) mode that automatically detects and integrates with multiple AI providers:
 
-For example, to set the verbosity:
+- Automatically fetches available models from supported providers (OpenAI, Anthropic, DeepSeek, Google Gemini, OpenRouter)
+- Caches model lists for quick access
+- Supports both popular pre-configured models and dynamically discovered ones
+- Handles API keys and authentication automatically
+- Provides model compatibility checking
+
+The dynamic model selection is only for the solo (non-Architect) mode.
+
+To change models in solo mode:
+1. Use `M-x aidermacs-change-model` or press `o` in the transient menu
+2. Select from either:
+   - Popular pre-configured models (fast)
+   - Dynamically fetched models from all supported providers (comprehensive)
+
+The system will automatically filter models to only show ones that are:
+- Supported by your current Aider version
+- Available through your configured API keys
+- Compatible with your current workflow
+
+### Separating Code Reasoning and Editing
+
+Aidermacs supports an experimental mode that leverages two models for each coding task: an Architect model for reasoning and an Editor model for generating code edits. This approach has **achieved state-of-the-art (SOTA) results on aider's code editing benchmark**, as detailed in [this blog post](https://aider.chat/2024/09/26/architect.html).
+
+To enable this mode, set `aidermacs-use-architect-mode` to `t`. You may also configure the `aidermacs-architect-model` and `aidermacs-editor-model` variables to specify the models to use for the Architect and Editor roles, respectively.
+
+When Architect mode is enabled, the `aidermacs-default-model` setting is ignored.
 
 ```emacs-lisp
-(setq aidermacs-extra-args '("--verbose"))
+(setq aidermacs-use-architect-mode t)
+(setq aidermacs-architect-model "o1-mini") ; default
+(setq aidermacs-editor-model "anthropic/claude-3-5-sonnet-20241022") ; default
 ```
 
-These arguments will be appended to the Aider command when it is run. Note that the `--model` argument is automatically handled by `aidermacs-default-model` and should not be included in `aidermacs-extra-args`.
-
-### Sample Config With Doom Emacs
-```emacs-lisp
-(package! aidermacs :recipe (:host github :repo "MatthewZMD/aidermacs" :files ("*.el")))
-```
-
-## Configuration
 
 ### Terminal Backend Selection
 
@@ -112,6 +138,20 @@ When using the comint backend, you can customize the key binding for multiline i
 
 This key allows you to enter multiple lines without sending the command to Aider. Press `RET` normally to send the command.
 
+
+### Customizing Aider Options with `aidermacs-extra-args`
+
+If the above configurations aren't enough already, the `aidermacs-extra-args` variable allows you to pass any command-line options supported by Aider.
+
+See the [Aider configuration documentation](https://aider.chat/docs/config/options.html) for a full list of available options.
+
+```emacs-lisp
+;; Set the verbosity:
+(setq aidermacs-extra-args '("--verbose"))
+```
+
+These arguments will be appended to the Aider command when it is run. Note that the `--model` argument is automatically handled by `aidermacs-default-model` and should not be included in `aidermacs-extra-args`.
+
 ## Usage
 
 ### Getting Started
@@ -133,7 +173,7 @@ The main interface to Aidermacs is through its transient menu system. Here's a b
 ##### Core Actions
 - `a`: Start/Open Session (auto-detects project root)
 - `.` : Start in Current Directory (good for monorepos)
-- `o`: Change Model
+- `o`: Change Solo Model
 - `s`: Reset Session
 - `x`: Exit Session
 
@@ -159,13 +199,14 @@ The main interface to Aidermacs is through its transient menu system. Here's a b
 - `p`: Explain This Symbol
 
 ##### Others
+- `A`: Toggle Architect Mode (Separate Reasoner/Editor)
 - `H`: Session History
 - `L`: Copy Last Aidermacs Output
 - `O`: Clear Model Selection Cache
 - `l`: Clear Buffer
 - `h`: Aider Help
 
-### Working with Code Blocks
+### Working with Prompt Blocks in `.aider*` files
 
 When editing `.aider.prompt.org` or other `.aider*` files, these keybindings are available:
 
@@ -181,27 +222,6 @@ The `.aider.prompt.org` file (created with `M-x aidermacs-open-prompt-file`) is 
 - Quick access to complex instructions
 
 The file is automatically recognized and enables Aidermacs minor mode with the above keybindings.
-
-### Dynamic Model Selection
-
-Aidermacs provides intelligent model selection that automatically detects and integrates with multiple AI providers:
-
-- Automatically fetches available models from supported providers (OpenAI, Anthropic, DeepSeek, Google Gemini, OpenRouter)
-- Caches model lists for quick access
-- Supports both popular pre-configured models and dynamically discovered ones
-- Handles API keys and authentication automatically
-- Provides model compatibility checking
-
-To change models:
-1. Use `M-x aidermacs-change-model` or press `o` in the transient menu
-2. Select from either:
-   - Popular pre-configured models (fast)
-   - Dynamically fetched models from all supported providers (comprehensive)
-
-The system will automatically filter models to only show ones that are:
-- Supported by your current Aider version
-- Available through your configured API keys
-- Compatible with your current workflow
 
 ## Aidermacs vs aider.el
 
