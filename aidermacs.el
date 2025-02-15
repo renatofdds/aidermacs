@@ -412,29 +412,33 @@ Returns a deduplicated list of such file names."
     (with-temp-buffer
       (insert output)
       (goto-char (point-min))
-      (when (search-forward "Files in chat:" nil t)
-        ;; Skip header and any blank lines.
-        (forward-line 1)
-        (while (and (not (eobp))
-                    (string-empty-p (string-trim (thing-at-point 'line t))))
-          (forward-line 1))
-        (let ((base (or (vc-git-root default-directory)
-                        default-directory))
-              files)
-          ;; Process each line that begins with whitespace.
+      (let ((files '())
+            (base (or (vc-git-root default-directory)
+                      default-directory)))
+        ;; Parse read-only files section
+        (when (search-forward "Read-only files:" nil t)
+          (forward-line 1)
           (while (and (not (eobp))
                       (string-match-p "^[[:space:]]" (thing-at-point 'line t)))
             (let* ((line (string-trim (thing-at-point 'line t)))
-                   (parts (split-string line))
-                   (file (if parts (car parts) "")))
-              (unless (string-empty-p file)
-                (let ((file-abs (if (file-name-absolute-p file)
-                                    file
-                                  (expand-file-name file base))))
-                  (when (file-exists-p file-abs)
-                    (push file files)))))
-            (forward-line 1))
-          (delete-dups (nreverse files)))))))
+                   (file (car (split-string line))))
+              (when (and file (file-exists-p (expand-file-name file base)))
+                (push (concat file " (read-only)") files)))
+            (forward-line 1)))
+
+        ;; Parse files in chat section
+        (when (search-forward "Files in chat:" nil t)
+          (forward-line 1)
+          (while (and (not (eobp))
+                      (string-match-p "^[[:space:]]" (thing-at-point 'line t)))
+            (let* ((line (string-trim (thing-at-point 'line t)))
+                   (file (car (split-string line))))
+              (when (and file (file-exists-p (expand-file-name file base)))
+                (push file files)))
+            (forward-line 1)))
+
+        ;; Remove duplicates and return
+        (delete-dups (nreverse files))))))
 
 ;;;###autoload
 (defun aidermacs-list-added-files ()
@@ -456,9 +460,10 @@ Sends the \"/ls\" command and returns the list of files via callback."
    "/ls"
    (lambda (output)
      (if-let* ((files (aidermacs--parse-ls-output output))
-               (file (completing-read "Select file to drop: " files nil t)))
-         (aidermacs--send-command (format "/drop ./%s" file))
-       (message "No files available to drop")))))
+               (file (completing-read "Select file to drop: " files nil t))
+               (clean-file (replace-regexp-in-string " (read-only)$" "" file)))
+         (aidermacs--send-command (format "/drop ./%s" clean-file)))
+     (message "No files available to drop"))))
 
 
 ;;;###autoload
@@ -479,7 +484,7 @@ Sends the \"/ls\" command and returns the list of files via callback."
       (goto-char (point-min))
       (setq buffer-read-only t)
       (local-set-key (kbd "q") 'kill-this-buffer)
-      (switch-to-buffer-other-frame buf))))
+      (switch-to-buffer-other-window buf))))
 
 ;;;###autoload
 (defun aidermacs-get-last-output ()
@@ -729,7 +734,7 @@ Otherwise implement TODOs for the entire current file."
            (is-comment (aidermacs--is-comment-line current-line)))
       (aidermacs-add-current-file)
       (when-let ((command (aidermacs--form-prompt
-                           "/architect" 
+                           "/architect"
                            (concat "Please implement the TODO items."
                                    (when is-comment
                                      (format " on this comment: `%s`." current-line))
