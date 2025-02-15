@@ -34,7 +34,7 @@
   :type 'string
   :group 'aidermacs)
 
-(defcustom aidermacs-args nil
+(defcustom aidermacs-extra-args nil
   "Additional arguments to pass to the aidermacs command.
 The model argument will be added automatically based on `aidermacs-default-model'."
   :type '(repeat string)
@@ -245,7 +245,7 @@ Prefers existing sessions closer to current directory."
                                '("--no-auto-commits"))
                              (when aidermacs-subtree-only
                                '("--subtree-only"))
-                             aidermacs-args)))
+                             aidermacs-extra-args)))
     ;; Check if a matching buffer exists (handled by aidermacs-buffer-name)
     (if (get-buffer buffer-name)
         (aidermacs-switch-to-buffer)
