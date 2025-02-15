@@ -234,7 +234,7 @@ This allows for multi-line input without sending the command."
       (apply 'make-comint-in-buffer "aidermacs" buffer-name program nil args)
       (with-current-buffer buffer-name
         (comint-mode)
-        (setq-local comint-prompt-regexp "^> $")
+        (setq-local comint-prompt-regexp "[^[:space:]]*>[[:space:]]$")
         (setq-local comint-input-sender 'aidermacs-input-sender)
         (setq aidermacs--syntax-work-buffer
               (get-buffer-create (concat " *aidermacs-syntax" buffer-name)))
