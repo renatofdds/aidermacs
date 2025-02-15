@@ -86,10 +86,32 @@ With `Aidermacs`, you get:
 (use-package aidermacs
   :straight (:host github :repo "MatthewZMD/aidermacs" :files ("*.el"))
   :config
-  (setq aidermacs-args '("--model" "anthropic/claude-3-5-sonnet-20241022"))
+  (setq aidermacs-default-model "anthropic/claude-3-5-sonnet-20241022")
   (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
   (global-set-key (kbd "C-c a") 'aidermacs-transient-menu))
 ```
+
+### Default Model Selection
+
+You can customize the default AI model used by Aidermacs by setting the `aidermacs-default-model` variable:
+
+```emacs-lisp
+(setq aidermacs-default-model "anthropic/claude-3-5-sonnet-20241022")
+```
+
+This allows you to easily switch between different AI models without modifying the `aidermacs-args` variable.
+
+### Customizing Aider Options with `aidermacs-args`
+
+The `aidermacs-args` variable allows you to pass any command-line options supported by Aider. See the [Aider configuration documentation](https://aider.chat/docs/config/options.html) for a full list of available options.
+
+For example, to set the verbosity:
+
+```emacs-lisp
+(setq aidermacs-args '("--verbose"))
+```
+
+These arguments will be appended to the Aider command when it is run. Note that the `--model` argument is automatically handled by `aidermacs-default-model` and should not be included in `aidermacs-args`.
 
 ### Sample Config With Doom Emacs
 ```emacs-lisp

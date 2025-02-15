@@ -229,7 +229,7 @@ This allows for multi-line input without sending the command."
 (defun aidermacs-run-comint (program args buffer-name)
   "Create a comint-based buffer and run aidermacs PROGRAM with ARGS in BUFFER-NAME."
   (let ((comint-terminfo-terminal "eterm-color")
-        (args (append (list "--no-pretty" "--no-fancy-input") args)))
+        (args (append args (list "--no-pretty" "--no-fancy-input"))))
     (unless (comint-check-proc buffer-name)
       (apply 'make-comint-in-buffer "aidermacs" buffer-name program nil args)
       (with-current-buffer buffer-name

@@ -34,8 +34,9 @@
   :type 'string
   :group 'aidermacs)
 
-(defcustom aidermacs-args '("--model" "anthropic/claude-3-5-sonnet-20241022")
-  "Arguments to pass to the aidermacs command."
+(defcustom aidermacs-args nil
+  "Additional arguments to pass to the aidermacs command.
+The model argument will be added automatically based on `aidermacs-default-model'."
   :type '(repeat string)
   :group 'aidermacs)
 
@@ -205,7 +206,7 @@ Prefers existing sessions closer to current directory."
           (mapcar
            (lambda (buf)
              (when (string-match "^\\*aidermacs:\\(.*?\\)\\*$"
-                               (buffer-name buf))
+                                 (buffer-name buf))
                (cons (match-string 1 (buffer-name buf))
                      (match-string 2 (buffer-name buf)))))
            aidermacs-buffers))
@@ -224,12 +225,12 @@ Prefers existing sessions closer to current directory."
                ;; Sort by path length (deeper paths first)
                (> (length (car a)) (length (car b))))))))
          (display-root (cond
-                       ;; Use current directory for new subtree session
-                       (aidermacs-subtree-only current-dir)
-                       ;; Use closest parent if it exists
-                       (closest-parent closest-parent)
-                       ;; Fall back to project root for new non-subtree session
-                       (t root))))
+                        ;; Use current directory for new subtree session
+                        (aidermacs-subtree-only current-dir)
+                        ;; Use closest parent if it exists
+                        (closest-parent closest-parent)
+                        ;; Fall back to project root for new non-subtree session
+                        (t root))))
     (format "*aidermacs:%s*"
             (file-truename display-root))))
 
@@ -240,14 +241,15 @@ With the universal argument EDIT-ARGS, prompt to edit aidermacs-args before runn
   (interactive "P")
   (let* ((buffer-name (aidermacs-buffer-name))
          (current-args (if edit-args
-                          (split-string (read-string "Edit aidermacs arguments: "
-                                                   (mapconcat 'identity aidermacs-args " ")))
-                        aidermacs-args))
-         (final-args (append current-args
-                           (unless aidermacs-auto-commits
-                             '("--no-auto-commits"))
-                           (when aidermacs-subtree-only
-                             '("--subtree-only")))))
+                           (split-string (read-string "Edit aidermacs arguments: "
+                                                      (mapconcat 'identity aidermacs-args " ")))
+                         aidermacs-args))
+         (final-args (append (list "--model" aidermacs-default-model)
+                             current-args
+                             (unless aidermacs-auto-commits
+                               '("--no-auto-commits"))
+                             (when aidermacs-subtree-only
+                               '("--subtree-only")))))
     ;; Check if a matching buffer exists (handled by aidermacs-buffer-name)
     (if (get-buffer buffer-name)
         (aidermacs-switch-to-buffer)
@@ -262,7 +264,7 @@ This is useful for working in monorepos where you want to limit aider's scope."
   (interactive)
   (let ((aidermacs-subtree-only t)
         (default-directory (file-truename default-directory)))
-    (aidermacs-run nil)))
+    (aidermacs-run)))
 
 (defun aidermacs--send-command (command &optional switch-to-buffer)
   "Send COMMAND to the corresponding aidermacs process.

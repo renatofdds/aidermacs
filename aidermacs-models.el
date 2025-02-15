@@ -15,12 +15,17 @@
   "Model selection customization for aidermacs."
   :group 'aidermacs)
 
+(defcustom aidermacs-default-model "anthropic/claude-3-5-sonnet-20241022"
+  "Default AI model to use for aidermacs sessions."
+  :type 'string
+  :group 'aidermacs-models)
+
 (defcustom aidermacs-popular-models
-  '("anthropic/claude-3-5-sonnet-20241022"  ;; really good in practical
-    "o3-mini" ;; very powerful
-    "gemini/gemini-2.0-flash"  ;; free
-    "r1"  ;; performance match o1, price << claude sonnet. weakness: small context
-    "deepseek/deepseek-chat"  ;; chatgpt-4o level performance, price is 1/100. weakness: small context
+  '("anthropic/claude-3-5-sonnet-20241022"
+    "o3-mini"
+    "gemini/gemini-2.0-flash"
+    "r1"
+    "deepseek/deepseek-chat"
     )
   "List of available AI models for selection.
 Each model should be in the format expected by the aidermacs command line interface.
