@@ -241,11 +241,11 @@ Prefers existing sessions closer to current directory."
   (interactive)
   (let* ((buffer-name (aidermacs-buffer-name))
          (final-args (append (list "--model" aidermacs-default-model)
-                            (unless aidermacs-auto-commits
-                              '("--no-auto-commits"))
-                            (when aidermacs-subtree-only
-                              '("--subtree-only"))
-                            aidermacs-args)))
+                             (unless aidermacs-auto-commits
+                               '("--no-auto-commits"))
+                             (when aidermacs-subtree-only
+                               '("--subtree-only"))
+                             aidermacs-args)))
     ;; Check if a matching buffer exists (handled by aidermacs-buffer-name)
     (if (get-buffer buffer-name)
         (aidermacs-switch-to-buffer)
@@ -369,7 +369,6 @@ wrap it in {aidermacs\nstr\naidermacs}. Otherwise return STR unchanged."
   (interactive)
   (aidermacs-act-on-current-file "/drop"))
 
-
 ;;;###autoload
 (defun aidermacs-add-files-in-current-window ()
   "Add files in all buffers in the current Emacs window to the aidermacs buffer."
@@ -390,7 +389,7 @@ wrap it in {aidermacs\nstr\naidermacs}. Otherwise return STR unchanged."
 (defun aidermacs-general-command ()
   "Prompt the user to input COMMAND and send it to the corresponding aidermacs comint buffer."
   (interactive)
-  (let ((command (aidermacs-read-string "Enter command to send to aidermacs: ")))
+  (let ((command (aidermacs-read-string "Enter general aider command: ")))
     ;; Use the shared helper function to send the command
     (aidermacs--send-command command t)))
 
@@ -399,8 +398,8 @@ wrap it in {aidermacs\nstr\naidermacs}. Otherwise return STR unchanged."
 (defun aidermacs-code-change ()
   "Prompt the user for a command and send it to the corresponding aidermacs comint buffer prefixed with \"/code \"."
   (interactive)
-  (let ((command (aidermacs-read-string "Enter code change requirement: ")))
-    (aidermacs-send-command-with-prefix "/code " command)))
+  (when-let ((command (aidermacs--form-prompt "/code" "Code change" t)))
+    (aidermacs--send-command command t)))
 
 (defun aidermacs--parse-ls-output (output)
   "Parse the /ls command OUTPUT to extract files in chat.
@@ -502,7 +501,7 @@ If cursor is inside a function, include the function name as context."
     (call-interactively 'aidermacs-ask-question-general)
     (cl-return-from aidermacs-ask-question))
   (aidermacs-add-current-file)
-  (when-let ((command (aidermacs--form-prompt "Ask" "/ask")))
+  (when-let ((command (aidermacs--form-prompt "/ask" "Ask")))
     (aidermacs--send-command command t)))
 
 ;;;###autoload
@@ -516,23 +515,24 @@ If cursor is inside a function, include the function name as context."
 (defun aidermacs-help ()
   "Prompt the user for a command and send it to the corresponding aidermacs comint buffer prefixed with \"/help \"."
   (interactive)
-  (let ((command (aidermacs-read-string "Enter help question: ")))
-    (aidermacs-send-command-with-prefix "/help " command)))
+  (when-let ((command (aidermacs--form-prompt "/help" nil t)))
+    (aidermacs--send-command command t)))
 
 ;;;###autoload
 (defun aidermacs-architect-discussion ()
   "Prompt the user for a command and send it to the corresponding aidermacs comint buffer prefixed with \"/architect \"."
   (interactive)
-  (let ((command (aidermacs-read-string "Enter architect discussion question: ")))
-    (aidermacs-send-command-with-prefix "/architect " command)))
+  (when-let ((command (aidermacs--form-prompt "/architect" "Architect Discussion")))
+    (aidermacs--send-command command t)))
 
 ;;;###autoload
 (defun aidermacs-debug-exception ()
   "Prompt the user for a command and send it to the corresponding aidermacs comint buffer prefixed with \"/debug \",
 replacing all newline characters except for the one at the end."
   (interactive)
-  (let ((command (aidermacs-read-string "Enter exception, can be multiple lines: ")))
-    (aidermacs--send-command (concat "/ask Investigate the following exception, with current added files as context: " command) t)))
+  (when-let ((user-command (aidermacs--form-prompt "/ask" "Enter exception, can be multiple lines")))
+    (let ((command (concat "/ask Investigate the following exception, with current added files as context: " user-command)))
+      (aidermacs--send-command command t))))
 
 ;;;###autoload
 (defun aidermacs-go-ahead ()
@@ -569,12 +569,9 @@ If point is in a function, use function name."
                             (format " function `%s`" on-function))
                           (when region-text
                             (format " on the following code block:\n```\n%s\n```\n" region-text))))
-         (user-prompt (concat prompt-prefix context ": "))
-         (user-command (aidermacs-read-string user-prompt)))
-    (concat (when command (concat command " "))
-            (when prompt-prefix prompt-prefix)
-            context
-            ": " user-command)))
+         (prompt (concat command " " prompt-prefix context ": "))
+         (user-command (aidermacs-read-string prompt)))
+    (concat prompt user-command)))
 
 (defun aidermacs-function-or-region-refactor ()
   "Refactor code at point or region.
@@ -678,8 +675,7 @@ Otherwise:
                 (let* ((initial-input
                         (format "Please implement test function '%s'. Follow standard unit testing practices and make it a meaningful test. Do not use Mock if possible."
                                 function-name))
-                       (user-command (aidermacs-read-string "Test implementation instruction: " initial-input))
-                       (command (format "/architect %s" user-command)))
+                       (command (aidermacs--form-prompt "/architect" initial-input)))
                   (aidermacs--send-command command t))
               (message "Current function '%s' does not appear to be a test function." function-name))
           (message "Please place cursor inside a test function to implement.")))
@@ -691,10 +687,9 @@ Otherwise:
                     (format "Please write unit test code for function '%s'. %s"
                             function-name common-instructions)
                   (format "Please write unit test code for file '%s'. For each function %s"
-                          (file-name-nondirectory buffer-file-name) common-instructions)))
-               (user-command (aidermacs-read-string "Unit test generation instruction: " initial-input))
-               (command (format "/architect %s" user-command)))
-          (aidermacs--send-command command t)))))))
+                          (file-name-nondirectory buffer-file-name) common-instructions))))
+          (command (aidermacs--form-prompt "/architect" initial-input)))
+        (aidermacs--send-command command t))))))
 
 ;;;###autoload
 (defun aidermacs-fix-failing-test-under-cursor ()
@@ -705,8 +700,7 @@ This function assumes the cursor is on or inside a test function."
   (if-let ((test-function-name (which-function)))
       (let* ((initial-input (format "The test '%s' is failing. Please analyze and fix the code to make the test pass. Don't break any other test"
                                     test-function-name))
-             (test-output (aidermacs-read-string "Architect question: " initial-input))
-             (command (format "/architect %s" test-output)))
+             (command (aidermacs--form-prompt "/architect" initial-input)))
         (aidermacs--send-command command t))
     (message "No test function found at cursor position.")))
 
@@ -731,18 +725,16 @@ Otherwise implement TODOs for the entire current file."
   (interactive)
   (if (not buffer-file-name)
       (message "Current buffer is not visiting a file.")
-    (aidermacs-add-current-file)
     (let* ((current-line (string-trim (thing-at-point 'line t)))
            (is-comment (aidermacs--is-comment-line current-line)))
-      (when-let ((command
-                  (aidermacs--form-prompt
-                   "/architect"
-                   (concat "Please implement the TODO items."
-                           (when is-comment
-                             (format " on this comment: `%s`." current-line))
-                           " Keep existing code structure"))))
+      (aidermacs-add-current-file)
+      (when-let ((command (aidermacs--form-prompt
+                           "/architect" 
+                           (concat "Please implement the TODO items."
+                                   (when is-comment
+                                     (format " on this comment: `%s`." current-line))
+                                   " Keep existing code structure"))))
         (aidermacs--send-command command t)))))
-
 
 ;;;###autoload
 (defun aidermacs-send-line-or-region ()
