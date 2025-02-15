@@ -5,4 +5,4 @@ Aidermacs thrives on community involvement. We believe that the best software is
 - Share Ideas: Participate in discussions and propose new ideas for making Aidermacs even better.
 - Improve Documentation: Help us make the documentation clearer, more comprehensive, and easier to use.
 
-Your contributions are essential to making Aidermacs the best AI pair programming tool for Emacs!
+Your contributions are essential to making Aidermacs the best AI pair programming tool in Emacs!

@@ -114,7 +114,7 @@ This function can be customized or redefined by the user."
 (transient-define-prefix aidermacs-transient-file-commands ()
   "File management commands."
   ["File Actions"
-   ["Add File Actions"
+   ["Add Actions"
     ("f" "Add Current File" aidermacs-add-current-file)
     ("i" "Add File Interactively" aidermacs-add-files-interactively)
     ("r" "Add Current Read-Only" aidermacs-add-current-file-read-only)
@@ -124,9 +124,11 @@ This function can be customized or redefined by the user."
 
    ["Drop Actions"
     ("j" "Drop File Interactively" aidermacs-drop-file)
-    ("k" "Drop Current File" aidermacs-drop-current-file)]
+    ("k" "Drop Current File" aidermacs-drop-current-file)
+    ("a" "Drop All Files" aidermacs-drop-all-files)]
 
-   [("l" "List Files" aidermacs-list-added-files)]])
+   ["Other Actions"
+    ("l" "List Files" aidermacs-list-added-files)]])
 
 (transient-define-prefix aidermacs-transient-code-commands ()
   "Code modification commands."
@@ -137,7 +139,7 @@ This function can be customized or redefined by the user."
    ("t" "Write Tests" aidermacs-write-unit-test)
    ("T" "Fix Test" aidermacs-fix-failing-test-under-cursor)
    ("x" "Debug Exception" aidermacs-debug-exception)
-   ("u" "Undo Change" aidermacs-undo-last-change)])
+   ("u" "Undo Auto Git Commit" aidermacs-undo-last-commit)])
 
 ;; Main transient menu
 (transient-define-prefix aidermacs-transient-menu ()
@@ -154,10 +156,9 @@ This function can be customized or redefined by the user."
     ("f" "Add Current File" aidermacs-add-current-file)
     ("c" "Code Change" aidermacs-code-change)
     ("r" "Refactor" aidermacs-function-or-region-refactor)
-    ("g" "Go Ahead" aidermacs-go-ahead)
-    ("u" "Undo Change" aidermacs-undo-last-change)]
+    ("g" "Go Ahead" aidermacs-go-ahead)]
 
-   ["Code & Files"
+   ["File & Code"
     ("F" "File Commands" aidermacs-transient-file-commands)
     ("C" "Code Commands" aidermacs-transient-code-commands)]
 
@@ -450,6 +451,13 @@ Sends the \"/ls\" command and returns the list of files via callback."
 
 
 ;;;###autoload
+(defun aidermacs-drop-all-files ()
+  "Drop all files from the current chat session."
+  (interactive)
+  (aidermacs--send-command "/drop"))
+
+
+;;;###autoload
 (defun aidermacs-show-output-history ()
   "Display the AI output history in a new buffer."
   (interactive)
@@ -538,7 +546,7 @@ If Magit is not installed, report that it is required."
     (message "Magit is required to show the last commit.")))
 
 ;;;###autoload
-(defun aidermacs-undo-last-change ()
+(defun aidermacs-undo-last-commit ()
   "Undo the last change made by aidermacs."
   (interactive)
   (aidermacs--send-command "/undo"))
