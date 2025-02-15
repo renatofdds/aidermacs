@@ -77,9 +77,9 @@ These arguments will be appended to the Aider command when it is run. Note that 
 
 ### Terminal Backend Selection
 
-Choose your preferred terminal backend by setting `Aidermacs-backend`:
+Choose your preferred terminal backend by setting `aidermacs-backend`:
 
-`vterm` provides better terminal compatibility and bracketed paste support, while `comint` is a simpler, built-in option.
+`vterm` provides better terminal compatibility, while `comint` is a simple, built-in option that's still fully compatible with aidermacs.
 
 ```emacs-lisp
 ;; Use vterm backend (default is comint)
@@ -167,7 +167,7 @@ The main interface to Aidermacs is through its transient menu system. Here's a b
 
 ### Working with Code Blocks
 
-When editing `.aider.prompt.org` or other files, these keybindings are available:
+When editing `.aider.prompt.org` or other `.aider*` files, these keybindings are available:
 
 - `C-c C-n` or `C-<return>`: Send line/region line-by-line
 - `C-c C-c`: Send block/region as whole

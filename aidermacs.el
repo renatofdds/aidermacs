@@ -796,7 +796,7 @@ If file doesn't exist, create it with command binding help and sample prompt."
             (save-buffer)))
       (message "Not in a git repository"))))
 
-;; Define the keymap for aidermacs Minor Mode
+;;;###autoload
 (defvar aidermacs-minor-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-n") 'aidermacs-send-line-or-region)
@@ -804,15 +804,18 @@ If file doesn't exist, create it with command binding help and sample prompt."
     (define-key map (kbd "C-c C-c") 'aidermacs-send-block-or-region)
     (define-key map (kbd "C-c C-z") 'aidermacs-switch-to-buffer)
     map)
-  "Keymap for aidermacs Minor Mode.")
+  "Keymap for `aidermacs-minor-mode'.")
 
-;; Define the aidermacs Minor Mode
 ;;;###autoload
 (define-minor-mode aidermacs-minor-mode
-  "Minor mode for aidermacs with keybindings."
+  "Minor mode for interacting with aidermacs AI pair programming tool.
+
+Provides these keybindings:
+\\{aidermacs-minor-mode-map}"
   :lighter " aidermacs"
   :keymap aidermacs-minor-mode-map
-  :override t)
+  :override t
+  :group 'aidermacs)
 
 ;; Auto-enable aidermacs-minor-mode for specific files
 (defcustom aidermacs-auto-mode-files
