@@ -235,21 +235,16 @@ Prefers existing sessions closer to current directory."
             (file-truename display-root))))
 
 ;;;###autoload
-(defun aidermacs-run (&optional edit-args)
-  "Run aidermacs process using the selected backend.
-With the universal argument EDIT-ARGS, prompt to edit aidermacs-args before running."
-  (interactive "P")
+(defun aidermacs-run ()
+  "Run aidermacs process using the selected backend."
+  (interactive)
   (let* ((buffer-name (aidermacs-buffer-name))
-         (current-args (if edit-args
-                           (split-string (read-string "Edit aidermacs arguments: "
-                                                      (mapconcat 'identity aidermacs-args " ")))
-                         aidermacs-args))
          (final-args (append (list "--model" aidermacs-default-model)
-                             current-args
-                             (unless aidermacs-auto-commits
-                               '("--no-auto-commits"))
-                             (when aidermacs-subtree-only
-                               '("--subtree-only")))))
+                            (unless aidermacs-auto-commits
+                              '("--no-auto-commits"))
+                            (when aidermacs-subtree-only
+                              '("--subtree-only"))
+                            aidermacs-args)))
     ;; Check if a matching buffer exists (handled by aidermacs-buffer-name)
     (if (get-buffer buffer-name)
         (aidermacs-switch-to-buffer)
