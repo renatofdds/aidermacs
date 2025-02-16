@@ -219,7 +219,12 @@ The main interface to Aidermacs is through its transient menu system. Here's a b
 - `g`: Go Ahead
 
 ##### File Commands (`F`)
-- Add Files: current (`f`), interactively (`i`), read-only (`r`), window (`w`), directory (`d`), dired marked (`m`)
+- Add Files: 
+  - Current file (`f`, C-u for read-only)
+  - Interactively (`i`)
+  - Window files (`w`, C-u for read-only)
+  - Directory files (`d`, C-u for read-only)
+  - Dired marked files (`m`, C-u for read-only)
 - Drop Files: interactively (`j`), current (`k`), all (`a`)
 - Other Actions: list files (`l`)
 
