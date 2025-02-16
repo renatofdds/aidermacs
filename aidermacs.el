@@ -369,39 +369,10 @@ wrap it in {aidermacs\nstr\naidermacs}. Otherwise return STR unchanged."
       (aidermacs--send-command command))))
 
 ;;;###autoload
-(defun aidermacs-add-current-file (&optional read-only)
-  "Add current file with optional READ-ONLY flag.
-With prefix argument C-u, add as read-only."
-  (interactive "P")
-  (let ((command (if read-only "/read-only" "/add")))
-    (aidermacs-act-on-current-file command)))
-
-;;;###autoload
 (defun aidermacs-drop-current-file ()
   "Send the command \"/drop <current buffer file full path>\" to the corresponding aider comint buffer."
   (interactive)
   (aidermacs-act-on-current-file "/drop"))
-
-;;;###autoload
-(defun aidermacs-add-files-in-current-window (&optional read-only)
-  "Add window files with READ-ONLY flag.
-With prefix argument C-u, add as read-only."
-  (interactive "P")
-  (let* ((files (mapcar (lambda (buffer)
-                         (with-current-buffer buffer
-                           (when buffer-file-name
-                             (expand-file-name buffer-file-name))))
-                       (mapcar 'window-buffer (window-list))))
-         (cmd (if read-only "/read-only" "/add")))
-    (setq files (delq nil files))
-    (if files
-        (progn
-          (aidermacs--send-command (format "%s %s" cmd
-                                        (mapconcat 'identity files " ")) t)
-          (message "Added %d files as %s"
-                   (length files)
-                   (if read-only "read-only" "editable")))
-      (message "No files found in the current window."))))
 
 ;; Function to send a custom command to corresponding aidermacs buffer
 ;;;###autoload
@@ -586,7 +557,6 @@ If Magit is not installed, report that it is required."
   (interactive)
   (aidermacs--send-command "/undo"))
 
-
 ;;;###autoload
 (defun aidermacs--form-prompt (command prompt-prefix &optional ignore-context)
   "Get command based on context with COMMAND and PROMPT-PREFIX.
@@ -641,21 +611,53 @@ If point is in a function, explain that function."
   (aidermacs-add-current-file)
   (aidermacs--send-command (concat prefix command) t))
 
+(defun aidermacs--add-files-helper (files read-only &optional message)
+  "Helper function to add FILES with READ-ONLY flag.
+Optional MESSAGE can override the default success message."
+  (let* ((cmd (if read-only "/read-only" "/add"))
+         (files (delq nil files)))
+    (if files
+        (progn
+          (aidermacs--send-command (format "%s %s" cmd
+                                        (mapconcat 'identity files " ")) t)
+          (message (or message
+                       (format "Added %d files as %s"
+                               (length files)
+                               (if read-only "read-only" "editable")))))
+      (message "No files to add."))))
+
+;;;###autoload
+(defun aidermacs-add-current-file (&optional read-only)
+  "Add current file with optional READ-ONLY flag.
+With prefix argument C-u, add as read-only."
+  (interactive "P")
+  (aidermacs--add-files-helper
+   (if buffer-file-name (list buffer-file-name) nil)
+   read-only
+   (when buffer-file-name
+     (format "Added %s as %s"
+             (file-name-nondirectory buffer-file-name)
+             (if read-only "read-only" "editable")))))
+
+;;;###autoload
+(defun aidermacs-add-files-in-current-window (&optional read-only)
+  "Add window files with READ-ONLY flag.
+With prefix argument C-u, add as read-only."
+  (interactive "P")
+  (let* ((files (mapcar (lambda (buffer)
+                         (with-current-buffer buffer
+                           (when buffer-file-name
+                             (expand-file-name buffer-file-name))))
+                       (mapcar 'window-buffer (window-list))))
+         (filtered-files (delq nil files)))
+    (aidermacs--add-files-helper filtered-files read-only)))
+
 ;;;###autoload
 (defun aidermacs-batch-add-dired-marked-files (&optional read-only)
   "Add dired files with READ-ONLY flag.
 With prefix argument C-u, add as read-only."
   (interactive "P")
-  (let* ((files (dired-get-marked-files))
-         (cmd (if read-only "/read-only" "/add")))
-    (if files
-        (progn
-          (aidermacs--send-command (format "%s %s" cmd
-                                        (mapconcat 'identity files " ")) t)
-          (message "Added %d files as %s"
-                   (length files)
-                   (if read-only "read-only" "editable")))
-      (message "No files marked in Dired."))))
+  (aidermacs--add-files-helper (dired-get-marked-files) read-only))
 
 ;;;###autoload
 (defun aidermacs-add-files-interactively (&optional read-only)
@@ -663,32 +665,29 @@ With prefix argument C-u, add as read-only."
 Multiple files can be selected by calling the command multiple times.
 With prefix argument C-u, add as read-only."
   (interactive "P")
-  (when-let ((file (expand-file-name (read-file-name "Select file to add: ")))
-             (cmd (if read-only "/read-only" "/add")))
-    (if (file-exists-p file)
-        (aidermacs--send-command (concat cmd " " file) t)
-      (message "File does not exist: %s" file))))
+  (when-let ((file (expand-file-name (read-file-name "Select file to add: "))))
+    (when (file-exists-p file)
+      (aidermacs--add-files-helper (list file) read-only))))
 
 ;;;###autoload
-(defun aidermacs-add-same-type-files-under-dir ()
+(defun aidermacs-add-same-type-files-under-dir (&optional read-only)
   "Add all files with same suffix as current file under current directory to aidermacs.
-If there are more than 40 files, refuse to add and show warning message."
-  (interactive)
+If there are more than 40 files, refuse to add and show warning message.
+With prefix argument C-u, add as read-only."
+  (interactive "P")
   (if (not buffer-file-name)
       (message "Current buffer is not visiting a file")
     (let* ((current-suffix (file-name-extension buffer-file-name))
            (dir (file-name-directory buffer-file-name))
            (max-files 40)
-           (files (directory-files dir t
-                                   (concat "\\." current-suffix "$")
-                                   t))) ; t means don't include . and ..
+           (files (directory-files dir t (concat "\\." current-suffix "$") t)))
       (if (> (length files) max-files)
           (message "Too many files (%d, > %d) found with suffix .%s. Aborting."
                    (length files) max-files current-suffix)
-        (let ((command (concat "/add " (mapconcat 'identity files " "))))
-          (aidermacs--send-command command t))
-        (message "Added %d files with suffix .%s"
-                 (length files) current-suffix)))))
+        (aidermacs--add-files-helper files read-only
+                                     (format "Added %d files with suffix .%s as %s"
+                                             (length files) current-suffix
+                                             (if read-only "read-only" "editable")))))))
 
 ;;;###autoload
 (defun aidermacs-write-unit-test ()
