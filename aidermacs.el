@@ -597,13 +597,13 @@ If point is in a function, explain that function."
 (defun aidermacs-explain-symbol-under-point ()
   "Ask aidermacs to explain symbol under point, given the code line as background info."
   (interactive)
-  (aidermacs-add-current-file)
   (let* ((symbol (thing-at-point 'symbol))
          (line (buffer-substring-no-properties
                 (line-beginning-position)
                 (line-end-position)))
          (prompt (format "/ask Please explain what '%s' means in the context of this code line: %s"
                          symbol line)))
+    (aidermacs-add-current-file)    
     (aidermacs--send-command prompt t)))
 
 (defun aidermacs-send-command-with-prefix (prefix command)
