@@ -579,8 +579,8 @@ If point is in a function, use function name."
 If region is active, refactor that region.
 If point is in a function, refactor that function."
   (interactive)
-  (aidermacs-add-current-file)
   (when-let ((command (aidermacs--form-prompt "/architect" "Refactor")))
+    (aidermacs-add-current-file)
     (aidermacs--send-command command t)))
 
 ;;;###autoload
@@ -700,7 +700,6 @@ Otherwise:
   - If cursor is on a function, generate unit test for that function
   - Otherwise generate unit tests for the entire file"
   (interactive)
-  (aidermacs-add-current-file)
   (if (not buffer-file-name)
       (message "Current buffer is not visiting a file.")
     (let ((is-test-file (string-match-p "test" (file-name-nondirectory buffer-file-name)))
@@ -714,6 +713,7 @@ Otherwise:
                         (format "Please implement test function '%s'. Follow standard unit testing practices and make it a meaningful test. Do not use Mock if possible."
                                 function-name))
                        (command (aidermacs--form-prompt "/architect" initial-input)))
+                  (aidermacs-add-current-file)
                   (aidermacs--send-command command t))
               (message "Current function '%s' does not appear to be a test function." function-name))
           (message "Please place cursor inside a test function to implement.")))
@@ -725,20 +725,21 @@ Otherwise:
                     (format "Please write unit test code for function '%s'. %s"
                             function-name common-instructions)
                   (format "Please write unit test code for file '%s'. For each function %s"
-                          (file-name-nondirectory buffer-file-name) common-instructions))))
-          (command (aidermacs--form-prompt "/architect" initial-input)))
-        (aidermacs--send-command command t))))))
+                          (file-name-nondirectory buffer-file-name) common-instructions)))
+               (command (aidermacs--form-prompt "/architect" initial-input)))
+          (aidermacs-add-current-file)
+          (aidermacs--send-command command t)))))))
 
 ;;;###autoload
 (defun aidermacs-fix-failing-test-under-cursor ()
   "Report the current test failure to aidermacs and ask it to fix the code.
 This function assumes the cursor is on or inside a test function."
   (interactive)
-  (aidermacs-add-current-file)
   (if-let ((test-function-name (which-function)))
       (let* ((initial-input (format "The test '%s' is failing. Please analyze and fix the code to make the test pass. Don't break any other test"
                                     test-function-name))
              (command (aidermacs--form-prompt "/architect" initial-input)))
+        (aidermacs-add-current-file)
         (aidermacs--send-command command t))
     (message "No test function found at cursor position.")))
 
@@ -765,13 +766,13 @@ Otherwise implement TODOs for the entire current file."
       (message "Current buffer is not visiting a file.")
     (let* ((current-line (string-trim (thing-at-point 'line t)))
            (is-comment (aidermacs--is-comment-line current-line)))
-      (aidermacs-add-current-file)
       (when-let ((command (aidermacs--form-prompt
                            "/architect"
                            (concat "Please implement the TODO items."
                                    (when is-comment
                                      (format " on this comment: `%s`." current-line))
                                    " Keep existing code structure"))))
+        (aidermacs-add-current-file)
         (aidermacs--send-command command t)))))
 
 ;;;###autoload
