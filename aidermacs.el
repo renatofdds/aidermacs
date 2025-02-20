@@ -589,8 +589,8 @@ If point is in a function, refactor that function."
 If region is active, explain that region.
 If point is in a function, explain that function."
   (interactive)
-  (aidermacs-add-current-file)
   (when-let ((command (aidermacs--form-prompt "/ask" "Explain")))
+    (aidermacs-add-current-file)
     (aidermacs--send-command command t)))
 
 ;;;###autoload
