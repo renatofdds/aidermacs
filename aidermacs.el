@@ -589,21 +589,21 @@ If point is in a function, refactor that function."
 If region is active, explain that region.
 If point is in a function, explain that function."
   (interactive)
-  (aidermacs-add-current-file)
   (when-let ((command (aidermacs--form-prompt "/ask" "Explain")))
+    (aidermacs-add-current-file)
     (aidermacs--send-command command t)))
 
 ;;;###autoload
 (defun aidermacs-explain-symbol-under-point ()
   "Ask aidermacs to explain symbol under point, given the code line as background info."
   (interactive)
-  (aidermacs-add-current-file)
   (let* ((symbol (thing-at-point 'symbol))
          (line (buffer-substring-no-properties
                 (line-beginning-position)
                 (line-end-position)))
          (prompt (format "/ask Please explain what '%s' means in the context of this code line: %s"
                          symbol line)))
+    (aidermacs-add-current-file)    
     (aidermacs--send-command prompt t)))
 
 (defun aidermacs-send-command-with-prefix (prefix command)
