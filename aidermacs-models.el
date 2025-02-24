@@ -18,12 +18,12 @@
   "Model selection customization for aidermacs."
   :group 'aidermacs)
 
-(defcustom aidermacs-default-model "anthropic/claude-3-5-sonnet-20241022"
+(defcustom aidermacs-default-model "anthropic/claude-3-7-sonnet-20250219"
   "Default AI model to use for aidermacs sessions when not in Architect mode."
   :type 'string
   :group 'aidermacs-models)
 
-(defcustom aidermacs-architect-model "o1-mini"
+(defcustom aidermacs-architect-model "anthropic/claude-3-7-sonnet-20250219"
   "Default AI model to use for architectural reasoning in aidermacs sessions."
   :type 'string
   :group 'aidermacs-models)
@@ -51,8 +51,8 @@ Defaults to `aidermacs-default-model` if not explicitly set."
       (aidermacs-exit))))
 
 (defcustom aidermacs-popular-models
-  '("anthropic/claude-3-5-sonnet-20241022"
-    "o3-mini"
+  '("anthropic/claude-3-7-sonnet-20250219"
+    "o1-mini"
     "gemini/gemini-2.0-flash"
     "r1"
     "deepseek/deepseek-chat"
