@@ -18,9 +18,12 @@
 (defvar vterm-buffer-name)
 
 (defun aidermacs--vterm-check-finish-sequence-repeated (proc orig-filter start-point expected)
-  "Check for the finish sequence repeatedly in PROC’s buffer.
-Force a vterm render and redisplay. If the finish sequence is detected,
-store the output via `aidermacs--store-output`, restore ORIG-FILTER, and return t."
+  "Check for the finish sequence repeatedly in PROC's buffer.
+PROC is the process to check.  ORIG-FILTER is the original process filter.
+START-POINT is the starting position for output capture.  EXPECTED is the
+pattern to match.  Forces a vterm render and redisplay.  If the finish
+sequence is detected, store the output via `aidermacs--store-output`,
+restore ORIG-FILTER, and return t."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
       ;; Force vterm to update its display.
@@ -46,9 +49,10 @@ store the output via `aidermacs--store-output`, restore ORIG-FILTER, and return 
           t)))))
 
 (defun aidermacs--vterm-output-advice (orig-fun &rest args)
-  "Advice for vterm output: capture output until the finish sequence appears.
-This sets a temporary process filter and installs a repeating timer
-to force vterm to update until the expected finish sequence is detected."
+  "Capture vterm output until the finish sequence appears.
+ORIG-FUN is the original function being advised.  ARGS are its arguments.
+This sets a temporary process filter and installs a repeating timer to
+force vterm to update until the expected finish sequence is detected."
   (if (and (bound-and-true-p aidermacs-minor-mode)
            (eq major-mode 'vterm-mode))
       (let* ((start-point (vterm--get-prompt-point))
@@ -75,9 +79,9 @@ to force vterm to update until the expected finish sequence is detected."
     (apply orig-fun args)))
 
 (defun aidermacs-run-vterm (program args buffer-name)
-  "Create a vterm-based buffer and run aidermacs PROGRAM with ARGS in BUFFER-NAME.
-PROGRAM is the command to run, ARGS is a list of arguments,
-and BUFFER-NAME is the name of the vterm buffer."
+  "Create a vterm-based buffer and run aidermacs program.
+PROGRAM is the command to run.  ARGS is a list of command line arguments.
+BUFFER-NAME is the name for the vterm buffer."
   (unless (require 'vterm nil t)
     (error "vterm package is not available"))
   (unless (get-buffer buffer-name)
@@ -94,7 +98,8 @@ and BUFFER-NAME is the name of the vterm buffer."
   buffer-name)
 
 (defun aidermacs--send-command-vterm (buffer command)
-  "Send COMMAND to the aidermacs vterm BUFFER."
+  "Send command to the aidermacs vterm buffer.
+BUFFER is the target buffer to send to.  COMMAND is the text to send."
   (with-current-buffer buffer
     (vterm-send-string command)
     (vterm-send-return)))

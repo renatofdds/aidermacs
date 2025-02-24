@@ -17,8 +17,8 @@
 
 (defun aidermacs-helm-read-string (prompt &optional initial-input)
   "Read a string with Helm completion for aidermacs, showing historical inputs.
-PROMPT is the prompt string.
-INITIAL-INPUT is optional initial input string."
+PROMPT is the prompt string to display.
+INITIAL-INPUT is optional initial input string to prefill."
   (let ((input (helm-comp-read
                 prompt
                 aidermacs-read-string-history

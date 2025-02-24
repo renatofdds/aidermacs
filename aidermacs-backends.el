@@ -21,7 +21,7 @@
 
 (defcustom aidermacs-backend 'comint
   "Backend to use for the aidermacs process.
-Options are 'comint (the default) or 'vterm. When set to 'vterm, aidermacs will
+Options are 'comint (the default) or 'vterm.  When set to 'vterm, aidermacs will
 launch a fully functional vterm buffer (with bracketed paste support) instead
 of using a comint process."
   :type '(choice (const :tag "Comint" comint)
@@ -50,6 +50,7 @@ Each entry is a cons cell (timestamp . output-text).")
 
 (defun aidermacs-get-output-history (&optional limit)
   "Get the output history, optionally limited to LIMIT entries.
+LIMIT is the maximum number of entries to return.
 Returns a list of (timestamp . output-text) pairs, most recent first."
   (let ((history aidermacs--output-history))
     (if limit
@@ -68,7 +69,8 @@ Returns a list of (timestamp . output-text) pairs, most recent first."
   "Flag to prevent recursive callbacks.")
 
 (defun aidermacs--store-output (output)
-  "Store OUTPUT string in the history with timestamp.
+  "Store output string in the history with timestamp.
+OUTPUT is the string to store.
 If there's a callback function, call it with the output."
   (setq aidermacs--current-output (substring-no-properties output))
   (push (cons (current-time) (substring-no-properties output)) aidermacs--output-history)
@@ -84,8 +86,8 @@ If there's a callback function, call it with the output."
 ;; Backend dispatcher functions
 (defun aidermacs-run-backend (program args buffer-name)
   "Run aidermacs using the selected backend.
-PROGRAM is the aidermacs executable path, ARGS are command line arguments,
-and BUFFER-NAME is the name for the aidermacs buffer."
+PROGRAM is the aidermacs executable path.  ARGS are command line arguments.
+BUFFER-NAME is the name for the aidermacs buffer."
   (cond
    ((eq aidermacs-backend 'vterm)
     (aidermacs-run-vterm program args buffer-name))
@@ -93,7 +95,8 @@ and BUFFER-NAME is the name for the aidermacs buffer."
     (aidermacs-run-comint program args buffer-name))))
 
 (defun aidermacs--send-command-backend (buffer command)
-  "Send COMMAND to BUFFER using the appropriate backend."
+  "Send command to buffer using the appropriate backend.
+BUFFER is the target buffer.  COMMAND is the text to send."
   (setq aidermacs--last-command command
         aidermacs--current-output nil)
   (if (eq aidermacs-backend 'vterm)
@@ -101,7 +104,8 @@ and BUFFER-NAME is the name for the aidermacs buffer."
     (aidermacs--send-command-comint buffer command)))
 
 (defun aidermacs--send-command-redirect-backend (buffer command &optional callback)
-  "Send COMMAND to BUFFER using the appropriate backend.
+  "Send command to buffer using the appropriate backend.
+BUFFER is the target buffer.  COMMAND is the text to send.
 CALLBACK if provided will be called with the command output when available."
   (setq aidermacs--last-command command
         aidermacs--current-output nil

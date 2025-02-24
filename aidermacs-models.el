@@ -46,7 +46,7 @@ Defaults to `aidermacs-default-model` if not explicitly set."
   (message "Architect Mode: %s" (if aidermacs-use-architect-mode "ON" "OFF"))
   (when (get-buffer (aidermacs-buffer-name))
     (when (yes-or-no-p
-           (format "Aidermacs Architect Mode %s. Change will take affect next session. Close the session now? "
+           (format "Aidermacs Architect Mode %s. Change will take affect next session.  Close the session now? "
                    (if aidermacs-use-architect-mode "ON" "OFF")))
       (aidermacs-exit))))
 
@@ -58,7 +58,7 @@ Defaults to `aidermacs-default-model` if not explicitly set."
     "deepseek/deepseek-chat"
     )
   "List of available AI models for selection.
-Each model should be in the format expected by the aidermacs command line interface.
+Each model should be in the format expected by the aidermacs CLI.
 Also based on aidermacs LLM benchmark: https://aidermacs.chat/docs/leaderboards/"
   :type '(repeat string)
   :group 'aidermacs-models)
@@ -67,7 +67,7 @@ Also based on aidermacs LLM benchmark: https://aidermacs.chat/docs/leaderboards/
   "Cache of available AI models.")
 
 (defun aidermacs--fetch-openai-compatible-models (url)
-  "Fetch available models from an OpenAI compatible API endpoint at URL.
+  "Fetch available models from an OpenAI compatible API endpoint.
 URL should be the base API endpoint, e.g. https://api.openai.com/v1.
 Returns a list of model names with appropriate prefixes based on the API provider."
   (let* ((url-parsed (url-generic-parse-url url))
@@ -116,14 +116,16 @@ Returns a list of model names with appropriate prefixes based on the API provide
 
 
 (defun aidermacs--select-model ()
-  "Private function for model selection with completion."
+  "Provide model selection with completion.
+This is a private function used internally."
   (let ((model (with-local-quit
                  (completing-read "Select AI model: " aidermacs--cached-models nil t))))
     (when model
       (aidermacs--send-command (format "/model %s" model) t))))
 
 (defun aidermacs--get-available-models ()
-  "Get list of models supported by aider using the /models command."
+  "Get list of models supported by aider using the /models command.
+This fetches models from various API providers and caches them."
   (aidermacs--send-command-redirect
    "/models /"
    (lambda (output)
@@ -153,7 +155,8 @@ Returns a list of model names with appropriate prefixes based on the API provide
        (aidermacs--select-model)))))
 
 (defun aidermacs-clear-model-cache ()
-  "Clear the cached models, forcing a fresh fetch on next use."
+  "Clear the cached models, forcing a fresh fetch on next use.
+This is useful when available models have changed."
   (interactive)
   (setq aidermacs--cached-models nil)
   (message "Model cache cleared"))

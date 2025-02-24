@@ -73,7 +73,7 @@ This allows for multi-line input without sending the command."
   "Temporary buffer used for syntax highlighting operations.")
 
 (defun aidermacs-reset-font-lock-state ()
-  "Reset font lock state to default for processing another a new src block."
+  "Reset font lock state to default for processing a new source block."
   (unless (equal aidermacs--syntax-block-delimiter aidermacs-diff-marker)
     ;; if we are processing the other half of a SEARCH/REPLACE block, we need to
     ;; keep the mode
@@ -84,7 +84,8 @@ This allows for multi-line input without sending the command."
         aidermacs--syntax-block-end-pos nil))
 
 (defun aidermacs-fontify-blocks (_output)
-  "Fontify search/replace blocks in comint output."
+  "Fontify search/replace blocks in comint output.
+OUTPUT is the text to be processed."
   (save-excursion
     (goto-char (or aidermacs--syntax-last-output-pos
                    comint-last-output-start))
@@ -134,7 +135,7 @@ This allows for multi-line input without sending the command."
               (condition-case e
                   (let ((inhibit-message t))
                     (funcall mode))
-                (error "aidermacs: failed to init major-mode `%s' for font-locking: %s" mode e)))))
+                (error "aidermacs: Failed to init major-mode `%s' for font-locking: %s" mode e)))))
 
         ;; Process initial content
         (aidermacs--fontify-block)))))
@@ -217,17 +218,20 @@ This allows for multi-line input without sending the command."
      'fundamental-mode)))
 
 (defun aidermacs-kill-buffer ()
-  "Clean-up fontify buffer."
+  "Clean up the fontify buffer."
   (when (bufferp aidermacs--syntax-work-buffer)
     (kill-buffer aidermacs--syntax-work-buffer)))
 
 (defun aidermacs-input-sender (proc string)
-  "Reset font-lock state before executing a command."
+  "Reset font-lock state before executing a command.
+PROC is the process to send to.  STRING is the command to send."
   (aidermacs-reset-font-lock-state)
   (comint-simple-send proc (aidermacs--process-message-if-multi-line string)))
 
 (defun aidermacs-run-comint (program args buffer-name)
-  "Create a comint-based buffer and run aidermacs PROGRAM with ARGS in BUFFER-NAME."
+  "Create a comint-based buffer and run aidermacs program.
+PROGRAM is the executable path.  ARGS are command line arguments.
+BUFFER-NAME is the name for the aidermacs buffer."
   (let ((comint-terminfo-terminal "eterm-color")
         (args (append args (list "--no-pretty" "--no-fancy-input"))))
     (unless (comint-check-proc buffer-name)
@@ -247,7 +251,8 @@ This allows for multi-line input without sending the command."
         (font-lock-add-keywords nil aidermacs-font-lock-keywords t)))))
 
 (defun aidermacs--send-command-comint (buffer command)
-  "Send COMMAND to the aidermacs comint BUFFER."
+  "Send command to the aidermacs comint buffer.
+BUFFER is the target buffer.  COMMAND is the text to send."
   (with-current-buffer buffer
     (let ((process (get-buffer-process buffer))
           (inhibit-read-only t))
@@ -261,7 +266,9 @@ This allows for multi-line input without sending the command."
       (comint-send-string process (concat command "\n")))))
 
 (defun aidermacs--send-command-redirect-comint (buffer command)
-  "Send COMMAND to the aidermacs comint BUFFER and collect result into OUTPUT-BUFFER."
+  "Send command to the aidermacs comint buffer and collect result.
+BUFFER is the target buffer.  COMMAND is the text to send.
+The output is collected and passed to the current callback."
   (with-current-buffer buffer
     (let ((process (get-buffer-process buffer))
           (output-buffer (get-buffer-create " *aider-redirect-buffer*")))
