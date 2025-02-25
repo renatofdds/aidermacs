@@ -21,8 +21,9 @@
     (map! :leader
           (:prefix ("A" . "aidermacs")
                    ;; Core Actions
-                   :desc "Start/Open Session" "." #'aidermacs-run-in-current-dir
-                   :desc "Change Model" "o" #'aidermacs-change-model
+                   :desc "Start/Open Session" "a" #'aidermacs-run
+                   :desc "Start in Current Dir" "." #'aidermacs-run-in-current-dir
+                   :desc "Change Solo Model" "o" #'aidermacs-change-model
                    :desc "Reset Session" "s" #'aidermacs-reset
                    :desc "Exit Session" "x" #'aidermacs-exit
 
@@ -31,18 +32,17 @@
                    :desc "Code Change" "c" #'aidermacs-code-change
                    :desc "Refactor" "r" #'aidermacs-function-or-region-refactor
                    :desc "Go Ahead" "g" #'aidermacs-go-ahead
-                   :desc "Undo Change" "u" #'aidermacs-undo-last-change
 
                    ;; File Commands
                    (:prefix ("F" . "File Commands")
                            :desc "Add Current File" "f" #'aidermacs-add-current-file
                            :desc "Add File Interactively" "i" #'aidermacs-add-files-interactively
-                           :desc "Add Current Read-Only" "r" #'aidermacs-add-current-file-read-only
-                           :desc "Add Current Window Files" "w" #'aidermacs-add-files-in-current-window
-                           :desc "Add Current Directory Files" "d" #'aidermacs-add-same-type-files-under-dir
-                           :desc "Add Dired Marked Files" "m" #'aidermacs-batch-add-dired-marked-files
+                           :desc "Add Window Files" "w" #'aidermacs-add-files-in-current-window
+                           :desc "Add Directory Files" "d" #'aidermacs-add-same-type-files-under-dir
+                           :desc "Add Dired Marked" "m" #'aidermacs-batch-add-dired-marked-files
                            :desc "Drop File Interactively" "j" #'aidermacs-drop-file
                            :desc "Drop Current File" "k" #'aidermacs-drop-current-file
+                           :desc "Drop All Files" "a" #'aidermacs-drop-all-files
                            :desc "List Files" "l" #'aidermacs-list-added-files)
 
                    ;; Code Commands
@@ -53,7 +53,7 @@
                            :desc "Write Tests" "t" #'aidermacs-write-unit-test
                            :desc "Fix Test" "T" #'aidermacs-fix-failing-test-under-cursor
                            :desc "Debug Exception" "x" #'aidermacs-debug-exception
-                           :desc "Undo Change" "u" #'aidermacs-undo-last-change)
+                           :desc "Undo Auto Git Commit" "u" #'aidermacs-undo-last-commit)
 
                    ;; Understanding
                    :desc "Show Last Commit" "m" #'aidermacs-magit-show-last-commit
@@ -63,6 +63,7 @@
                    :desc "Explain This Symbol" "p" #'aidermacs-explain-symbol-under-point
 
                    ;; Others
+                   :desc "Toggle Architect Mode" "A" #'aidermacs-toggle-architect-mode
                    :desc "Session History" "H" #'aidermacs-show-output-history
                    :desc "Copy Last Aidermacs Output" "L" #'aidermacs-get-last-output
                    :desc "Clear Model Selection Cache" "O" #'aidermacs-clear-model-cache
