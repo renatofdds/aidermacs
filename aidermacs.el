@@ -1,7 +1,7 @@
-;;; aidermacs.el --- aidermacs package for interactive conversation with aider -*- lexical-binding: t; -*-a
+;;; aidermacs.el --- Aidermacs package for interactive conversation with aider -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Version: 0.5.0
-;; Package-Requires: ((emacs "26.1") (transient "0.3.0"))
+;; Package-Requires: ((emacs "28.1") (transient "0.8.4"))
 ;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
 ;; URL: https://github.com/MatthewZMD/aidermacs.el
 ;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
@@ -35,7 +35,7 @@
   :group 'aidermacs)
 
 (define-obsolete-variable-alias 'aidermacs-args 'aidermacs-extra-args "0.5.0"
-  "Old name for `aidermacs-extra-args', please update your config to use the new name.")
+  "Old name for `aidermacs-extra-args', please update your config.")
 
 (defcustom aidermacs-config-file nil
   "Path to aider configuration file.
@@ -46,8 +46,7 @@ ignoring other configuration settings except `aidermacs-extra-args'."
   :group 'aidermacs)
 
 (defcustom aidermacs-extra-args '()
-  "Additional arguments to pass to the aidermacs command.
-The model argument will be added automatically based on `aidermacs-default-model'."
+  "Additional arguments to pass to the aidermacs command."
   :type '(repeat string)
   :group 'aidermacs)
 
@@ -92,13 +91,6 @@ This is the file name without path."
 
 (defvar aidermacs-read-string-history nil
   "History list for aidermacs read string inputs.")
-
-(if (bound-and-true-p savehist-loaded)
-    (add-to-list 'savehist-additional-variables 'aidermacs-read-string-history)
-  (add-hook 'savehist-mode-hook
-            (lambda ()
-              (add-to-list 'savehist-additional-variables 'aidermacs-read-string-history))))
-
 
 ;;;###autoload
 (defun aidermacs-plain-read-string (prompt &optional initial-input)
@@ -287,7 +279,8 @@ This is useful for working in monorepos where you want to limit aider's scope."
 
 (defun aidermacs--send-command (command &optional switch-to-buffer)
   "Send command to the corresponding aidermacs process.
-COMMAND is the text to send.  If SWITCH-TO-BUFFER is non-nil, switch to the aidermacs buffer."
+COMMAND is the text to send.
+If SWITCH-TO-BUFFER is non-nil, switch to the aidermacs buffer."
   (let* ((buffer-name (aidermacs-buffer-name))
          (buffer (or (get-buffer buffer-name)
                      (progn (aidermacs-run)
@@ -299,7 +292,8 @@ COMMAND is the text to send.  If SWITCH-TO-BUFFER is non-nil, switch to the aide
 
 (defun aidermacs--send-command-redirect (command callback)
   "Send command to the corresponding aidermacs process in the background.
-COMMAND is the text to send.  CALLBACK will be called with the command output when available."
+COMMAND is the text to send.
+CALLBACK will be called with the command output when available."
   (let* ((buffer-name (aidermacs-buffer-name))
          (buffer (or (get-buffer buffer-name)
                      (progn (aidermacs-run)
@@ -375,7 +369,7 @@ The full command will be \"COMMAND-PREFIX <current buffer file full path>\"."
 
 ;;;###autoload
 (defun aidermacs-drop-current-file ()
-  "Send the command \"/drop <current buffer file full path>\" to the corresponding aider comint buffer."
+  "Drop the current file from aidermacs session."
   (interactive)
   (aidermacs-act-on-current-file "/drop"))
 
@@ -514,21 +508,21 @@ If cursor is inside a function, include the function name as context."
 
 ;;;###autoload
 (defun aidermacs-ask-question-general ()
-  "Prompt the user for a general question and send it to aidemracs prefixed with \"/ask \"."
+  "Prompt the user for a general question prefixed with \"/ask \"."
   (interactive)
   (when-let ((command (aidermacs--form-prompt "/ask" "Ask general question" t)))
     (aidermacs--send-command command t)))
 
 ;;;###autoload
 (defun aidermacs-help ()
-  "Prompt the user for an input and send it to aidemracs prefixed with \"/help \"."
+  "Prompt the user for an input prefixed with \"/help \"."
   (interactive)
   (when-let ((command (aidermacs--form-prompt "/help" nil t)))
     (aidermacs--send-command command t)))
 
 ;;;###autoload
 (defun aidermacs-architect-discussion ()
-  "Prompt the user for an input and send it to aidemracs prefixed with \"/architect \"."
+  "Prompt the user for an input prefixed with \"/architect \"."
   (interactive)
   (when-let ((command (aidermacs--form-prompt "/architect" "Architect Discussion")))
     (aidermacs--send-command command t)))
@@ -562,7 +556,6 @@ If Magit is not installed, report that it is required."
   (interactive)
   (aidermacs--send-command "/undo"))
 
-;;;###autoload
 (defun aidermacs--form-prompt (command prompt-prefix &optional ignore-context)
   "Get command based on context with COMMAND and PROMPT-PREFIX.
 COMMAND is the text to prepend.  PROMPT-PREFIX is the text to add after COMMAND.
@@ -601,7 +594,7 @@ If point is in a function, explain that function."
 
 ;;;###autoload
 (defun aidermacs-explain-symbol-under-point ()
-  "Ask aidermacs to explain symbol under point, given the code line as background info."
+  "Ask aidermacs to explain symbol under point."
   (interactive)
   (let* ((symbol (thing-at-point 'symbol))
          (line (buffer-substring-no-properties
@@ -701,7 +694,7 @@ With prefix argument `C-u', add as READ-ONLY."
 (defun aidermacs-write-unit-test ()
   "Generate unit test code for current buffer.
 Do nothing if current buffer is not visiting a file.
-If current buffer filename contains 'test':
+If current buffer filename contains `test':
   - If cursor is inside a test function, implement that test
   - Otherwise show message asking to place cursor inside a test function
 Otherwise:
@@ -881,7 +874,8 @@ These are exact filename matches (including the dot prefix)."
 
 (defun aidermacs--should-enable-minor-mode-p (filename)
   "Determine if `aidermacs-minor-mode' should be enabled for FILENAME.
-Returns t if the file matches any of the patterns in `aidermacs-auto-mode-files'."
+Returns t if the file matches any of the patterns in
+`aidermacs-auto-mode-files'."
   (when filename
     (let ((base-name (file-name-nondirectory filename)))
       (member base-name aidermacs-auto-mode-files))))

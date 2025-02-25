@@ -1,7 +1,7 @@
 ;;; aidermacs-backends.el --- Backend implementations for aidermacs.el -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Version: 0.5.0
-;; Package-Requires: ((emacs "26.1") (transient "0.3.0"))
+;; Package-Requires: ((emacs "28.1") (transient "0.8.4"))
 ;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
 ;; URL: https://github.com/MatthewZMD/aidermacs.el
 ;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
@@ -21,8 +21,8 @@
 
 (defcustom aidermacs-backend 'comint
   "Backend to use for the aidermacs process.
-Options are 'comint (the default) or 'vterm.  When set to 'vterm, aidermacs will
-launch a fully functional vterm buffer (with bracketed paste support) instead
+Options are `'comint' (the default) or `'vterm'.  When set to `'vterm',
+aidermacs launches a fully functional vterm buffer instead
 of using a comint process."
   :type '(choice (const :tag "Comint" comint)
                  (const :tag "VTerm" vterm))

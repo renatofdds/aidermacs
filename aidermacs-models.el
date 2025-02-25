@@ -1,7 +1,7 @@
 ;;; aidermacs-models.el --- Model selection for aidermacs.el -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Version: 0.5.0
-;; Package-Requires: ((emacs "26.1") (transient "0.3.0"))
+;; Package-Requires: ((emacs "28.1") (transient "0.3.0"))
 ;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
 ;; URL: https://github.com/MatthewZMD/aidermacs.el
 ;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
@@ -55,8 +55,7 @@ Defaults to `aidermacs-default-model` if not explicitly set."
     "o1-mini"
     "gemini/gemini-2.0-flash"
     "r1"
-    "deepseek/deepseek-chat"
-    )
+    "deepseek/deepseek-chat")
   "List of available AI models for selection.
 Each model should be in the format expected by the aidermacs CLI.
 Also based on aidermacs LLM benchmark: https://aidermacs.chat/docs/leaderboards/"
@@ -69,7 +68,8 @@ Also based on aidermacs LLM benchmark: https://aidermacs.chat/docs/leaderboards/
 (defun aidermacs--fetch-openai-compatible-models (url)
   "Fetch available models from an OpenAI compatible API endpoint.
 URL should be the base API endpoint, e.g. https://api.openai.com/v1.
-Returns a list of model names with appropriate prefixes based on the API provider."
+Returns a list of model names with appropriate prefixes based on the
+API provider."
   (let* ((url-parsed (url-generic-parse-url url))
          (hostname (url-host url-parsed))
          (prefix (cond ((string= hostname "api.openai.com") "openai")
@@ -175,7 +175,5 @@ This is useful when available models have changed."
       (aidermacs--select-model)
     (aidermacs--get-available-models)))
 
-
 (provide 'aidermacs-models)
-
 ;;; aidermacs-models.el ends here
