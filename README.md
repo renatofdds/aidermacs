@@ -62,7 +62,7 @@ Your contributions are essential to making Aidermacs the best AI pair programmin
 You can customize the default AI model used by Aidermacs by setting the `aidermacs-default-model` variable:
 
 ```emacs-lisp
-(setq aidermacs-default-model "anthropic/claude-3-5-sonnet-20241022")
+(setq aidermacs-default-model "anthropic/claude-3-7-sonnet-20250219")
 ```
 
 This allows you to easily switch between different AI models without modifying the `aidermacs-extra-args` variable.
@@ -187,7 +187,7 @@ Aidermacs supports project-specific configurations via `.aider.conf.yml` files. 
 
 ### Claude 3.7 Sonnet Thinking Tokens
 
-Aider can work with Sonnet 3.7's new thinking tokens, but does not ask Sonnet to use thinking tokens by default.
+Aider can work with Sonnet 3.7's [new thinking tokens](https://www.anthropic.com/news/claude-3-7-sonnet), but does not ask Sonnet to use thinking tokens by default.
 
 Enabling thinking currently requires manual configuration. Create an `.aider.model.settings.yml` in  your home dir, project's root, or the current directory, then add the following to the file. Adjust the `budget_tokens` value to change the target number of thinking tokens.
 
