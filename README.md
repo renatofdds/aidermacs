@@ -41,7 +41,7 @@ Your contributions are essential to making Aidermacs the best AI pair programmin
 (use-package aidermacs
   :straight (:host github :repo "MatthewZMD/aidermacs" :files ("*.el"))
   :config
-  (setq aidermacs-default-model "anthropic/claude-3-5-sonnet-20241022")
+  (setq aidermacs-default-model "anthropic/claude-3-7-sonnet-20250219")
   (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
   (global-set-key (kbd "C-c a") 'aidermacs-transient-menu)
   ; See the Configuration section below
