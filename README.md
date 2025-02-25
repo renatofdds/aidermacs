@@ -182,6 +182,35 @@ Aidermacs supports project-specific configurations via `.aider.conf.yml` files. 
 
 **Important: When using a config file, all other Aidermacs configuration variables supplying an argument option (e.g., `aidermacs-default-model`, `aidermacs-architect-model`, `aidermacs-use-architect-mode`) are IGNORED.** Aider will *only* use the settings specified in your `.aider.conf.yml` file. Do not attempt to combine these Emacs settings with a config file, as the results will be unpredictable.
 
+### Claude 3.7 Sonnet Thinking Tokens
+
+Aider can work with Sonnet 3.7's new thinking tokens, but does not ask Sonnet to use thinking tokens by default.
+
+Enabling thinking currently requires manual configuration. You need to add the following to your `.aider.model.settings.yml` model settings file.
+
+Adjust the `budget_tokens` value to change the target number of thinking tokens.
+
+```yaml
+- name: anthropic/claude-3-7-sonnet-20250219
+  edit_format: diff
+  weak_model_name: anthropic/claude-3-5-haiku-20241022
+  use_repo_map: true
+  examples_as_sys_msg: true
+  use_temperature: false
+  extra_params:
+    extra_headers:
+      anthropic-beta: prompt-caching-2024-07-31,pdfs-2024-09-25,output-128k-2025-02-19
+    max_tokens: 64000
+    thinking:
+      type: enabled
+      budget_tokens: 32000 # Adjust this number
+  cache_control: true
+  editor_model_name: anthropic/claude-3-7-sonnet-20250219
+  editor_edit_format: editor-diff
+```
+
+More streamlined support will be coming soon.
+
 #### Notes
 
 *   **Precedence:** Settings in `.aider.conf.yml` *always* take precedence when a config file is explicitly specified.
