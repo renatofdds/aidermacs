@@ -21,6 +21,8 @@
 
 (require 'aidermacs-backends)
 (require 'aidermacs-models)
+(when (featurep 'doom)
+  (require 'aidermacs-doom))
 
 (defgroup aidermacs nil
   "Customization group for the aidermacs package."
