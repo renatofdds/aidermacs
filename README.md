@@ -42,8 +42,9 @@ Your contributions are essential to making Aidermacs the best AI pair programmin
   :straight (:host github :repo "MatthewZMD/aidermacs" :files ("*.el"))
   :config
   (setq aidermacs-default-model "anthropic/claude-3-7-sonnet-20250219")
-  (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
   (global-set-key (kbd "C-c a") 'aidermacs-transient-menu)
+  ; Ensure emacs can access *_API_KEY through .bashrc or setenv
+  (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
   ; See the Configuration section below
   (setq aidermacs-auto-commits t)
   (setq aidermacs-use-architect-mode t))
@@ -180,15 +181,15 @@ Aidermacs supports project-specific configurations via `.aider.conf.yml` files. 
 
 *Note: You can also rely on Aider's default behavior of automatically searching for `.aider.conf.yml` in the home directory, project root, or current directory, in that order. In this case, you do not need to set `aidermacs-config-file` or include `--config` in `aidermacs-extra-args`.*
 
-**Important: When using a config file, all other Aidermacs configuration variables supplying an argument option (e.g., `aidermacs-default-model`, `aidermacs-architect-model`, `aidermacs-use-architect-mode`) are IGNORED.** Aider will *only* use the settings specified in your `.aider.conf.yml` file. Do not attempt to combine these Emacs settings with a config file, as the results will be unpredictable.
+* **Important:** When using a config file, all other Aidermacs configuration variables supplying an argument option (e.g., `aidermacs-default-model`, `aidermacs-architect-model`, `aidermacs-use-architect-mode`) are **IGNORED**. Aider will *only* use the settings specified in your `.aider.conf.yml` file. Do not attempt to combine these Emacs settings with a config file, as the results will be unpredictable.
+* **Precedence:** Settings in `.aider.conf.yml` *always* take precedence when a config file is explicitly specified.
+* **Avoid Conflicts:** When using a config file, *do not* include model-related arguments (like `--model`, `--architect`, etc.) in `aidermacs-extra-args`.  Configure *all* settings within your `.aider.conf.yml` file.
 
 ### Claude 3.7 Sonnet Thinking Tokens
 
 Aider can work with Sonnet 3.7's new thinking tokens, but does not ask Sonnet to use thinking tokens by default.
 
-Enabling thinking currently requires manual configuration. You need to add the following to your `.aider.model.settings.yml` model settings file.
-
-Adjust the `budget_tokens` value to change the target number of thinking tokens.
+Enabling thinking currently requires manual configuration. Create an `.aider.model.settings.yml` in  your home dir, project's root, or the current directory, then add the following to the file. Adjust the `budget_tokens` value to change the target number of thinking tokens.
 
 ```yaml
 - name: anthropic/claude-3-7-sonnet-20250219
@@ -210,11 +211,6 @@ Adjust the `budget_tokens` value to change the target number of thinking tokens.
 ```
 
 More streamlined support will be coming soon.
-
-#### Notes
-
-*   **Precedence:** Settings in `.aider.conf.yml` *always* take precedence when a config file is explicitly specified.
-*   **Avoid Conflicts:** When using a config file, *do not* include model-related arguments (like `--model`, `--architect`, etc.) in `aidermacs-extra-args`.  Configure *all* settings within your `.aider.conf.yml` file.
 
 ## Usage
 
