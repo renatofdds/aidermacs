@@ -33,37 +33,41 @@
                    :desc "Refactor" "r" #'aidermacs-function-or-region-refactor
                    :desc "Go Ahead" "g" #'aidermacs-go-ahead
 
-                   ;; File Commands
+                   ;; File & Code
                    (:prefix ("F" . "File Commands")
-                           :desc "Add Current File" "f" #'aidermacs-add-current-file
-                           :desc "Add File Interactively" "i" #'aidermacs-add-files-interactively
-                           :desc "Add Window Files" "w" #'aidermacs-add-files-in-current-window
-                           :desc "Add Directory Files" "d" #'aidermacs-add-same-type-files-under-dir
-                           :desc "Add Dired Marked" "m" #'aidermacs-batch-add-dired-marked-files
-                           :desc "Drop File Interactively" "j" #'aidermacs-drop-file
-                           :desc "Drop Current File" "k" #'aidermacs-drop-current-file
-                           :desc "Drop All Files" "a" #'aidermacs-drop-all-files
-                           :desc "List Files" "l" #'aidermacs-list-added-files)
+                            :desc "File Commands" "F" #'aidermacs-transient-file-commands
+                            ;; File Actions
+                            :desc "Add Current File" "f" #'aidermacs-add-current-file
+                            :desc "Add File Interactively" "i" #'aidermacs-add-files-interactively
+                            :desc "Add Window Files" "w" #'aidermacs-add-files-in-current-window
+                            :desc "Add Directory Files" "d" #'aidermacs-add-same-type-files-under-dir
+                            :desc "Add Dired Marked" "m" #'aidermacs-batch-add-dired-marked-files
+                            :desc "Drop File Interactively" "j" #'aidermacs-drop-file
+                            :desc "Drop Current File" "k" #'aidermacs-drop-current-file
+                            :desc "Drop All Files" "a" #'aidermacs-drop-all-files
+                            :desc "List Files" "l" #'aidermacs-list-added-files)
 
-                   ;; Code Commands
                    (:prefix ("C" . "Code Commands")
-                           :desc "Code Change" "c" #'aidermacs-code-change
-                           :desc "Refactor Code" "r" #'aidermacs-function-or-region-refactor
-                           :desc "Implement TODO" "i" #'aidermacs-implement-todo
-                           :desc "Write Tests" "t" #'aidermacs-write-unit-test
-                           :desc "Fix Test" "T" #'aidermacs-fix-failing-test-under-cursor
-                           :desc "Debug Exception" "x" #'aidermacs-debug-exception
-                           :desc "Undo Auto Git Commit" "u" #'aidermacs-undo-last-commit)
+                            :desc "Code Commands" "C" #'aidermacs-transient-code-commands
+                            ;; Code Actions
+                            :desc "Code Change" "c" #'aidermacs-code-change
+                            :desc "Refactor Code" "r" #'aidermacs-function-or-region-refactor
+                            :desc "Architect Discuss" "a" #'aidermacs-architect-discussion
+                            :desc "Implement TODO" "i" #'aidermacs-implement-todo
+                            :desc "Write Tests" "t" #'aidermacs-write-unit-test
+                            :desc "Fix Test" "T" #'aidermacs-fix-failing-test-under-cursor
+                            :desc "Debug Exception" "x" #'aidermacs-debug-exception
+                            :desc "Undo Auto Git Commit" "u" #'aidermacs-undo-last-commit)
 
                    ;; Understanding
                    :desc "Show Last Commit" "m" #'aidermacs-magit-show-last-commit
                    :desc "Ask General Question" "Q" #'aidermacs-ask-question-general
-                   :desc "Ask Question" "q" #'aidermacs-ask-question
+                   :desc "Ask Question" "q" #'aidermacs-ask-question-context
                    :desc "Explain This Code" "e" #'aidermacs-function-or-region-explain
                    :desc "Explain This Symbol" "p" #'aidermacs-explain-symbol-under-point
 
                    ;; Others
-                   :desc "Toggle Architect Mode" "A" #'aidermacs-toggle-architect-mode
+                   :desc "Toggle Architect Mode (Separate Reasoner/Editor)" "A" #'aidermacs-toggle-architect-mode
                    :desc "Session History" "H" #'aidermacs-show-output-history
                    :desc "Copy Last Aidermacs Output" "L" #'aidermacs-get-last-output
                    :desc "Clear Model Selection Cache" "O" #'aidermacs-clear-model-cache
