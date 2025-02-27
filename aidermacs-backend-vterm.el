@@ -77,8 +77,7 @@ after each output chunk, reducing the need for timers."
              (proc (get-buffer-process (current-buffer)))
              ;; Simplified pattern that just looks for a shell prompt
              (expected "^[^[:space:]]*>[[:space:]]")
-             (orig-filter (process-filter proc))
-             (timer nil))
+             (orig-filter (process-filter proc)))
         ;; Set our temporary process filter.
         (set-process-filter
          proc
@@ -87,27 +86,24 @@ after each output chunk, reducing the need for timers."
            (funcall orig-filter proc string)
 
            ;; Check immediately after receiving output
-           (when (aidermacs--vterm-check-finish-sequence-repeated
-                  proc orig-filter start-point expected)
-             (when timer
-               (cancel-timer timer)
-               (setq timer nil))
-             (return))
+           (when (aidermacs--vterm-check-finish-sequence-repeated proc orig-filter start-point expected)
+             (when (timerp aidermacs--vterm-active-timer)
+               (cancel-timer aidermacs--vterm-active-timer)
+               (setq aidermacs--vterm-active-timer nil))
+             (set-process-filter proc orig-filter))
 
            ;; If we haven't found it yet, set up a timer with adaptive frequency
-           (unless timer
-             (setq timer (run-with-timer
-                          0.05 0.05
-                          (lambda ()
-                            (cond
-                             ;; Found the prompt, we're done
-                             ((aidermacs--vterm-check-finish-sequence-repeated
-                               proc orig-filter start-point expected)
-                              (cancel-timer timer)
-                              (setq timer nil))
-
-                             ;; Just keep checking until we find the prompt
-                             )))))))
+           (unless aidermacs--vterm-active-timer
+             (setq aidermacs--vterm-active-timer 
+                   (run-with-timer
+                    0.05 0.05
+                    (lambda ()
+                      (when (aidermacs--vterm-check-finish-sequence-repeated
+                             proc orig-filter start-point expected)
+                        (when (timerp aidermacs--vterm-active-timer)
+                          (cancel-timer aidermacs--vterm-active-timer)
+                          (setq aidermacs--vterm-active-timer nil))
+                        (set-process-filter proc orig-filter))))))))
         (apply orig-fun args))
     (apply orig-fun args)))
 
@@ -129,6 +125,8 @@ BUFFER-NAME is the name for the vterm buffer."
         (advice-add 'vterm-send-return :around #'aidermacs--vterm-output-advice)
         ;; Set a reasonable scrollback limit to prevent memory issues
         (setq-local vterm-max-scrollback 5000)
+        ;; Initialize timer variable
+        (setq-local aidermacs--vterm-active-timer nil)
         ;; Set up multi-line key binding
         (let ((map (make-sparse-keymap)))
           (set-keymap-parent map (current-local-map))
