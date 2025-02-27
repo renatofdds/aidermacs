@@ -16,6 +16,10 @@
 (defvar vterm-shell)
 (defvar vterm-buffer-name)
 
+;; Forward declaration to avoid compiler warnings
+(declare-function vterm--render "vterm")
+(declare-function vterm--get-prompt-point "vterm")
+
 (defun aidermacs--is-aidermacs-vterm-buffer-p (&optional buffer)
   "Check if BUFFER is an aidermacs vterm buffer.
 If BUFFER is nil, check the current buffer.
@@ -32,9 +36,8 @@ pattern to match.  If the finish sequence is detected, store the output via
 `aidermacs--store-output`, restore ORIG-FILTER, and return t."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
-      ;; Only render vterm if needed - this is expensive
-      (when (and (fboundp 'vterm--render)
-                 (vterm--invalidate-p))
+      ;; Render vterm if the function is available
+      (when (fboundp 'vterm--render)
         (condition-case nil
             (vterm--render)
           (error nil)))
@@ -118,8 +121,7 @@ BUFFER-NAME is the name for the vterm buffer."
                    "--light-mode"))
            (cmd (mapconcat 'identity (append (list program mode) args) " "))
            (vterm-buffer-name buffer-name)
-           (vterm-shell cmd)
-           (vterm-shell-orig vterm-shell))
+           (vterm-shell cmd))
       (with-current-buffer (vterm-other-window)
         (advice-add 'vterm-send-return :around #'aidermacs--vterm-output-advice)
         ;; Set a reasonable scrollback limit to prevent memory issues

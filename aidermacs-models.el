@@ -97,7 +97,6 @@ API provider."
              (if (string= hostname "generativelanguage.googleapis.com")
                  (concat url "/models?key=" token)
                (concat url "/models"))))
-        (goto-char url-http-end-of-headers)
         (let* ((json-object-type 'alist)
                (json-data (json-read))
                (models (if (string= hostname "generativelanguage.googleapis.com")
@@ -145,7 +144,6 @@ This fetches models from various API providers and caches them."
                                  ("https://api.anthropic.com/v1" . "ANTHROPIC_API_KEY")
                                  ("https://generativelanguage.googleapis.com/v1beta" . "GEMINI_API_KEY")))
          (let ((url (car url-token-pair))
-               (token-env (cdr url-token-pair))
                (token-value (getenv (cdr url-token-pair))))
            (when (and token-value (not (string-empty-p token-value)))
              (condition-case err
