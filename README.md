@@ -29,10 +29,14 @@ Aidermacs thrives on community involvement. We believe that the best software is
 
 Your contributions are essential to making Aidermacs the best AI pair programming tool in Emacs!
 
+<a href = "https://github.com/MatthewZMD/aidermacs/graphs/contributors">
+  <img src = "https://contrib.rocks/image?repo=MatthewZMD/aidermacs"/>
+</a>
+
 ## Installation
 
 ### Requirements
-- Emacs ≥ 26.1
+- Emacs ≥ 28.1
 - [Aider](https://aider.chat/docs/install.html)
 - [Transient](https://github.com/magit/transient)
 
