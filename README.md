@@ -128,14 +128,23 @@ Available backends:
 
 ### Multiline Input Configuration
 
-When using the comint backend, you can customize the key binding for multiline input:
+You can customize keybindings for multiline input, this key allows you to enter multiple lines without sending the command to Aider. Press `RET` normally to send the command.
+
+1. `comint` backend
 
 ```emacs-lisp
 ;; Change multiline input key (default is S-<return>)
 (setq aidermacs-comint-multiline-newline-key "C-<return>")
 ```
 
-This key allows you to enter multiple lines without sending the command to Aider. Press `RET` normally to send the command.
+2. `vterm` backend
+
+```emacs-lisp
+;; Change multiline input key (default is S-<return>)
+(setq aidermacs-vterm-multiline-newline-key "S-<return>")
+;; Change multiline send key (default is C-<return>)
+(setq aidermacs-vterm-multiline-send-key "C-<return>")
+```
 
 ### Re-Enable Auto-Commits
 
