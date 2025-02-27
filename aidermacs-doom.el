@@ -1,7 +1,6 @@
 ;;; aidermacs-doom.el --- Description -*- lexical-binding: t; no-byte-compile: t -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Version: 0.5.0
-;; Package-Requires: ((emacs "28.1") (transient "0.8.4"))
 ;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
 ;; URL: https://github.com/MatthewZMD/aidermacs.el
 ;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
@@ -72,8 +71,7 @@
                    :desc "Copy Last Aidermacs Output" "L" #'aidermacs-get-last-output
                    :desc "Clear Model Selection Cache" "O" #'aidermacs-clear-model-cache
                    :desc "Clear Buffer" "l" #'aidermacs-clear
-                   :desc "Aider Help" "h" #'aidermacs-help
-                   ))))
+                   :desc "Aider Help" "h" #'aidermacs-help))))
 
 ;; Add the setup function to appropriate hooks
 (add-hook 'find-file-hook #'aidermacs-doom-setup-keys)

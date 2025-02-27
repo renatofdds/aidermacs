@@ -1,7 +1,6 @@
 ;;; aidermacs-backend-vterm.el --- VTerm backend for aidermacs.el -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Version: 0.5.0
-;; Package-Requires: ((emacs "28.1") (transient "0.8.4"))
 ;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
 ;; URL: https://github.com/MatthewZMD/aidermacs.el
 ;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
@@ -94,7 +93,7 @@ after each output chunk, reducing the need for timers."
 
            ;; If we haven't found it yet, set up a timer with adaptive frequency
            (unless aidermacs--vterm-active-timer
-             (setq aidermacs--vterm-active-timer 
+             (setq aidermacs--vterm-active-timer
                    (run-with-timer
                     0.05 0.05
                     (lambda ()
