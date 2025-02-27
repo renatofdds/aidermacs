@@ -12,7 +12,7 @@
 ;;; Code:
 
 (require 'aidermacs-backend-comint)
-(when (require 'vterm nil 'noerror)
+(when (commandp 'vterm)
   (require 'aidermacs-backend-vterm))
 
 (defgroup aidermacs-backends nil
