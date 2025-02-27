@@ -211,7 +211,7 @@ OUTPUT is the text to be processed."
               (mode (map-elt aidermacs-language-name-map lang lang)))
          (intern-soft (concat mode "-mode"))))
      ;; check the file extension in auto-mode-alist
-     (when (re-search-backward "^\\([^[:space:]]+\\)" (line-beginning-position -3) t)
+     (when (re-search-backward "^\\([^[:space:]`]+\\)" (line-beginning-position -3) t)
        (let ((file (match-string 1)))
          (cdr (cl-assoc-if (lambda (re) (string-match re file)) auto-mode-alist))))
      aidermacs--syntax-major-mode
