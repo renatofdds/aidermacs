@@ -494,7 +494,7 @@ Sends the \"/ls\" command and returns the list of files via callback."
   "Get the most recent output from aidermacs."
   (interactive)
   (when (stringp aidermacs--current-output)
-    (message aidermacs--current-output)
+    (message "%s" aidermacs--current-output)
     (kill-new aidermacs--current-output)
     aidermacs--current-output))
 
