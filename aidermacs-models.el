@@ -118,10 +118,11 @@ API provider."
 (defun aidermacs--select-model ()
   "Provide model selection with completion.
 This is a private function used internally."
-  (let ((model (with-local-quit
-                 (completing-read "Select AI model: " aidermacs--cached-models nil t))))
-    (when model
-      (aidermacs--send-command (format "/model %s" model) t))))
+  (condition-case nil
+      (let ((model (completing-read "Select AI model: " aidermacs--cached-models nil t)))
+        (when model
+          (aidermacs--send-command (format "/model %s" model) t)))
+    (quit (message "Model selection cancelled"))))
 
 (defun aidermacs--get-available-models ()
   "Get list of models supported by aider using the /models command.
@@ -139,18 +140,22 @@ This fetches models from various API providers and caches them."
              (mapcar (lambda (line)
                        (substring line 2)) ; Remove "- " prefix
                      supported-models))
-       (dolist (url '("https://api.openai.com/v1"
-                      "https://openrouter.ai/api/v1"
-                      "https://api.deepseek.com"
-                      "https://api.anthropic.com/v1"
-                      "https://generativelanguage.googleapis.com/v1beta"))
-         (condition-case err
-             (let* ((fetched-models (aidermacs--fetch-openai-compatible-models url))
-                    (filtered-models (seq-filter (lambda (model)
-                                                   (member model supported-models))
-                                                 fetched-models)))
-               (setq models (append models filtered-models)))
-           (error (message "Failed to fetch models from %s: %s" url err))))
+       (dolist (url-token-pair '(("https://api.openai.com/v1" . "OPENAI_API_KEY")
+                                 ("https://openrouter.ai/api/v1" . "OPENROUTER_API_KEY")
+                                 ("https://api.deepseek.com" . "DEEPSEEK_API_KEY")
+                                 ("https://api.anthropic.com/v1" . "ANTHROPIC_API_KEY")
+                                 ("https://generativelanguage.googleapis.com/v1beta" . "GEMINI_API_KEY")))
+         (let ((url (car url-token-pair))
+               (token-env (cdr url-token-pair))
+               (token-value (getenv (cdr url-token-pair))))
+           (when (and token-value (not (string-empty-p token-value)))
+             (condition-case err
+                 (let* ((fetched-models (aidermacs--fetch-openai-compatible-models url))
+                        (filtered-models (seq-filter (lambda (model)
+                                                       (member model supported-models))
+                                                     fetched-models)))
+                   (setq models (append models filtered-models)))
+               (error (message "Failed to fetch models from %s: %s" url (error-message-string err)))))))
        (setq aidermacs--cached-models models)
        (aidermacs--select-model)))))
 
