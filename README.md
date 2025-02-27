@@ -41,7 +41,7 @@ Your contributions are essential to making Aidermacs the best AI pair programmin
 (use-package aidermacs
   :straight (:host github :repo "MatthewZMD/aidermacs" :files ("*.el"))
   :config
-  (setq aidermacs-default-model "anthropic/claude-3-7-sonnet-20250219")
+  (setq aidermacs-default-model "sonnet")
   (global-set-key (kbd "C-c a") 'aidermacs-transient-menu)
   ; Ensure emacs can access *_API_KEY through .bashrc or setenv
   (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
@@ -62,7 +62,7 @@ Your contributions are essential to making Aidermacs the best AI pair programmin
 You can customize the default AI model used by Aidermacs by setting the `aidermacs-default-model` variable:
 
 ```emacs-lisp
-(setq aidermacs-default-model "anthropic/claude-3-7-sonnet-20250219")
+(setq aidermacs-default-model "sonnet")
 ```
 
 This allows you to easily switch between different AI models without modifying the `aidermacs-extra-args` variable.
