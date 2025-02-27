@@ -112,7 +112,7 @@ PROMPT is the text to display.  INITIAL-INPUT is the default value."
 ;; Define secondary transient menus
 (transient-define-prefix aidermacs-transient-file-commands ()
   "File management commands."
-  ["File Actions"
+  ["File Commands"
    ["Add Actions (C-u: read-only)"
     ("f" "Add Current File" aidermacs-add-current-file)
     ("i" "Add File Interactively" aidermacs-add-files-interactively)
@@ -130,16 +130,20 @@ PROMPT is the text to display.  INITIAL-INPUT is the default value."
 
 (transient-define-prefix aidermacs-transient-code-commands ()
   "Code modification commands."
-  ["Code Actions"
-   [("c" "Code Change" aidermacs-code-change)
+  ["Code Commands"
+   ["Code Actions"
+    ("c" "Code Change" aidermacs-code-change)
     ("r" "Refactor Code" aidermacs-function-or-region-refactor)
     ("a" "Architect Discuss" aidermacs-architect-discussion)]
 
-   [("i" "Implement TODO" aidermacs-implement-todo)
+   ["Implementation & Testing"
+    ("i" "Implement TODO" aidermacs-implement-todo)
     ("t" "Write Tests" aidermacs-write-unit-test)
     ("T" "Fix Test" aidermacs-fix-failing-test-under-cursor)
     ("x" "Debug Exception" aidermacs-debug-exception)]
-   [("u" "Undo Auto Git Commit" aidermacs-undo-last-commit)]])
+
+   ["Version Control (when enabled)"
+    ("u" "Undo Auto Git Commit" aidermacs-undo-last-commit)]])
 
 ;; Main transient menu
 (transient-define-prefix aidermacs-transient-menu ()

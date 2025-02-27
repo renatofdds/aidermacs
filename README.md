@@ -254,7 +254,17 @@ The main interface to Aidermacs is through its transient menu system. Here's a b
 - Other Actions: list files (`l`)
 
 ##### Code Commands (`C`)
-- Code Actions: code change (`c`), refactor code (`r`), implement TODO (`i`), write tests (`t`), fix test (`T`), debug exception (`x`), undo changes (`u`)
+- Code Actions:
+  - Code change (`c`)
+  - Refactor code (`r`)
+  - Architect discuss (`a`)
+- Implementation & Testing:
+  - Implement TODO (`i`)
+  - Write tests (`t`)
+  - Fix test (`T`)
+  - Debug exception (`x`)
+- Version Control:
+  - Undo changes (`u`)
 
 ##### Understanding
 - `m`: Show Last Commit
