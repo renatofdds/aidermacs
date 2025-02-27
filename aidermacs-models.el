@@ -4,10 +4,14 @@
 ;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
 ;; URL: https://github.com/MatthewZMD/aidermacs.el
 ;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
-
+;; SPDX-License-Identifier: Apache-2.0
+;;
+;; This file is not part of GNU Emacs.
+;;
 ;;; Commentary:
+;;
 ;; Model selection functionality for aidermacs.el
-
+;;
 ;;; Code:
 
 (require 'json)
