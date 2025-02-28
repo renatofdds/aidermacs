@@ -11,12 +11,14 @@
 ;;
 ;;; Commentary:
 ;;
-;; This package provides an interactive interface to communicate with https://github.com/paul-gauthier/aidermacs.
+;; This package provides an interactive interface to communicate
+;; with https://github.com/paul-gauthier/aidermacs.
 ;;
 ;;; Code:
 
 (require 'comint)
 (require 'dired)
+(require 'project)
 (require 'transient)
 (require 'vc-git)
 (require 'which-func)
@@ -27,6 +29,8 @@
 (require 'aidermacs-models)
 (when (featurep 'doom)
   (require 'aidermacs-doom))
+
+(declare-function magit-show-commit "magit-diff" (rev &optional noselect module))
 
 (defgroup aidermacs nil
   "Customization group for the aidermacs package."
@@ -69,8 +73,7 @@ When nil, disable auto-commits requiring manual git commits."
 (defun aidermacs-project-root ()
   "Get the project root using project.el, VC, or fallback to file directory.
 This function tries multiple methods to determine the project root."
-  (or (when (and (fboundp 'project-current) (project-current))
-        (project-root (project-current)))
+  (or (project-root (project-current))
       (vc-git-root default-directory)
       (when buffer-file-name
         (file-name-directory buffer-file-name))
@@ -103,11 +106,11 @@ PROMPT is the text to display.  INITIAL-INPUT is the default value."
   (read-string prompt initial-input 'aidermacs-read-string-history))
 
 ;;;###autoload
-(defalias 'aidermacs-read-string 'aidermacs-plain-read-string)
+(defalias 'aidermacs-read-string #'aidermacs-plain-read-string)
 
 (eval-and-compile
   ;; Ensure the alias is always available in both compiled and interpreted modes.
-  (defalias 'aidermacs-read-string 'aidermacs-plain-read-string))
+  (defalias 'aidermacs-read-string #'aidermacs-plain-read-string))
 
 ;; Transient menu for aidermacs commands
 ;; The instruction in the autoload comment is needed, see
@@ -485,7 +488,7 @@ Sends the \"/ls\" command and returns the list of files via callback."
       (erase-buffer)
       (display-line-numbers-mode 1)
       (dolist (entry history)
-        (let ((timestamp (format-time-string "%Y-%m-%d %H:%M:%S" (car entry)))
+        (let ((timestamp (format-time-string "%F %T" (car entry)))
               (output (cdr entry)))
           (insert (format "* %s\n#+BEGIN_SRC\n%s\n#+END_SRC\n" timestamp output))))
       (goto-char (point-min))
@@ -511,7 +514,7 @@ If cursor is inside a function, include the function name as context."
   (interactive)
   ;; Dispatch to general question if in aidermacs buffer
   (when (string= (buffer-name) (aidermacs-buffer-name))
-    (call-interactively 'aidermacs-ask-question-general)
+    (call-interactively #'aidermacs-ask-question-general)
     (cl-return-from aidermacs-ask-question-context))
   (aidermacs-add-current-file)
   (when-let ((command (aidermacs--form-prompt "/ask" "Ask")))
@@ -550,6 +553,7 @@ If cursor is inside a function, include the function name as context."
   "Send the command \"go ahead\" to the aidemracs."
   (interactive)
   (aidermacs--send-command "go ahead" t))
+
 
 ;;;###autoload
 (defun aidermacs-magit-show-last-commit ()
@@ -630,7 +634,7 @@ as read-only.  Optional MESSAGE can override the default success message."
     (if files
         (progn
           (aidermacs--send-command (format "%s %s" cmd
-                                        (mapconcat 'identity files " ")) t)
+                                           (mapconcat #'identity files " ")) t)
           (message (or message
                        (format "Added %d files as %s"
                                (length files)
@@ -656,10 +660,10 @@ With prefix argument `C-u', add as read-only."
 With prefix argument `C-u', add as read-only."
   (interactive "P")
   (let* ((files (mapcar (lambda (buffer)
-                         (with-current-buffer buffer
-                           (when buffer-file-name
-                             (expand-file-name buffer-file-name))))
-                       (mapcar 'window-buffer (window-list))))
+                          (with-current-buffer buffer
+                            (when buffer-file-name
+                              (expand-file-name buffer-file-name))))
+                        (mapcar #'window-buffer (window-list))))
          (filtered-files (delq nil files)))
     (aidermacs--add-files-helper filtered-files read-only)))
 
@@ -890,7 +894,7 @@ Returns t if the file matches any of the patterns in
     (let ((base-name (file-name-nondirectory filename)))
       (member base-name aidermacs-auto-mode-files))))
 
-(add-hook 'find-file-hook
+(add-hook #'find-file-hook
           (lambda ()
             (when (and buffer-file-name
                        (aidermacs--should-enable-minor-mode-p buffer-file-name))

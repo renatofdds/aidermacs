@@ -74,10 +74,15 @@
                    :desc "Clear Buffer" "l" #'aidermacs-clear
                    :desc "Aider Help" "h" #'aidermacs-help))))
 
-;; Add the setup function to appropriate hooks
-(add-hook 'find-file-hook #'aidermacs-doom-setup-keys)
-(add-hook 'dired-mode-hook #'aidermacs-doom-setup-keys)
-(add-hook 'after-change-major-mode-hook #'aidermacs-doom-setup-keys)
+;;;###autoload
+(defun aidermacs-doom-enable ()
+  "Enable Doom keybindings for aidermacs.
+This adds the key setup function to relevant hooks.
+Call this from your Doom config to enable the keybindings."
+  (interactive)
+  (add-hook 'find-file-hook #'aidermacs-doom-setup-keys)
+  (add-hook 'dired-mode-hook #'aidermacs-doom-setup-keys)
+  (add-hook 'after-change-major-mode-hook #'aidermacs-doom-setup-keys))
 
 (provide 'aidermacs-doom)
 ;;; aidermacs-doom.el ends here

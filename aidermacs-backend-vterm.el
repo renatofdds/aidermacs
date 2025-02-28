@@ -23,13 +23,18 @@
 ;; Forward declaration to avoid compiler warnings
 (declare-function vterm--render "vterm")
 (declare-function vterm--get-prompt-point "vterm")
+(declare-function vterm-other-window "vterm")
+(declare-function vterm-send-string "vterm")
+(declare-function vterm-send-return "vterm")
+(declare-function vterm-insert "vterm")
+
 
 (defun aidermacs--is-aidermacs-vterm-buffer-p (&optional buffer)
   "Check if BUFFER is an aidermacs vterm buffer.
 If BUFFER is nil, check the current buffer.
 Returns non-nil if the buffer name matches the aidermacs buffer pattern."
   (let ((buf (or buffer (current-buffer))))
-    (and (eq major-mode 'vterm-mode)
+    (and (derived-mode-p 'vterm-mode)
          (string-match-p "^\\*aidermacs:" (buffer-name buf)))))
 
 (defun aidermacs--vterm-check-finish-sequence-repeated (proc orig-filter start-point expected)
@@ -118,12 +123,12 @@ after each output chunk, reducing the need for timers."
 PROGRAM is the command to run.  ARGS is a list of command line arguments.
 BUFFER-NAME is the name for the vterm buffer."
   (unless (require 'vterm nil t)
-    (error "vterm package is not available"))
+    (error "Vterm package is not available"))
   (unless (get-buffer buffer-name)
     (let* ((mode (if (eq (frame-parameter nil 'background-mode) 'dark)
                      "--dark-mode"
                    "--light-mode"))
-           (cmd (mapconcat 'identity (append (list program mode) args) " "))
+           (cmd (mapconcat #'identity (append (list program mode) args) " "))
            (vterm-buffer-name buffer-name)
            (vterm-shell cmd))
       (with-current-buffer (vterm-other-window)

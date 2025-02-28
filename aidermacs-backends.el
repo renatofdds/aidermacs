@@ -18,6 +18,11 @@
 (when (commandp 'vterm)
   (require 'aidermacs-backend-vterm))
 
+(declare-function aidermacs-run-vterm "aidermacs-backend-vterm"
+                  (program args buffer-name))
+(declare-function aidermacs--send-command-vterm "aidermacs-backend-vterm"
+                  (buffer command))
+
 (defgroup aidermacs-backends nil
   "Backend customization for aidermacs."
   :group 'aidermacs)

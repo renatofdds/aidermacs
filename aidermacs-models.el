@@ -17,6 +17,11 @@
 (require 'json)
 (require 'url)
 
+(declare-function aidermacs--send-command "aidermacs" (command &optional switch-to-buffer))
+(declare-function aidermacs--send-command-redirect "aidermacs" (command callback))
+(declare-function aidermacs-buffer-name "aidermacs" ())
+(declare-function aidermacs-exit "aidermacs" ())
+
 (defgroup aidermacs-models nil
   "Model selection customization for aidermacs."
   :group 'aidermacs)

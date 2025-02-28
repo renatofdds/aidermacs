@@ -285,6 +285,20 @@ The main interface to Aidermacs is through its transient menu system. Here's a b
 - `l`: Clear Buffer
 - `h`: Aider Help
 
+### Doom Emacs Integration
+
+When using Aidermacs with Doom Emacs, you can enable Doom-specific keybindings by calling `(aidermacs-doom-enable)`. This sets up Evil-friendly keybindings under the SPC leader key:
+
+- `SPC A` - Aidermacs prefix
+  - `a` - Start/Open Session
+  - `.` - Start in Current Dir
+  - `o` - Change Solo Model
+  - `s` - Reset Session
+  - `x` - Exit Session
+  - And more...
+
+The keybindings are only activated in buffers that are part of a Git repository, keeping your global keybinding space clean.
+
 ### Working with Prompt Blocks in `.aider*` files
 
 When editing `.aider.prompt.org` or other `.aider*` files, these keybindings are available:

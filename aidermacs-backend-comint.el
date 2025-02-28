@@ -16,6 +16,11 @@
 
 (require 'comint)
 
+(declare-function aidermacs--process-message-if-multi-line "aidermacs" (str))
+
+(defvar aidermacs-language-name-map nil
+  "Map external language names to Emacs names.")
+
 (defconst aidermacs-search-marker "<<<<<<< SEARCH")
 (defconst aidermacs-diff-marker "=======")
 (defconst aidermacs-replace-marker ">>>>>>> REPLACE")
@@ -115,14 +120,14 @@ OUTPUT is the text to be processed."
 
       (unless aidermacs--syntax-last-output-pos
         ;; Set up new block state
-        (setq marker (match-string 1))
-        (setq aidermacs--syntax-block-start-pos (line-end-position)
-              aidermacs--syntax-block-end-pos (line-end-position)
-              aidermacs--syntax-block-delimiter
-              (pcase marker
-                ((pred (equal aidermacs-search-marker)) aidermacs-diff-marker)
-                ((pred (equal aidermacs-diff-marker)) aidermacs-replace-marker)
-                ((pred (equal aidermacs-fence-marker)) aidermacs-fence-marker)))
+        (let ((block-marker (match-string 1)))
+          (setq aidermacs--syntax-block-start-pos (line-end-position)
+                aidermacs--syntax-block-end-pos (line-end-position)
+                aidermacs--syntax-block-delimiter
+                (pcase block-marker
+                  ((pred (equal aidermacs-search-marker)) aidermacs-diff-marker)
+                  ((pred (equal aidermacs-diff-marker)) aidermacs-replace-marker)
+                  ((pred (equal aidermacs-fence-marker)) aidermacs-fence-marker))))
 
         (with-current-buffer aidermacs--syntax-work-buffer
           (erase-buffer))
@@ -232,7 +237,7 @@ BUFFER-NAME is the name for the aidermacs buffer."
   (let ((comint-terminfo-terminal "eterm-color")
         (args (append args (list "--no-pretty" "--no-fancy-input"))))
     (unless (comint-check-proc buffer-name)
-      (apply 'make-comint-in-buffer "aidermacs" buffer-name program nil args)
+      (apply #'make-comint-in-buffer "aidermacs" buffer-name program nil args)
       (with-current-buffer buffer-name
         (comint-mode)
         (setq-local comint-prompt-regexp "[^[:space:]]*>[[:space:]]$")
