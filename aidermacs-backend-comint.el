@@ -69,18 +69,11 @@ This allows for multi-line input without sending the command."
 (defvar-local aidermacs--syntax-last-output-pos nil
   "Position tracker for incremental syntax highlighting.")
 
-(defvar-local aidermacs--syntax-major-mode nil
-  "The major mode used for syntax highlighting the current block.")
-
 (defvar-local aidermacs--syntax-work-buffer nil
   "Temporary buffer used for syntax highlighting operations.")
 
 (defun aidermacs-reset-font-lock-state ()
   "Reset font lock state to default for processing a new source block."
-  (unless (equal aidermacs--syntax-block-delimiter aidermacs-diff-marker)
-    ;; if we are processing the other half of a SEARCH/REPLACE block, we need to
-    ;; keep the mode
-    (setq aidermacs--syntax-major-mode nil))
   (setq aidermacs--syntax-block-delimiter nil
         aidermacs--syntax-last-output-pos nil
         aidermacs--syntax-block-start-pos nil
@@ -110,7 +103,8 @@ OUTPUT is the text to be processed."
         (let* ((next-line (min (point-max) (1+ (line-end-position))))
                (line-text (buffer-substring
                            next-line
-                           (min (point-max) (+ next-line (length aidermacs-search-marker))))))
+                           (min (point-max) (+ next-line (length aidermacs-search-marker)))))
+               marker)
           (cond ((equal line-text aidermacs-search-marker)
                  ;; Next line is a SEARCH marker. use that instead of the fence marker
                  (re-search-forward (format "^\\(%s\\)" aidermacs-search-marker) nil t))
@@ -121,24 +115,28 @@ OUTPUT is the text to be processed."
 
       (unless aidermacs--syntax-last-output-pos
         ;; Set up new block state
-        (setq aidermacs--syntax-block-delimiter
-              (pcase (match-string 1)
+        (setq marker (match-string 1))
+        (setq aidermacs--syntax-block-start-pos (line-end-position)
+              aidermacs--syntax-block-end-pos (line-end-position)
+              aidermacs--syntax-block-delimiter
+              (pcase marker
                 ((pred (equal aidermacs-search-marker)) aidermacs-diff-marker)
                 ((pred (equal aidermacs-diff-marker)) aidermacs-replace-marker)
-                ((pred (equal aidermacs-fence-marker)) aidermacs-fence-marker))
-              aidermacs--syntax-block-start-pos (line-end-position)
-              aidermacs--syntax-block-end-pos (line-end-position)
-              aidermacs--syntax-major-mode (aidermacs--guess-major-mode))
+                ((pred (equal aidermacs-fence-marker)) aidermacs-fence-marker)))
 
-        ;; Set the major-mode of the font lock buffer
-        (let ((mode aidermacs--syntax-major-mode))
-          (with-current-buffer aidermacs--syntax-work-buffer
-            (erase-buffer)
-            (unless (eq mode major-mode)
-              (condition-case e
-                  (let ((inhibit-message t))
-                    (funcall mode))
-                (error "aidermacs: Failed to init major-mode `%s' for font-locking: %s" mode e)))))
+        (with-current-buffer aidermacs--syntax-work-buffer
+          (erase-buffer))
+
+        ;; Set the major-mode of the font lock buffer unless this is the second half of
+        ;; SEARCH/REPLACE block. In that case reuse the previous mode
+        (unless (equal marker aidermacs-diff-marker)
+          (let ((mode (aidermacs--guess-major-mode)))
+            (with-current-buffer aidermacs--syntax-work-buffer
+              (unless (eq mode major-mode)
+                (condition-case e
+                    (let ((inhibit-message t))
+                      (funcall mode))
+                  (error "aidermacs: Failed to init major-mode `%s' for font-locking: %s" mode e))))))
 
         ;; Process initial content
         (aidermacs--fontify-block)))))
@@ -200,25 +198,21 @@ OUTPUT is the text to be processed."
 
 (defun aidermacs--guess-major-mode ()
   "Extract the major mode from fence markers or filename."
-  (save-excursion
-    (beginning-of-line)
-    (or
-     ;; check if the block has a language id
-     (when (let ((re "^```\\([^[:space:]]+\\)"))
-             (or (looking-at re)
-                 (save-excursion
-                   (forward-line -1)
-                   ;; check the previous line since this might be a SEARCH block
-                   (looking-at re))))
-       (let* ((lang (downcase (match-string 1)))
-              (mode (map-elt aidermacs-language-name-map lang lang)))
-         (intern-soft (concat mode "-mode"))))
-     ;; check the file extension in auto-mode-alist
-     (when (re-search-backward "^\\([^[:space:]`]+\\)" (line-beginning-position -3) t)
-       (let ((file (match-string 1)))
-         (cdr (cl-assoc-if (lambda (re) (string-match re file)) auto-mode-alist))))
-     aidermacs--syntax-major-mode
-     'fundamental-mode)))
+  (or
+   ;; check if the block has a language id
+   (when (save-excursion
+           (end-of-line)
+           (re-search-backward "^``` *\\([^[:space:]]+\\)" (line-beginning-position -1) t))
+     (let* ((lang (downcase (match-string 1)))
+            (mode (map-elt aidermacs-language-name-map lang lang)))
+       (intern-soft (concat mode "-mode"))))
+   ;; check the file extension in auto-mode-alist
+   (when (save-excursion
+           (or (re-search-backward "[fF]ile: *\\([^*[:space:]]+\\)" (line-beginning-position -3) t)
+               (re-search-backward "^\\([^`[:space:]]+\\)$" (line-beginning-position -3) t)))
+     (let ((file (match-string 1)))
+       (cdr (cl-assoc-if (lambda (re) (string-match re file)) auto-mode-alist))))
+   'fundamental-mode))
 
 (defun aidermacs-kill-buffer ()
   "Clean up the fontify buffer."
