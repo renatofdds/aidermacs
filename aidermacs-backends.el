@@ -91,6 +91,7 @@ If there's a callback function, call it with the output."
   "Run aidermacs using the selected backend.
 PROGRAM is the aidermacs executable path.  ARGS are command line arguments.
 BUFFER-NAME is the name for the aidermacs buffer."
+  (message "Running %s with %s" program args)
   (cond
    ((eq aidermacs-backend 'vterm)
     (aidermacs-run-vterm program args buffer-name))
