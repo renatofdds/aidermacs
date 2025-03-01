@@ -274,7 +274,6 @@ The main interface to Aidermacs is through its transient menu system. Here's a b
 
 ##### Understanding
 - `m`: Show Last Commit
-- `Q`: Ask General Question
 - `q`: Ask Question
 - `e`: Explain This Code
 - `p`: Explain This Symbol

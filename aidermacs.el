@@ -164,9 +164,8 @@ PROMPT is the text to display.  INITIAL-INPUT is the default value."
 
    ["Understanding"
     ("m" "Show Last Commit" aidermacs-magit-show-last-commit)
-    ("Q" "Ask General Question" aidermacs-ask-question-general)
-    ("q" "Ask Question" aidermacs-ask-question-context)
-    ("e" "Explain This Code" aidermacs-function-or-region-explain)
+    ("q" "Ask Question" aidermacs-ask-question)
+    ("e" "Explain This Code" aidermacs-explain-this-code)
     ("p" "Explain This Symbol" aidermacs-explain-symbol-under-point)]
 
    ["Others"
@@ -496,24 +495,24 @@ Sends the \"/ls\" command and returns the list of files via callback."
 
 
 ;;;###autoload
-(defun aidermacs-ask-question-context ()
-  "Prompt the user for a question.
-If a region is active, append the region text to the question.
-If cursor is inside a function, include the function name as context."
+(defun aidermacs-explain-this-code ()
+  "Ask a question about the code at point or region.
+If a region is active, include the region text in the question.
+If cursor is inside a function, include the function name as context.
+If called from the aidermacs buffer, use general question instead."
   (interactive)
   ;; Dispatch to general question if in aidermacs buffer
-  (when (string= (buffer-name) (aidermacs-buffer-name))
-    (call-interactively #'aidermacs-ask-question-general)
-    (cl-return-from aidermacs-ask-question-context))
-  (aidermacs-add-current-file)
-  (when-let ((command (aidermacs--form-prompt "/ask" "Ask")))
-    (aidermacs--send-command command t)))
+  (if (string= (buffer-name) (aidermacs-buffer-name))
+      (call-interactively #'aidermacs-ask-question)
+    (when-let ((command (aidermacs--form-prompt "/ask" "Question")))
+      (aidermacs-add-current-file)
+      (aidermacs--send-command command t))))
 
 ;;;###autoload
-(defun aidermacs-ask-question-general ()
-  "Prompt the user for a general question prefixed with \"/ask \"."
+(defun aidermacs-ask-question ()
+  "Prompt the user for a general question without code context."
   (interactive)
-  (when-let ((command (aidermacs--form-prompt "/ask" "Ask question" t)))
+  (when-let ((command (aidermacs--form-prompt "/ask" "Question" t)))
     (aidermacs--send-command command t)))
 
 ;;;###autoload
@@ -582,16 +581,6 @@ If region is active, refactor that region.
 If point is in a function, refactor that function."
   (interactive)
   (when-let ((command (aidermacs--form-prompt "/architect" "Refactor")))
-    (aidermacs-add-current-file)
-    (aidermacs--send-command command t)))
-
-;;;###autoload
-(defun aidermacs-function-or-region-explain ()
-  "Explain code at point or region.
-If region is active, explain that region.
-If point is in a function, explain that function."
-  (interactive)
-  (when-let ((command (aidermacs--form-prompt "/ask" "Explain")))
     (aidermacs-add-current-file)
     (aidermacs--send-command command t)))
 

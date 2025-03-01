@@ -61,9 +61,8 @@
 
                    ;; Understanding
                    :desc "Show Last Commit" "m" #'aidermacs-magit-show-last-commit
-                   :desc "Ask General Question" "Q" #'aidermacs-ask-question-general
-                   :desc "Ask Question" "q" #'aidermacs-ask-question-context
-                   :desc "Explain This Code" "e" #'aidermacs-function-or-region-explain
+                   :desc "Ask Question" "q" #'aidermacs-ask-question
+                   :desc "Explain This Code" "e" #'aidermacs-explain-this-code
                    :desc "Explain This Symbol" "p" #'aidermacs-explain-symbol-under-point
 
                    ;; Others
