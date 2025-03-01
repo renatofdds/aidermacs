@@ -887,8 +887,7 @@ These are exact filename matches (including the dot prefix)."
   :group 'aidermacs)
 
 (defun aidermacs--maybe-enable-minor-mode ()
-  "Enable `aidermacs-minor-mode' if current buffer's file matches any
-of the patterns in `aidermacs-auto-mode-files'."
+  "Determines whether to enable `aidermacs-minor-mode'."
   (when (and buffer-file-name
              (when buffer-file-name
                (let ((base-name (file-name-nondirectory buffer-file-name)))
