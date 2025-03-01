@@ -886,19 +886,29 @@ These are exact filename matches (including the dot prefix)."
   :type '(repeat string)
   :group 'aidermacs)
 
-(defun aidermacs--should-enable-minor-mode-p (filename)
-  "Determine if `aidermacs-minor-mode' should be enabled for FILENAME.
-Returns t if the file matches any of the patterns in
-`aidermacs-auto-mode-files'."
-  (when filename
-    (let ((base-name (file-name-nondirectory filename)))
-      (member base-name aidermacs-auto-mode-files))))
+(defun aidermacs--maybe-enable-minor-mode ()
+  "Enable `aidermacs-minor-mode' if current buffer's file matches any
+of the patterns in `aidermacs-auto-mode-files'."
+  (when (and buffer-file-name
+             (when buffer-file-name
+               (let ((base-name (file-name-nondirectory buffer-file-name)))
+                 (member base-name aidermacs-auto-mode-files))))
+    (aidermacs-minor-mode 1)))
 
-(add-hook #'find-file-hook
-          (lambda ()
-            (when (and buffer-file-name
-                       (aidermacs--should-enable-minor-mode-p buffer-file-name))
-              (aidermacs-minor-mode 1))))
+;;;###autoload
+(defun aidermacs-setup-minor-mode ()
+  "Set up automatic enabling of `aidermacs-minor-mode' for specific files.
+This adds a hook to automatically enable the minor mode for files
+matching patterns in `aidermacs-auto-mode-files'.
+
+The minor mode provides convenient keybindings for working with
+prompt files and other Aider-related files:
+\\<aidermacs-minor-mode-map>
+\\[aidermacs-send-line-or-region] - Send current line/region line-by-line
+\\[aidermacs-send-block-or-region] - Send block/region as whole
+\\[aidermacs-switch-to-buffer] - Switch to Aidermacs buffer"
+  (interactive)
+  (add-hook 'find-file-hook #'aidermacs--maybe-enable-minor-mode))
 
 (provide 'aidermacs)
 ;;; aidermacs.el ends here

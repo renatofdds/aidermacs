@@ -47,11 +47,13 @@ Your contributions are essential to making Aidermacs the best AI pair programmin
   :config
   (setq aidermacs-default-model "sonnet")
   (global-set-key (kbd "C-c a") 'aidermacs-transient-menu)
-  ; Ensure emacs can access *_API_KEY through .bashrc or setenv
-  (setenv "ANTHROPIC_API_KEY" anthropic-api-key)
+  ; Enable minor mode for Aider files
+  (aidermacs-setup-minor-mode)
   ; See the Configuration section below
   (setq aidermacs-auto-commits t)
-  (setq aidermacs-use-architect-mode t))
+  (setq aidermacs-use-architect-mode t)
+  ; Ensure emacs can access *_API_KEY through .bashrc or setenv
+  (setenv "ANTHROPIC_API_KEY" anthropic-api-key))
 ```
 
 ### Sample Config With Doom Emacs
@@ -299,22 +301,43 @@ When using Aidermacs with Doom Emacs, you can enable Doom-specific keybindings b
 
 The keybindings are only activated in buffers that are part of a Git repository, keeping your global keybinding space clean.
 
-### Working with Prompt Blocks in `.aider*` files
+### Prompt Files Minor Mode
 
-When editing `.aider.prompt.org` or other `.aider*` files, these keybindings are available:
+Aidermacs provides a minor mode that makes it easy to work with prompt files and other Aider-related files. The minor mode can be enabled automatically for specific files by calling `(aidermacs-setup-minor-mode)` in your config:
+
+```emacs-lisp
+(aidermacs-setup-minor-mode)
+```
+
+When enabled, the minor mode provides these convenient keybindings:
 
 - `C-c C-n` or `C-<return>`: Send line/region line-by-line
 - `C-c C-c`: Send block/region as whole
 - `C-c C-z`: Switch to Aidermacs buffer
 
-### Prompt Files
+The minor mode is automatically enabled for:
+- `.aider.prompt.org` files (create with `M-x aidermacs-open-prompt-file`)
+- `.aider.chat.md` files
+- `.aider.chat.history.md` files
+- `.aider.input.history` files
 
-The `.aider.prompt.org` file (created with `M-x aidermacs-open-prompt-file`) is useful for:
+#### Working with Prompt Files
+
+The `.aider.prompt.org` file is particularly useful for:
 - Storing frequently used prompts
 - Documenting common workflows
 - Quick access to complex instructions
 
-The file is automatically recognized and enables Aidermacs minor mode with the above keybindings.
+You can customize which files automatically enable the minor mode by configuring `aidermacs-auto-mode-files`:
+
+```emacs-lisp
+(setq aidermacs-auto-mode-files
+      '(".aider.prompt.org"
+        ".aider.chat.md"
+        ".aider.chat.history.md"
+        ".aider.input.history"
+        "my-custom-aider-file.org"))  ; Add your own files
+```
 
 ## Aidermacs vs aider.el
 

@@ -29,6 +29,14 @@
 (declare-function vterm-insert "vterm")
 
 
+(defvar-local aidermacs--vterm-active-timer nil
+  "Store the active timer for vterm output processing.")
+
+(defcustom aidermacs-vterm-multiline-newline-key "S-<return>"
+  "Key binding to enter a newline without sending in vterm."
+  :type 'string
+  :group 'aidermacs)
+
 (defun aidermacs--is-aidermacs-vterm-buffer-p (&optional buffer)
   "Check if BUFFER is an aidermacs vterm buffer.
 If BUFFER is nil, check the current buffer.
@@ -145,14 +153,6 @@ BUFFER-NAME is the name for the vterm buffer."
         ;; Add cleanup hook
         (add-hook 'kill-buffer-hook #'aidermacs--vterm-cleanup nil t))))
   buffer-name)
-
-(defvar-local aidermacs--vterm-active-timer nil
-  "Store the active timer for vterm output processing.")
-
-(defcustom aidermacs-vterm-multiline-newline-key "S-<return>"
-  "Key binding to enter a newline without sending in vterm."
-  :type 'string
-  :group 'aidermacs)
 
 (defun aidermacs--send-command-vterm (buffer command)
   "Send command to the aidermacs vterm buffer.
