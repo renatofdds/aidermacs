@@ -79,17 +79,6 @@ This function tries multiple methods to determine the project root."
         (file-name-directory buffer-file-name))
       default-directory))
 
-
-(defcustom aidermacs-language-name-map '(("elisp" . "emacs-lisp")
-                                         ("bash" . "sh")
-                                         ("objective-c" . "objc")
-                                         ("objectivec" . "objc")
-                                         ("cpp" . "c++"))
-  "Map external language names to Emacs names."
-  :type '(alist :key-type (string :tag "Language Name/Alias")
-                :value-type (string :tag "Mode Name (without -mode)"))
-  :group 'aidermacs)
-
 (defcustom aidermacs-prompt-file-name ".aider.prompt.org"
   "File name that will automatically enable `aidermacs-minor-mode' when opened.
 This is the file name without path."

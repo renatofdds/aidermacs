@@ -18,8 +18,15 @@
 
 (declare-function aidermacs--process-message-if-multi-line "aidermacs" (str))
 
-(defvar aidermacs-language-name-map nil
-  "Map external language names to Emacs names.")
+(defcustom aidermacs-language-name-map '(("elisp" . "emacs-lisp")
+                                         ("bash" . "sh")
+                                         ("objective-c" . "objc")
+                                         ("objectivec" . "objc")
+                                         ("cpp" . "c++"))
+  "Map external language names to Emacs names."
+  :type '(alist :key-type (string :tag "Language Name/Alias")
+                :value-type (string :tag "Mode Name (without -mode)"))
+  :group 'aidermacs)
 
 (defconst aidermacs-search-marker "<<<<<<< SEARCH")
 (defconst aidermacs-diff-marker "=======")
@@ -87,11 +94,12 @@ that was matched at the start of the current syntax block.")
   (setq aidermacs--syntax-block-delimiter nil
         aidermacs--syntax-last-output-pos nil
         aidermacs--syntax-block-start-pos nil
-        aidermacs--syntax-block-end-pos nil))
+        aidermacs--syntax-block-end-pos nil
+        aidermacs--syntax-block-marker nil))
 
 (defun aidermacs-fontify-blocks (_output)
   "Fontify search/replace blocks in comint output.
-OUTPUT is the text to be processed."
+_OUTPUT is the text to be processed."
   (save-excursion
     (goto-char (or aidermacs--syntax-last-output-pos
                    comint-last-output-start))
@@ -113,8 +121,7 @@ OUTPUT is the text to be processed."
         (let* ((next-line (min (point-max) (1+ (line-end-position))))
                (line-text (buffer-substring
                            next-line
-                           (min (point-max) (+ next-line (length aidermacs-search-marker)))))
-               aidermacs--syntax-block-marker)
+                           (min (point-max) (+ next-line (length aidermacs-search-marker))))))
           (cond ((equal line-text aidermacs-search-marker)
                  ;; Next line is a SEARCH marker. use that instead of the fence marker
                  (re-search-forward (format "^\\(%s\\)" aidermacs-search-marker) nil t))
@@ -125,8 +132,8 @@ OUTPUT is the text to be processed."
 
       (unless aidermacs--syntax-last-output-pos
         ;; Set up new block state
-        (setq aidermacs--syntax-block-marker (match-string 1)
-              aidermacs--syntax-block-start-pos (line-end-position)
+        (setq aidermacs--syntax-block-marker (match-string 1))
+        (setq aidermacs--syntax-block-start-pos (line-end-position)
               aidermacs--syntax-block-end-pos (line-end-position)
               aidermacs--syntax-block-delimiter
               (pcase aidermacs--syntax-block-marker
