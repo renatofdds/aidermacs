@@ -12,7 +12,7 @@ Key features:
 - Support for multi-file edits in complex codebases
 - Real-time file synchronization for true pair programming
 - Broad language support including Python, JavaScript, TypeScript, PHP, HTML, CSS, etc.
-- Compatibility with leading AI models like Claude 3.5 Sonnet, DeepSeek, and GPT-4o, etc.
+- Compatibility with leading AI models like Claude, ChatGPT, DeepSeek, etc.
 
 ## Why Aidermacs?
 
