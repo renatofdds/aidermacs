@@ -10,7 +10,15 @@
 ;;
 ;;; Commentary:
 ;;
-;; Comint backend implementation for aidermacs.el
+;; This file implements the Comint backend for Aidermacs, providing
+;; an interface for interacting with the Aider process within an
+;; Emacs buffer. It handles sending commands to Aider, displaying
+;; output, and managing the interaction flow.
+;;
+;; Key features include:
+;; - Syntax highlighting for Aider's output, including search/replace blocks and code fences.
+;; - Custom keybindings for multi-line input.
+;; - Management of the Aider process within a Comint buffer.
 ;;
 ;;; Code:
 

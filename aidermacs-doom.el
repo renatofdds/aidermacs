@@ -10,7 +10,15 @@
 ;;
 ;;; Commentary:
 ;;
-;;  Doom integration for aidermacs
+;; This file provides Doom Emacs integration for Aidermacs, offering
+;; convenient keybindings and commands for interacting with Aider
+;; within the Doom Emacs environment.
+;;
+;; Key features include:
+;; - Keybindings for common Aidermacs actions, such as running Aider,
+;;   adding files, and asking questions.
+;; - Integration with Doom Emacs' keybinding system.
+;; - Automatic setup of keybindings in Git repositories.
 ;;
 ;;; Code:
 

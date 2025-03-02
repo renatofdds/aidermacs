@@ -10,7 +10,16 @@
 ;;
 ;;; Commentary:
 ;;
-;; Model selection functionality for aidermacs.el
+;; This file provides model selection functionality for Aidermacs,
+;; allowing users to choose between different AI models for their
+;; Aider sessions. It supports fetching models from various API
+;; providers and caching them for faster access.
+;;
+;; Key features include:
+;; - Selection of AI models via a completing-read interface.
+;; - Fetching of available models from OpenAI-compatible API endpoints.
+;; - Caching of models for faster access.
+;; - Customization of default models for different tasks.
 ;;
 ;;; Code:
 

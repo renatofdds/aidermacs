@@ -10,7 +10,16 @@
 ;;
 ;;; Commentary:
 ;;
-;; VTerm backend implementation for aidermacs.el
+;; This file implements the VTerm backend for Aidermacs, providing
+;; an interface for interacting with the Aider process within a
+;; VTerm buffer. It leverages the VTerm package for a more
+;; feature-rich terminal experience.
+;;
+;; Key features include:
+;; - Integration with the VTerm package for terminal emulation.
+;; - Asynchronous output processing using timers and advices.
+;; - Custom keybindings for multi-line input.
+;; - Management of the Aider process within a VTerm buffer.
 ;;
 ;;; Code:
 

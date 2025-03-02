@@ -10,7 +10,15 @@
 ;;
 ;;; Commentary:
 ;;
-;; Backend dispatcher for aidermacs.el
+;; This file serves as the backend dispatcher for Aidermacs,
+;; allowing users to choose between different backend implementations
+;; for interacting with the Aider process. Currently, it supports
+;; Comint and VTerm backends.
+;;
+;; Key features include:
+;; - Selection of the backend via the `aidermacs-backend` custom variable.
+;; - Abstraction of backend-specific functions for running Aider and sending commands.
+;; - Management of output history and callbacks.
 ;;
 ;;; Code:
 

@@ -11,8 +11,18 @@
 ;;
 ;;; Commentary:
 ;;
-;; This package provides an interactive interface to communicate
-;; with https://github.com/paul-gauthier/aidermacs.
+;; Aidermacs is an Emacs package that integrates with Aider, an AI
+;; pair programming tool, to bring AI-powered code modification and
+;; assistance to your Emacs workflow. It allows you to interact with
+;; Aider through an Emacs buffer, providing commands for adding and
+;; dropping files, asking questions, generating code, and more.
+;;
+;; Key features include:
+;; - Integration with Aider for AI-assisted code modification.
+;; - Support for multiple backends, including Comint and VTerm.
+;; - Commands for managing files, asking questions, and generating code.
+;; - Transient menus for easy access to commands.
+;; - Minor mode for convenient keybindings in prompt files.
 ;;
 ;;; Code:
 
