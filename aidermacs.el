@@ -1,6 +1,6 @@
 ;;; aidermacs.el --- Aidermacs package for interactive conversation with aider -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
-;; Version: 0.5.0
+;; Version: 0.9.0
 ;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
@@ -109,80 +109,58 @@ PROMPT is the text to display.  INITIAL-INPUT is the default value."
   ;; Ensure the alias is always available in both compiled and interpreted modes.
   (defalias 'aidermacs-read-string #'aidermacs-plain-read-string))
 
-;; Transient menu for aidermacs commands
-;; The instruction in the autoload comment is needed, see
-;; https://github.com/magit/transient/issues/280.
-;;;###autoload (autoload 'aidermacs-transient-menu "aidermacs" "Transient menu for aidermacs commands." t)
-;; Define secondary transient menus
-(transient-define-prefix aidermacs-transient-file-commands ()
-  "File management commands."
-  ["File Commands"
-   ["Add Actions (C-u: read-only)"
-    ("f" "Add Current File" aidermacs-add-current-file)
-    ("i" "Add File Interactively" aidermacs-add-files-interactively)
-    ("w" "Add Window Files" aidermacs-add-files-in-current-window)
-    ("d" "Add Directory Files" aidermacs-add-same-type-files-under-dir)
-    ("m" "Add Dired Marked" aidermacs-batch-add-dired-marked-files)]
-
-   ["Drop Actions"
-    ("j" "Drop File Interactively" aidermacs-drop-file)
-    ("k" "Drop Current File" aidermacs-drop-current-file)
-    ("a" "Drop All Files" aidermacs-drop-all-files)]
-
-   ["Other Actions"
-    ("l" "List Files" aidermacs-list-added-files)]])
-
-(transient-define-prefix aidermacs-transient-code-commands ()
-  "Code modification commands."
-  ["Code Commands"
-   ["Code Actions"
-    ("c" "Code Change" aidermacs-code-change)
-    ("r" "Refactor Code" aidermacs-function-or-region-refactor)
-    ("a" "Architect Discuss" aidermacs-architect-discussion)]
-
-   ["Implementation & Testing"
-    ("i" "Implement TODO" aidermacs-implement-todo)
-    ("t" "Write Tests" aidermacs-write-unit-test)
-    ("T" "Fix Test" aidermacs-fix-failing-test-under-cursor)
-    ("x" "Debug Exception" aidermacs-debug-exception)]
-
-   ["Version Control (when enabled)"
-    ("u" "Undo Auto Git Commit" aidermacs-undo-last-commit)]])
-
 ;; Main transient menu
 (transient-define-prefix aidermacs-transient-menu ()
   "AI Pair Programming Interface."
   ["Aidermacs: AI Pair Programming"
-   ["Core Actions"
+   ["Core"
     ("a" "Start/Open Session" aidermacs-run)
     ("." "Start in Current Dir" aidermacs-run-in-current-dir)
-    ("o" "Change Solo Model" aidermacs-change-model)
+    ("l" "Clear Chat History" aidermacs-clear-chat-history)
     ("s" "Reset Session" aidermacs-reset)
     ("x" "Exit Session" aidermacs-exit)]
-
-   ["Quick Actions"
-    ("f" "Add Current File" aidermacs-add-current-file)
-    ("c" "Code Change" aidermacs-code-change)
-    ("r" "Refactor" aidermacs-function-or-region-refactor)
-    ("g" "Go Ahead" aidermacs-go-ahead)]
-
-   ["File & Code"
-    ("F" "File Commands" aidermacs-transient-file-commands)
-    ("C" "Code Commands" aidermacs-transient-code-commands)]
-
-   ["Understanding"
-    ("m" "Show Last Commit" aidermacs-magit-show-last-commit)
-    ("q" "Ask Question" aidermacs-ask-question)
-    ("e" "Explain This Code" aidermacs-explain-this-code)
-    ("p" "Explain This Symbol" aidermacs-explain-symbol-under-point)]
-
+   ["Persistent Modes"
+    ("1" "Code Mode" aidermacs-switch-to-code-mode)
+    ("2" "Chat/Ask Mode" aidermacs-switch-to-ask-mode)
+    ("3" "Architect Mode" aidermacs-switch-to-architect-mode)
+    ("4" "Help Mode" aidermacs-switch-to-help-mode)]
+   ["Utilities"
+    ("^" "Show Last Commit" aidermacs-magit-show-last-commit
+     :if (lambda () aidermacs-auto-commits))
+    ("u" "Undo Last Commit" aidermacs-undo-last-commit
+     :if (lambda () aidermacs-auto-commits))
+    ("h" "Session History" aidermacs-show-output-history)
+    ("o" "Change Main Model" aidermacs-change-model)
+    ("O" "Clear Selection Cache" aidermacs-clear-model-cache)
+    ("?" "Aider Help" aidermacs-help)]]
+  ["File Actions"
+   ["Add Files (C-u: read-only)"
+    ("f" "Add File" aidermacs-add-file)
+    ("F" "Add Current File" aidermacs-add-current-file)
+    ("d" "Add From Directory (same type)" aidermacs-add-same-type-files-under-dir)
+    ("w" "Add From Window" aidermacs-add-files-in-current-window)
+    ("m" "Add From Dired (marked)" aidermacs-batch-add-dired-marked-files)]
+   ["Drop Files"
+    ("j" "Drop File" aidermacs-drop-file)
+    ("J" "Drop Current File" aidermacs-drop-current-file)
+    ("k" "Drop All Files" aidermacs-drop-all-files)]
    ["Others"
-    ("A" "Toggle Architect Mode (Separate Reasoner/Editor)" aidermacs-toggle-architect-mode)
-    ("H" "Session History" aidermacs-show-output-history)
-    ("L" "Copy Last Aidermacs Output" aidermacs-get-last-output)
-    ("O" "Clear Model Selection Cache" aidermacs-clear-model-cache)
-    ("l" "Clear Buffer" aidermacs-clear)
-    ("h" "Aider Help" aidermacs-help)]])
+    ("A" "List Added Files" aidermacs-list-added-files)]]
+  ["Code Actions"
+   ["Architect"
+    ("c" "General Architect" aidermacs-general-architect)
+    ("r" "Architect This Code" aidermacs-architect-this-code)
+    ("i" "Implement TODO" aidermacs-implement-todo)]
+   ["Question"
+    ("q" "General Question" aidermacs-general-question)
+    ("e" "Question This Code" aidermacs-question-this-code)
+    ("p" "Question This Symbol" aidermacs-question-this-symbol)
+    ("g" "Accept Changes" aidermacs-accept-change)]
+   ["Others"
+    ("RET" "Code Change Now" aidermacs-direct-change)
+    ("t" "Write Test" aidermacs-write-unit-test)
+    ("T" "Fix Test" aidermacs-fix-failing-test-under-cursor)
+    ("!" "Debug Exception" aidermacs-debug-exception)]])
 
 (defun aidermacs-buffer-name ()
   "Generate the aidermacs buffer name based on project root or current directory.
@@ -330,7 +308,7 @@ If the current buffer is already the aidermacs buffer, do nothing."
 
 ;; Function to reset the aidermacs buffer
 ;;;###autoload
-(defun aidermacs-clear ()
+(defun aidermacs-clear-chat-history ()
   "Send the command \"/clear\" to the aidermacs buffer."
   (interactive)
   (aidermacs--send-command "/clear"))
@@ -393,10 +371,10 @@ The full command will be \"COMMAND-PREFIX <current buffer file full path>\"."
 
 ;; New function to get command from user and send it prefixed with "/code "
 ;;;###autoload
-(defun aidermacs-code-change ()
+(defun aidermacs-direct-change ()
   "Prompt the user for an input and send it to aidemracs prefixed with \"/code \"."
   (interactive)
-  (when-let ((command (aidermacs--form-prompt "/code" "Code change" t)))
+  (when-let ((command (aidermacs--form-prompt "/code" nil t "empty to change to code mode")))
     (aidermacs--send-command command t)))
 
 (defun aidermacs--parse-ls-output (output)
@@ -503,7 +481,7 @@ Sends the \"/ls\" command and returns the list of files via callback."
 
 
 ;;;###autoload
-(defun aidermacs-explain-this-code ()
+(defun aidermacs-question-this-code ()
   "Ask a question about the code at point or region.
 If a region is active, include the region text in the question.
 If cursor is inside a function, include the function name as context.
@@ -511,30 +489,30 @@ If called from the aidermacs buffer, use general question instead."
   (interactive)
   ;; Dispatch to general question if in aidermacs buffer
   (if (string= (buffer-name) (aidermacs-buffer-name))
-      (call-interactively #'aidermacs-ask-question)
+      (call-interactively #'aidermacs-general-question)
     (when-let ((command (aidermacs--form-prompt "/ask" "Question")))
       (aidermacs-add-current-file)
       (aidermacs--send-command command t))))
 
 ;;;###autoload
-(defun aidermacs-ask-question ()
+(defun aidermacs-general-question ()
   "Prompt the user for a general question without code context."
   (interactive)
-  (when-let ((command (aidermacs--form-prompt "/ask" "Question" t)))
+  (when-let ((command (aidermacs--form-prompt "/ask" nil t "empty to change to ask mode")))
     (aidermacs--send-command command t)))
 
 ;;;###autoload
 (defun aidermacs-help ()
   "Prompt the user for an input prefixed with \"/help \"."
   (interactive)
-  (when-let ((command (aidermacs--form-prompt "/help" nil t)))
+  (when-let ((command (aidermacs--form-prompt "/help" nil t "empty for general /help")))
     (aidermacs--send-command command t)))
 
 ;;;###autoload
-(defun aidermacs-architect-discussion ()
+(defun aidermacs-general-architect ()
   "Prompt the user for an input prefixed with \"/architect \"."
   (interactive)
-  (when-let ((command (aidermacs--form-prompt "/architect" "Discuss")))
+  (when-let ((command (aidermacs--form-prompt "/architect" nil t "empty to change to architect mode")))
     (aidermacs--send-command command t)))
 
 ;;;###autoload
@@ -545,10 +523,10 @@ If called from the aidermacs buffer, use general question instead."
     (aidermacs--send-command command t)))
 
 ;;;###autoload
-(defun aidermacs-go-ahead ()
+(defun aidermacs-accept-change ()
   "Send the command \"go ahead\" to the aidemracs."
   (interactive)
-  (aidermacs--send-command "go ahead" t))
+  (aidermacs--send-command "/code go ahead" t))
 
 
 ;;;###autoload
@@ -566,34 +544,40 @@ If Magit is not installed, report that it is required."
   (interactive)
   (aidermacs--send-command "/undo"))
 
-(defun aidermacs--form-prompt (command prompt-prefix &optional ignore-context)
+(defun aidermacs--form-prompt (command prompt-prefix &optional ignore-context guide)
   "Get command based on context with COMMAND and PROMPT-PREFIX.
 COMMAND is the text to prepend.  PROMPT-PREFIX is the text to add after COMMAND.
 If IGNORE-CONTEXT is non-nil, skip function and region context.
 If region is active, use that region's text.
-If point is in a function, use function name."
+If point is in a function, use function name.
+GUIDE is displayed in the prompt but not included in the final command."
   (let* ((on-function (unless ignore-context (which-function)))
          (region-text (when (and (use-region-p) (not ignore-context))
                         (buffer-substring-no-properties (region-beginning) (region-end))))
          (context (concat (when on-function
                             (format " in function `%s`" on-function))
                           (when region-text
-                            (format " on the following code block:\n```\n%s\n```\n" region-text))))
-         (prompt (concat command " " prompt-prefix context ": "))
+                            (format " on code block:\n```\n%s\n```\n" region-text))))
+         (prompt (concat command " " prompt-prefix context
+                        (when guide (format "(%s)" guide)) ": "))
          (user-command (aidermacs-read-string prompt)))
-    (concat prompt user-command)))
+    (concat command (unless (string= user-command "")
+                      (concat " " prompt-prefix context ": " user-command)))))
 
-(defun aidermacs-function-or-region-refactor ()
-  "Refactor code at point or region.
-If region is active, refactor that region.
-If point is in a function, refactor that function."
+(defun aidermacs-architect-this-code ()
+  "Architect code at point or region.
+If region is active, inspect that region.
+If point is in a function, inspect that function."
   (interactive)
-  (when-let ((command (aidermacs--form-prompt "/architect" "Refactor")))
-    (aidermacs-add-current-file)
-    (aidermacs--send-command command t)))
+  ;; Dispatch to general architect if in aidermacs buffer
+  (if (string= (buffer-name) (aidermacs-buffer-name))
+      (call-interactively #'aidermacs-general-architect)
+    (when-let ((command (aidermacs--form-prompt "/architect" "Architect")))
+      (aidermacs-add-current-file)
+      (aidermacs--send-command command t))))
 
 ;;;###autoload
-(defun aidermacs-explain-symbol-under-point ()
+(defun aidermacs-question-this-symbol ()
   "Ask aidermacs to explain symbol under point."
   (interactive)
   (let* ((symbol (thing-at-point 'symbol))
@@ -602,8 +586,11 @@ If point is in a function, refactor that function."
                 (line-end-position)))
          (prompt (format "/ask Please explain what '%s' means in the context of this code line: %s"
                          symbol line)))
-    (aidermacs-add-current-file)
-    (aidermacs--send-command prompt t)))
+    (if symbol
+        (progn
+          (aidermacs-add-current-file)
+          (aidermacs--send-command prompt t))
+      (error "No symbol under point!"))))
 
 (defun aidermacs-send-command-with-prefix (prefix command)
   "Send COMMAND to the aidermacs buffer with PREFIX.
@@ -640,6 +627,35 @@ With prefix argument `C-u', add as read-only."
              (file-name-nondirectory buffer-file-name)
              (if read-only "read-only" "editable")))))
 
+
+;;;###autoload
+(defun aidermacs-add-file (&optional read-only)
+  "Add file(s) to aidermacs interactively.
+With prefix argument `C-u', add as READ-ONLY.
+If current buffer is visiting a file, its name is used as initial input.
+Multiple files can be selected by calling the command multiple times."
+  (interactive "P")
+  (let* ((initial (when buffer-file-name
+                    (file-name-nondirectory buffer-file-name)))
+         (file (expand-file-name
+                (read-file-name "Select file to add: "
+                                nil nil t initial))))
+    (cond
+     ((file-directory-p file)
+      (when (yes-or-no-p (format "Add all files in directory %s? " file))
+        (aidermacs--add-files-helper
+         (directory-files file t "^[^.]" t)  ;; Exclude dotfiles
+         read-only
+         (format "Added all files in %s as %s"
+                 file (if read-only "read-only" "editable")))))
+     ((file-exists-p file)
+      (aidermacs--add-files-helper
+       (list file)
+       read-only
+       (format "Added %s as %s"
+               (file-name-nondirectory file)
+               (if read-only "read-only" "editable")))))))
+
 ;;;###autoload
 (defun aidermacs-add-files-in-current-window (&optional read-only)
   "Add window files with READ-ONLY flag.
@@ -659,16 +675,6 @@ With prefix argument `C-u', add as read-only."
 With prefix argument `C-u', add as read-only."
   (interactive "P")
   (aidermacs--add-files-helper (dired-get-marked-files) read-only))
-
-;;;###autoload
-(defun aidermacs-add-files-interactively (&optional read-only)
-  "Add files to aidermacs by interactively selecting them using `find-file`.
-Multiple files can be selected by calling the command multiple times.
-With prefix argument `C-u', add as READ-ONLY."
-  (interactive "P")
-  (when-let ((file (expand-file-name (read-file-name "Select file to add: "))))
-    (when (file-exists-p file)
-      (aidermacs--add-files-helper (list file) read-only))))
 
 ;;;###autoload
 (defun aidermacs-add-same-type-files-under-dir (&optional read-only)
@@ -894,6 +900,40 @@ prompt files and other Aider-related files:
 \\[aidermacs-switch-to-buffer] - Switch to Aidermacs buffer"
   (interactive)
   (add-hook 'find-file-hook #'aidermacs--maybe-enable-minor-mode))
+
+;;;###autoload
+(defun aidermacs-switch-to-code-mode ()
+  "Switch aider to code mode.
+In code mode, aider will make changes to your code to satisfy your requests."
+  (interactive)
+  (aidermacs--send-command "/chat-mode code" t)
+  (message "Switched to code mode <default> - aider will make changes to your code"))
+
+;;;###autoload
+(defun aidermacs-switch-to-ask-mode ()
+  "Switch aider to ask mode.
+In ask mode, aider will answer questions about your code, but never edit it."
+  (interactive)
+  (aidermacs--send-command "/chat-mode ask" t)
+  (message "Switched to ask mode - you can chat freely, aider will not edit your code"))
+
+;;;###autoload
+(defun aidermacs-switch-to-architect-mode ()
+  "Switch aider to architect mode.
+In architect mode, aider will first propose a solution, then ask if you want
+it to turn that proposal into edits to your files."
+  (interactive)
+  (aidermacs--send-command "/chat-mode architect" t)
+  (message "Switched to architect mode - aider will propose solutions before making changes"))
+
+;;;###autoload
+(defun aidermacs-switch-to-help-mode ()
+  "Switch aider to help mode.
+In help mode, aider will answer questions about using aider, configuring,
+troubleshooting, etc."
+  (interactive)
+  (aidermacs--send-command "/chat-mode help" t)
+  (message "Switched to help mode - aider will answer questions about using aider"))
 
 (provide 'aidermacs)
 ;;; aidermacs.el ends here

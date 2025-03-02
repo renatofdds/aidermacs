@@ -229,57 +229,54 @@ Or bind it to a key in your config:
 (global-set-key (kbd "C-c a") 'aidermacs-transient-menu)
 ```
 
-The main interface to Aidermacs is through its transient menu system. Here's a breakdown of the available commands:
+Once the transient menu is open, you can navigate and execute commands using the displayed keys. Here's a summary of the main menu structure:
 
-##### Core Actions
+##### Core
 - `a`: Start/Open Session (auto-detects project root)
-- `.` : Start in Current Directory (good for monorepos)
-- `o`: Change Solo Model
+- `.`: Start in Current Directory (good for monorepos)
+- `l`: Clear Chat History
 - `s`: Reset Session
 - `x`: Exit Session
 
-##### Quick Actions
-- `f`: Add Current File
-- `c`: Code Change
-- `r`: Refactor
-- `g`: Go Ahead
+##### Persistent Modes
+- `1`: Code Mode
+- `2`: Chat/Ask Mode
+- `3`: Architect Mode
+- `4`: Help Mode
 
-##### File Commands (`F`)
-- Add Files `C-u` for read-only:
-  - Current file (`f`)
-  - Interactively (`i`)
-  - Window files (`w`)
-  - Directory files (`d`)
-  - Dired marked files (`m`)
-- Drop Files: interactively (`j`), current (`k`), all (`a`)
-- Other Actions: list files (`l`)
+##### Utilities
+- `^`: Show Last Commit (if auto-commits enabled)
+- `u`: Undo Last Commit (if auto-commits enabled)
+- `h`: Session History
+- `o`: Change Main Model
+- `O`: Clear Selection Cache
+- `?`: Aider Help
 
-##### Code Commands (`C`)
-- Code Actions:
-  - Code change (`c`)
-  - Refactor code (`r`)
-  - Architect discuss (`a`)
-- Implementation & Testing:
-  - Implement TODO (`i`)
-  - Write tests (`t`)
-  - Fix test (`T`)
-  - Debug exception (`x`)
-- Version Control:
-  - Undo changes (`u`)
+##### File Actions
+- `f`: Add File (C-u: read-only)
+- `F`: Add Current File
+- `d`: Add From Directory (same type)
+- `w`: Add From Window
+- `m`: Add From Dired (marked)
+- `j`: Drop File
+- `J`: Drop Current File
+- `k`: Drop All Files
+- `A`: List Added Files
 
-##### Understanding
-- `m`: Show Last Commit
-- `q`: Ask Question
-- `e`: Explain This Code
-- `p`: Explain This Symbol
+##### Code Actions
+- `c`: General Architect
+- `r`: Architect This Code
+- `i`: Implement TODO
+- `q`: General Question
+- `e`: Question This Code
+- `p`: Question This Symbol
+- `g`: Accept Changes
+- `RET`: Code Change Now
+- `t`: Write Test
+- `T`: Fix Test
+- `!`: Debug Exception
 
-##### Others
-- `A`: Toggle Architect Mode (Separate Reasoner/Editor)
-- `H`: Session History
-- `L`: Copy Last Aidermacs Output
-- `O`: Clear Model Selection Cache
-- `l`: Clear Buffer
-- `h`: Aider Help
+The `All File Actions` and `All Code Actions` entries open submenus with more specialized commands. Use the displayed keys to navigate these submenus.
 
 ### Prompt Files Minor Mode
 

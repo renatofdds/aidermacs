@@ -1,6 +1,6 @@
 ;;; aidermacs-models.el --- Model selection for aidermacs.el -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
-;; Version: 0.5.0
+;; Version: 0.9.0
 ;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
 ;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
@@ -55,17 +55,6 @@ Defaults to `aidermacs-default-model` if not explicitly set."
   "If non-nil, use separate Architect/Editor mode."
   :type 'boolean
   :group 'aidermacs-models)
-
-(defun aidermacs-toggle-architect-mode ()
-  "Toggle the `aidermacs-use-architect-mode` variable."
-  (interactive)
-  (setq aidermacs-use-architect-mode (not aidermacs-use-architect-mode))
-  (message "Architect Mode: %s" (if aidermacs-use-architect-mode "ON" "OFF"))
-  (when (get-buffer (aidermacs-buffer-name))
-    (when (yes-or-no-p
-           (format "Aidermacs Architect Mode %s. Change will take affect next session.  Close the session now? "
-                   (if aidermacs-use-architect-mode "ON" "OFF")))
-      (aidermacs-exit))))
 
 (defcustom aidermacs-popular-models
   '("sonnet"
