@@ -16,7 +16,7 @@
 ;; output, and managing the interaction flow.
 ;;
 ;; Key features include:
-;; - Syntax highlighting for Aider's output, including search/replace blocks and code fences.
+;; - Syntax highlighting for Aider's output.
 ;; - Custom keybindings for multi-line input.
 ;; - Management of the Aider process within a Comint buffer.
 ;;

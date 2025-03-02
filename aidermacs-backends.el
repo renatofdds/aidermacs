@@ -17,7 +17,7 @@
 ;;
 ;; Key features include:
 ;; - Selection of the backend via the `aidermacs-backend` custom variable.
-;; - Abstraction of backend-specific functions for running Aider and sending commands.
+;; - Abstraction of backend-specific functions for running Aider.
 ;; - Management of output history and callbacks.
 ;;
 ;;; Code:
