@@ -15,6 +15,7 @@
 ;;; Code:
 
 (require 'vterm nil 'noerror)
+(require 'cl-lib)
 
 ;; we want to ensure these two variables are dynamic binding
 (defvar vterm-shell)
@@ -31,6 +32,14 @@
 
 (defvar-local aidermacs--vterm-active-timer nil
   "Store the active timer for vterm output processing.")
+
+(defvar-local aidermacs--vterm-last-check-point nil
+  "Store the last position checked in the vterm buffer.")
+
+
+(defvar-local aidermacs-vterm-check-interval 0.2
+  "Interval in seconds between checks for command completion in vterm.")
+
 
 (defcustom aidermacs-vterm-multiline-newline-key "S-<return>"
   "Key binding to enter a newline without sending in vterm."
@@ -58,31 +67,33 @@ pattern to match.  If the finish sequence is detected, store the output via
         (condition-case nil
             (vterm--render)
           (error nil)))
-
+      ;; Get current prompt point
       (let* ((prompt-point (condition-case nil
                                (vterm--get-prompt-point)
                              (error (point-max))))
-             ;; Only do these expensive operations if we have a new prompt
-             (has-new-prompt (< start-point prompt-point)))
+             ;; Only check if we have a new prompt or haven't checked this position yet
+             (last-check (or aidermacs--vterm-last-check-point start-point))
+             (should-check (> prompt-point last-check)))
 
-        (when has-new-prompt
-          ;; Only search for boundaries when we have a new prompt
+        ;; Update the last check point
+        (setq aidermacs--vterm-last-check-point prompt-point)
+
+        (when should-check
           (let* ((seq-start (or (save-excursion
                                   (goto-char prompt-point)
                                   (condition-case nil
                                       (search-backward "\n" nil t)
                                     (error nil)))
                                 (point-min)))
-                 ;; Only get the prompt line, not the whole sequence
-                 (prompt-line (buffer-substring-no-properties
-                               seq-start
-                               (min (+ seq-start 200) (point-max)))))
+                 ;; Only get the prompt line, not the whole sequence (limit to 200 chars)
+                 (prompt-line-end (min (+ seq-start 200) (point-max)))
+                 (prompt-line (buffer-substring-no-properties seq-start prompt-line-end)))
 
+            ;; If we found a shell prompt
             (when (string-match-p expected prompt-line)
               (let ((output (buffer-substring-no-properties start-point seq-start)))
                 (aidermacs--store-output (string-trim output)))
-              (set-process-filter proc orig-filter)
-              t)))))))
+              (set-process-filter proc orig-filter))))))))
 
 (defun aidermacs--vterm-output-advice (orig-fun &rest args)
   "Capture vterm output until the finish sequence appears.
@@ -97,25 +108,24 @@ after each output chunk, reducing the need for timers."
              ;; Simplified pattern that just looks for a shell prompt
              (expected "^[^[:space:]]*>[[:space:]]")
              (orig-filter (process-filter proc)))
-        ;; Set our temporary process filter.
+
+        ;; Initialize tracking variables
+        (setq-local aidermacs--vterm-last-check-point nil)
+
+        ;; Set our temporary process filter
         (set-process-filter
          proc
          (lambda (proc string)
-           ;; Call the original filter.
+           ;; Call the original filter
            (funcall orig-filter proc string)
 
-           ;; Check immediately after receiving output
-           (when (aidermacs--vterm-check-finish-sequence-repeated proc orig-filter start-point expected)
-             (when (timerp aidermacs--vterm-active-timer)
-               (cancel-timer aidermacs--vterm-active-timer)
-               (setq aidermacs--vterm-active-timer nil))
-             (set-process-filter proc orig-filter))
-
-           ;; If we haven't found it yet, set up a timer with adaptive frequency
+           ;; Only set up a timer if we don't already have one
            (unless aidermacs--vterm-active-timer
+             ;; Set up a timer to check for completion
              (setq aidermacs--vterm-active-timer
                    (run-with-timer
-                    0.05 0.05
+                    aidermacs-vterm-check-interval
+                    aidermacs-vterm-check-interval
                     (lambda ()
                       (when (aidermacs--vterm-check-finish-sequence-repeated
                              proc orig-filter start-point expected)
@@ -140,11 +150,10 @@ BUFFER-NAME is the name for the vterm buffer."
            (vterm-buffer-name buffer-name)
            (vterm-shell cmd))
       (with-current-buffer (vterm-other-window)
+        (setq-local vterm-max-scrollback 1000
+                    aidermacs--vterm-active-timer nil
+                    aidermacs--vterm-last-check-point nil)
         (advice-add 'vterm-send-return :around #'aidermacs--vterm-output-advice)
-        ;; Set a reasonable scrollback limit to prevent memory issues
-        (setq-local vterm-max-scrollback 5000)
-        ;; Initialize timer variable
-        (setq-local aidermacs--vterm-active-timer nil)
         ;; Set up multi-line key binding
         (let ((map (make-sparse-keymap)))
           (set-keymap-parent map (current-local-map))
@@ -174,7 +183,8 @@ BUFFER is the target buffer to send to.  COMMAND is the text to send."
   "Clean up vterm resources when buffer is killed."
   (when aidermacs--vterm-active-timer
     (cancel-timer aidermacs--vterm-active-timer)
-    (setq aidermacs--vterm-active-timer nil)))
+    (setq-local aidermacs--vterm-active-timer nil))
+  (setq-local aidermacs--vterm-last-check-point nil))
 
 (provide 'aidermacs-backend-vterm)
 
