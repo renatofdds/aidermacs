@@ -147,6 +147,7 @@ PROMPT is the text to display.  INITIAL-INPUT is the default value."
     ("k" "Drop All Files" aidermacs-drop-all-files)]
    ["Others"
     ("S" "Create Session Scratchpad" aidermacs-create-session-scratchpad)
+    ("G" "Add File to Session" aidermacs-add-file-to-session)
     ("A" "List Added Files" aidermacs-list-added-files)]]
   ["Code Actions"
    ["Architect"
@@ -164,9 +165,27 @@ PROMPT is the text to display.  INITIAL-INPUT is the default value."
     ("T" "Fix Test" aidermacs-fix-failing-test-under-cursor)
     ("!" "Debug Exception" aidermacs-debug-exception)]])
 
-(defun aidermacs-buffer-name ()
+(defun aidermacs-select-buffer-name ()
+  "Select an existing aidermacs session buffer.
+If there is only one aidermacs buffer, return its name.
+If there are multiple, prompt to select one interactively.
+Returns nil if no aidermacs buffers exist.
+This is used when you want to target an existing session."
+  (let* ((buffers (cl-remove-if-not
+                   (lambda (buf)
+                     (string-match-p "^\\*aidermacs:" (buffer-name buf)))
+                   (buffer-list)))
+         (buffer-names (mapcar #'buffer-name buffers)))
+    (cond
+     ((null buffers) nil)
+     ((= (length buffers) 1) (car buffer-names))
+     (t (completing-read "Select aidermacs session: " buffer-names nil t)))))
+
+(defun aidermacs-get-buffer-name (&optional use-existing)
   "Generate the aidermacs buffer name based on project root or current directory.
 This function prefers existing sessions closer to current directory."
+  (if use-existing
+      (aidermacs-select-buffer-name)
   (let* ((root (aidermacs-project-root))
          (current-dir (file-truename default-directory))
          ;; Get all existing aidermacs buffers
@@ -206,14 +225,14 @@ This function prefers existing sessions closer to current directory."
                         ;; Fall back to project root for new non-subtree session
                         (t root))))
     (format "*aidermacs:%s*"
-            (file-truename display-root))))
+            (file-truename display-root)))))
 
 ;;;###autoload
 (defun aidermacs-run ()
   "Run aidermacs process using the selected backend.
 This function sets up the appropriate arguments and launches the process."
   (interactive)
-  (let* ((buffer-name (aidermacs-buffer-name))
+  (let* ((buffer-name (aidermacs-get-buffer-name))
          ;; Process extra args: split each string on whitespace.
          (flat-extra-args
           (cl-mapcan (lambda (s)
@@ -253,9 +272,9 @@ This function sets up the appropriate arguments and launches the process."
                '("--subtree-only")))))
          (final-args (append backend-args flat-extra-args)))
     (if (get-buffer buffer-name)
-        (aidermacs-switch-to-buffer)
+        (aidermacs-switch-to-buffer buffer-name)
       (aidermacs-run-backend aidermacs-program final-args buffer-name)
-      (aidermacs-switch-to-buffer))))
+      (aidermacs-switch-to-buffer buffer-name))))
 
 ;;;###autoload
 (defun aidermacs-run-in-current-dir ()
@@ -266,24 +285,26 @@ This is useful for working in monorepos where you want to limit aider's scope."
         (default-directory (file-truename default-directory)))
     (aidermacs-run)))
 
-(defun aidermacs--send-command (command &optional switch-to-buffer)
+(defun aidermacs--send-command (command &optional switch-to-buffer use-existing)
   "Send command to the corresponding aidermacs process.
 COMMAND is the text to send.
-If SWITCH-TO-BUFFER is non-nil, switch to the aidermacs buffer."
-  (let* ((buffer-name (aidermacs-buffer-name))
+If SWITCH-TO-BUFFER is non-nil, switch to the aidermacs buffer.
+If USE-EXISTING is non-nil, use an existing buffer instead of creating new."
+  (let* ((buffer-name (aidermacs-get-buffer-name use-existing))
          (buffer (or (get-buffer buffer-name)
                      (progn (aidermacs-run)
                             (get-buffer buffer-name))))
          (processed-command (aidermacs--process-message-if-multi-line command)))
     (aidermacs--send-command-backend buffer processed-command)
     (when (and switch-to-buffer (not (string= (buffer-name) buffer-name)))
-      (aidermacs-switch-to-buffer))))
+      (aidermacs-switch-to-buffer buffer-name))))
 
-(defun aidermacs--send-command-redirect (command callback)
+(defun aidermacs--send-command-redirect (command callback &optional use-existing)
   "Send command to the corresponding aidermacs process in the background.
 COMMAND is the text to send.
-CALLBACK will be called with the command output when available."
-  (let* ((buffer-name (aidermacs-buffer-name))
+CALLBACK will be called with the command output when available.
+If USE-EXISTING is non-nil, use an existing buffer instead of creating new."
+  (let* ((buffer-name (aidermacs-get-buffer-name use-existing))
          (buffer (or (get-buffer buffer-name)
                      (progn (aidermacs-run)
                             (get-buffer buffer-name))))
@@ -293,20 +314,23 @@ CALLBACK will be called with the command output when available."
 
 ;; Function to switch to the aidermacs buffer
 ;;;###autoload
-(defun aidermacs-switch-to-buffer ()
+(defun aidermacs-switch-to-buffer (&optional buffer-name)
   "Switch to the aidermacs buffer.
+If BUFFER-NAME is provided, switch to that buffer.
+Otherwise, switch to the aidermacs buffer as determined by `aidermacs-get-buffer-name'.
 If the buffer is already visible in a window, switch to that window.
 If the current buffer is already the aidermacs buffer, do nothing."
   (interactive)
-  (let ((buffer (get-buffer (aidermacs-buffer-name))))
+  (let* ((target-buffer-name (or buffer-name (aidermacs-get-buffer-name)))
+         (buffer (get-buffer target-buffer-name)))
     (cond
-     ((string= (buffer-name) (aidermacs-buffer-name)) t)
+     ((string= (buffer-name) target-buffer-name) t)
      ((and buffer (get-buffer-window buffer))
       (select-window (get-buffer-window buffer)))  ;; Switch to existing window
      (buffer
       (pop-to-buffer buffer))
      (t
-      (message "Buffer '%s' does not exist." (aidermacs-buffer-name))))))
+      (message "Buffer '%s' does not exist." target-buffer-name)))))
 
 ;; Function to reset the aidermacs buffer
 ;;;###autoload
@@ -490,7 +514,7 @@ If cursor is inside a function, include the function name as context.
 If called from the aidermacs buffer, use general question instead."
   (interactive)
   ;; Dispatch to general question if in aidermacs buffer
-  (if (string= (buffer-name) (aidermacs-buffer-name))
+  (if (string= (buffer-name) (aidermacs-get-buffer-name))
       (call-interactively #'aidermacs-general-question)
     (when-let ((command (aidermacs--form-prompt "/ask" "Question")))
       (aidermacs-add-current-file)
@@ -572,7 +596,7 @@ If region is active, inspect that region.
 If point is in a function, inspect that function."
   (interactive)
   ;; Dispatch to general architect if in aidermacs buffer
-  (if (string= (buffer-name) (aidermacs-buffer-name))
+  (if (string= (buffer-name) (aidermacs-get-buffer-name))
       (call-interactively #'aidermacs-general-architect)
     (when-let ((command (aidermacs--form-prompt "/architect" "Architect")))
       (aidermacs-add-current-file)
@@ -770,6 +794,20 @@ Use this to add functions, code snippets, or other content to the session."
     (aidermacs--send-command (format "/read %s" filename) t)
     (find-file-other-window filename)
     (message "Created and added scratchpad to session: %s" filename)))
+
+;;;###autoload
+(defun aidermacs-add-file-to-session ()
+  "Interactively add a file to an existing aidermacs session using /read.
+This allows you to add the file's content to a specific session."
+  (interactive)
+  (let* ((initial (when buffer-file-name
+                    (file-name-nondirectory buffer-file-name)))
+         (file (expand-file-name
+                (read-file-name "Select file to add to existing session: "
+                                nil nil t initial))))
+    (if (not (file-exists-p file))
+        (message "File does not exist: %s" file)
+      (aidermacs--send-command (format "/read %s" file) t t))))
 
 (defun aidermacs--is-comment-line (line)
   "Check if LINE is a comment line based on current buffer's comment syntax.
