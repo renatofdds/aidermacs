@@ -37,8 +37,6 @@
 
 (require 'aidermacs-backends)
 (require 'aidermacs-models)
-(when (featurep 'doom)
-  (require 'aidermacs-doom))
 
 (declare-function magit-show-commit "magit-diff" (rev &optional noselect module))
 

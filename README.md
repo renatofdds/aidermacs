@@ -56,11 +56,6 @@ Your contributions are essential to making Aidermacs the best AI pair programmin
   (setenv "ANTHROPIC_API_KEY" anthropic-api-key))
 ```
 
-### Sample Config With Doom Emacs
-```emacs-lisp
-(package! aidermacs :recipe (:host github :repo "MatthewZMD/aidermacs" :files ("*.el")))
-```
-
 ## Configuration
 
 ### Default Model Selection
@@ -285,20 +280,6 @@ The main interface to Aidermacs is through its transient menu system. Here's a b
 - `O`: Clear Model Selection Cache
 - `l`: Clear Buffer
 - `h`: Aider Help
-
-### Doom Emacs Integration
-
-When using Aidermacs with Doom Emacs, you can enable Doom-specific keybindings by calling `(aidermacs-doom-enable)`. This sets up Evil-friendly keybindings under the SPC leader key:
-
-- `SPC A` - Aidermacs prefix
-  - `a` - Start/Open Session
-  - `.` - Start in Current Dir
-  - `o` - Change Solo Model
-  - `s` - Reset Session
-  - `x` - Exit Session
-  - And more...
-
-The keybindings are only activated in buffers that are part of a Git repository, keeping your global keybinding space clean.
 
 ### Prompt Files Minor Mode
 
