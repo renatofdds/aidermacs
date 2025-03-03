@@ -81,7 +81,8 @@ When nil, disable auto-commits requiring manual git commits."
 (defun aidermacs-project-root ()
   "Get the project root using project.el, VC, or fallback to file directory.
 This function tries multiple methods to determine the project root."
-  (or (project-root (project-current))
+  (or (when-let ((proj (project-current)))
+          (project-root proj))
       (vc-git-root default-directory)
       (when buffer-file-name
         (file-name-directory buffer-file-name))
