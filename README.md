@@ -17,7 +17,7 @@ Key features:
 ## Why Aidermacs?
 
 <p align="center">
-  <img style='height: auto; width: 80%; object-fit: contain' src="./introscreen.jpg">
+  <img style='height: auto; width: 80%; object-fit: contain' src="./introscreen.png">
 </p>
 
 ### Community-Driven Development
@@ -264,6 +264,8 @@ Once the transient menu is open, you can navigate and execute commands using the
 - `J`: Drop Current File
 - `k`: Drop All Files
 - `A`: List Added Files
+- `S`: Create Session Scratchpad
+- `G`: Add File to Session
 
 ##### Code Actions
 - `c`: General Architect
@@ -353,6 +355,8 @@ With `Aidermacs`, you get:
    - Drop specific files from chat with `M-x aidermacs-drop-file`
    - View output history with `M-x aidermacs-show-output-history`
    - Interactively select files to add with `M-x aidermacs-add-files-interactively`
+   - Add content from any file to a specific session with `M-x aidermacs-add-file-to-session`
+   - Create a temporary file for adding code snippets or notes to the Aider session with `M-x aidermacs-create-session-scratchpad`
    - and more
 
 6. Greater Configurability
@@ -361,7 +365,10 @@ With `Aidermacs`, you get:
 7. Streamlined Transient Menu Selection
    - The transient menus have been completely redesigned to encompass functionality and ergonomics, prioritizing user experience.
 
-8. Community-Driven Development
+8. Flexible Ways to Add Content
+   - `Aidermacs` provides multiple ways to add content to the Aider session, including adding files, creating temporary scratchpad files, and more.
+
+9. Community-Driven Development
    - `Aidermacs` is actively developed and maintained by the community, incorporating user feedback and contributions.
    - We prioritize features and improvements that directly benefit Emacs users, ensuring a tool that evolves with your needs.
 

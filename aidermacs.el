@@ -183,7 +183,7 @@ This is used when you want to target an existing session."
 
 (defun aidermacs-get-buffer-name (&optional use-existing)
   "Generate the aidermacs buffer name based on project root or current directory.
-This function prefers existing sessions closer to current directory."
+If USE-EXISTING is non-nil, use an existing buffer instead of creating new."
   (if use-existing
       (aidermacs-select-buffer-name)
   (let* ((root (aidermacs-project-root))
@@ -311,13 +311,10 @@ If USE-EXISTING is non-nil, use an existing buffer instead of creating new."
          (processed-command (aidermacs--process-message-if-multi-line command)))
     (aidermacs--send-command-redirect-backend buffer processed-command callback)))
 
-
-;; Function to switch to the aidermacs buffer
 ;;;###autoload
 (defun aidermacs-switch-to-buffer (&optional buffer-name)
   "Switch to the aidermacs buffer.
 If BUFFER-NAME is provided, switch to that buffer.
-Otherwise, switch to the aidermacs buffer as determined by `aidermacs-get-buffer-name'.
 If the buffer is already visible in a window, switch to that window.
 If the current buffer is already the aidermacs buffer, do nothing."
   (interactive)
@@ -332,7 +329,6 @@ If the current buffer is already the aidermacs buffer, do nothing."
      (t
       (message "Buffer '%s' does not exist." target-buffer-name)))))
 
-;; Function to reset the aidermacs buffer
 ;;;###autoload
 (defun aidermacs-clear-chat-history ()
   "Send the command \"/clear\" to the aidermacs buffer."
@@ -386,7 +382,6 @@ The full command will be \"COMMAND-PREFIX <current buffer file full path>\"."
   (interactive)
   (aidermacs-act-on-current-file "/drop"))
 
-;; Function to send a custom command to corresponding aidermacs buffer
 ;;;###autoload
 (defun aidermacs-general-command ()
   "Prompt the user to input COMMAND and send it to the aidemracs."
@@ -395,7 +390,6 @@ The full command will be \"COMMAND-PREFIX <current buffer file full path>\"."
     ;; Use the shared helper function to send the command
     (aidermacs--send-command command t)))
 
-;; New function to get command from user and send it prefixed with "/code "
 ;;;###autoload
 (defun aidermacs-direct-change ()
   "Prompt the user for an input and send it to aidemracs prefixed with \"/code \"."
