@@ -146,6 +146,7 @@ PROMPT is the text to display.  INITIAL-INPUT is the default value."
     ("J" "Drop Current File" aidermacs-drop-current-file)
     ("k" "Drop All Files" aidermacs-drop-all-files)]
    ["Others"
+    ("S" "Create Session Scratchpad" aidermacs-create-session-scratchpad)
     ("A" "List Added Files" aidermacs-list-added-files)]]
   ["Code Actions"
    ["Architect"
@@ -750,6 +751,25 @@ This function assumes the cursor is on or inside a test function."
         (aidermacs-add-current-file)
         (aidermacs--send-command command t))
     (message "No test function found at cursor position.")))
+
+(defun aidermacs-create-session-scratchpad ()
+  "Create a new temporary file for adding content to the aider session.
+The file will be created in the system's temp directory with a timestamped name.
+Use this to add functions, code snippets, or other content to the session."
+  (interactive)
+  (let* ((temp-dir (file-name-as-directory (temporary-file-directory)))
+         (filename (expand-file-name
+                    (format "aidermacs-%s.txt" (format-time-string "%Y%m%d-%H%M%S"))
+                    temp-dir)))
+    ;; Create and populate the file safely
+    (with-temp-buffer
+      (insert ";; Temporary scratchpad created by aidermacs\n")
+      (insert ";; Add your code snippets, functions, or other content here\n")
+      (insert ";; Just edit and save - changes will be available to aider\n\n")
+      (write-file filename))
+    (aidermacs--send-command (format "/read %s" filename) t)
+    (find-file-other-window filename)
+    (message "Created and added scratchpad to session: %s" filename)))
 
 (defun aidermacs--is-comment-line (line)
   "Check if LINE is a comment line based on current buffer's comment syntax.
