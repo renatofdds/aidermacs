@@ -16,7 +16,9 @@ Key features:
 
 ## Why Aidermacs?
 
-Aidermacs delivers an Emacs-centric experience by deeply integrating with Emacs paradigms, made by Emacs users, for Emacs users. This includes ability to separate reasoning and code editing model, intelligent model selection, flexible terminal backend support (comint and vterm), smarter syntax highlighting, enhanced file management, streamlined transient menus, and more.
+<p align="center">
+  <img style='height: auto; width: 80%; object-fit: contain' src="./introscreen.jpg">
+</p>
 
 ### Community-Driven Development
 
