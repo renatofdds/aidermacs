@@ -38,6 +38,10 @@
 (require 'aidermacs-backends)
 (require 'aidermacs-models)
 
+(defvar-local aidermacs--current-mode nil
+  "Buffer-local variable to track the current aidermacs mode.
+Possible values: 'code, 'ask, 'architect, 'help.")
+
 (declare-function magit-show-commit "magit-diff" (rev &optional noselect module))
 
 (defgroup aidermacs nil
@@ -274,6 +278,9 @@ This function sets up the appropriate arguments and launches the process."
     (if (get-buffer buffer-name)
         (aidermacs-switch-to-buffer buffer-name)
       (aidermacs-run-backend aidermacs-program final-args buffer-name)
+      (with-current-buffer (get-buffer buffer-name)
+        ;; Set initial mode based on startup configuration
+        (setq-local aidermacs--current-mode (if aidermacs-use-architect-mode 'architect 'code)))
       (aidermacs-switch-to-buffer buffer-name))))
 
 ;;;###autoload
@@ -284,6 +291,14 @@ This is useful for working in monorepos where you want to limit aider's scope."
   (let ((aidermacs-subtree-only t)
         (default-directory (file-truename default-directory)))
     (aidermacs-run)))
+
+(defun aidermacs--get-files-in-session (callback)
+  "Get list of files in current session and call CALLBACK with the result."
+  (aidermacs--send-command-redirect
+   "/ls"
+   (lambda (output)
+     (let ((files (aidermacs--parse-ls-output output)))
+       (funcall callback files)))))
 
 (defun aidermacs--send-command (command &optional switch-to-buffer use-existing)
   "Send command to the corresponding aidermacs process.
@@ -442,25 +457,21 @@ Returns a deduplicated list of such file names."
   "List all files currently added to the chat session.
 Sends the \"/ls\" command and returns the list of files via callback."
   (interactive)
-  (aidermacs--send-command-redirect
-   "/ls"
-   (lambda (output)
-     (let ((files (aidermacs--parse-ls-output output)))
-       (message "%s" (prin1-to-string files))
-       files))))
+  (aidermacs--get-files-in-session
+   (lambda (files)
+     (message "%s" (prin1-to-string files))
+     files)))
 
 ;;;###autoload
 (defun aidermacs-drop-file ()
   "Drop a file from the chat session by selecting from currently added files."
   (interactive)
-  (aidermacs--send-command-redirect
-   "/ls"
-   (lambda (output)
-     (if-let* ((files (aidermacs--parse-ls-output output))
-               (file (completing-read "Select file to drop: " files nil t))
+  (aidermacs--get-files-in-session
+   (lambda (files)
+     (if-let* ((file (completing-read "Select file to drop: " files nil t))
                (clean-file (replace-regexp-in-string " (read-only)$" "" file)))
-         (aidermacs--send-command (format "/drop ./%s" clean-file)))
-     (message "No files available to drop"))))
+         (aidermacs--send-command (format "/drop ./%s" clean-file))
+       (message "No files available to drop")))))
 
 
 ;;;###autoload
@@ -960,6 +971,8 @@ prompt files and other Aider-related files:
 In code mode, aider will make changes to your code to satisfy your requests."
   (interactive)
   (aidermacs--send-command "/chat-mode code" t)
+  (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
+    (setq-local aidermacs--current-mode 'code))
   (message "Switched to code mode <default> - aider will make changes to your code"))
 
 ;;;###autoload
@@ -968,6 +981,8 @@ In code mode, aider will make changes to your code to satisfy your requests."
 In ask mode, aider will answer questions about your code, but never edit it."
   (interactive)
   (aidermacs--send-command "/chat-mode ask" t)
+  (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
+    (setq-local aidermacs--current-mode 'ask))
   (message "Switched to ask mode - you can chat freely, aider will not edit your code"))
 
 ;;;###autoload
@@ -977,6 +992,8 @@ In architect mode, aider will first propose a solution, then ask if you want
 it to turn that proposal into edits to your files."
   (interactive)
   (aidermacs--send-command "/chat-mode architect" t)
+  (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
+    (setq-local aidermacs--current-mode 'architect))
   (message "Switched to architect mode - aider will propose solutions before making changes"))
 
 ;;;###autoload
@@ -986,6 +1003,8 @@ In help mode, aider will answer questions about using aider, configuring,
 troubleshooting, etc."
   (interactive)
   (aidermacs--send-command "/chat-mode help" t)
+  (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
+    (setq-local aidermacs--current-mode 'help))
   (message "Switched to help mode - aider will answer questions about using aider"))
 
 (provide 'aidermacs)
