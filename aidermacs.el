@@ -98,7 +98,7 @@ This is the file name without path."
   :type 'string
   :group 'aidermacs)
 
-(defvar aidermacs-read-string-history nil
+(defvar-local aidermacs-read-string-history nil
   "History list for aidermacs read string inputs.")
 
 ;;;###autoload

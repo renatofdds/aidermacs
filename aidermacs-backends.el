@@ -54,14 +54,14 @@ of using a comint process."
   :type 'integer
   :group 'aidermacs-output)
 
-(defvar aidermacs--output-history nil
+(defvar-local aidermacs--output-history nil
   "List to store aidermacs output history.
 Each entry is a cons cell (timestamp . output-text).")
 
-(defvar aidermacs--last-command nil
+(defvar-local aidermacs--last-command nil
   "Store the last command sent to aidermacs.")
 
-(defvar aidermacs--current-output ""
+(defvar-local aidermacs--current-output ""
   "Accumulator for current output being captured as a string.")
 
 (defun aidermacs-get-output-history (&optional limit)
@@ -78,10 +78,10 @@ Returns a list of (timestamp . output-text) pairs, most recent first."
   (interactive)
   (setq aidermacs--output-history nil))
 
-(defvar aidermacs--current-callback nil
+(defvar-local aidermacs--current-callback nil
   "Store the callback function for the current command.")
 
-(defvar aidermacs--in-callback nil
+(defvar-local aidermacs--in-callback nil
   "Flag to prevent recursive callbacks.")
 
 (defun aidermacs--store-output (output)
