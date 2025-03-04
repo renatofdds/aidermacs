@@ -175,8 +175,8 @@ This is useful when available models have changed."
   (interactive)
   (when (and aidermacs--cached-models
              (equal aidermacs--cached-models aidermacs-popular-models)
-             (fboundp 'aidermacs-buffer-name)
-             (get-buffer (aidermacs-buffer-name)))
+             (fboundp 'aidermacs-get-buffer-name)
+             (get-buffer (aidermacs-get-buffer-name)))
     (setq aidermacs--cached-models nil))
 
   (if aidermacs--cached-models

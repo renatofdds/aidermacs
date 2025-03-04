@@ -478,7 +478,7 @@ Returns a deduplicated list of such file names."
 (defun aidermacs--get-files-in-session (callback)
   "Get list of files in current session and call CALLBACK with the result."
   (aidermacs--send-command
-   "/ls" nil t
+   "/ls" nil nil t
    (lambda ()
      (let ((files (aidermacs--parse-ls-output aidermacs--current-output)))
        (funcall callback files)))))
