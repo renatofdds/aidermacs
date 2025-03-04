@@ -28,6 +28,7 @@
 
 (require 'comint)
 (require 'dired)
+(require 'ediff)
 (require 'project)
 (require 'transient)
 (require 'vc-git)
@@ -100,6 +101,13 @@ This is the file name without path."
 
 (defvar-local aidermacs-read-string-history nil
   "History list for aidermacs read string inputs.")
+
+(defvar-local aidermacs--pre-edit-files nil
+  "Alist of (filename . temp-filename) pairs storing file state before Aider edits.")
+
+(defvar-local aidermacs--pre-edit-buffers nil
+  "Alist of (filename . temp-buffer) pairs for active ediff sessions.")
+
 
 ;;;###autoload
 (defun aidermacs-plain-read-string (prompt &optional initial-input)
@@ -292,27 +300,195 @@ This is useful for working in monorepos where you want to limit aider's scope."
         (default-directory (file-truename default-directory)))
     (aidermacs-run)))
 
-(defun aidermacs--get-files-in-session (callback)
-  "Get list of files in current session and call CALLBACK with the result."
-  (aidermacs--send-command-redirect
-   "/ls"
-   (lambda ()
-     (let ((files (aidermacs--parse-ls-output aidermacs--current-output)))
-       (funcall callback files)))))
+(defun aidermacs--capture-file-state (filename)
+  "Store the current state of FILENAME in a temporary file."
+  (when (and filename (file-exists-p filename))
+    (let ((temp-file (make-temp-file
+                      (concat "aidermacs-"
+                              (file-name-nondirectory filename) "-"))))
+      (condition-case err
+          (progn
+            (copy-file filename temp-file t)
+            (cons filename temp-file))
+        (error
+         (message "Error capturing file state for %s: %s"
+                  filename (error-message-string err))
+         (when (file-exists-p temp-file)
+           (delete-file temp-file))
+         nil)))))
 
-(defun aidermacs--send-command (command &optional switch-to-buffer use-existing)
-  "Send command to the corresponding aidermacs process.
-COMMAND is the text to send.
-If SWITCH-TO-BUFFER is non-nil, switch to the aidermacs buffer.
-If USE-EXISTING is non-nil, use an existing buffer instead of creating new."
-  (let* ((buffer-name (aidermacs-get-buffer-name use-existing))
-         (buffer (or (get-buffer buffer-name)
-                     (progn (aidermacs-run)
-                            (get-buffer buffer-name))))
-         (processed-command (aidermacs--process-message-if-multi-line command)))
-    (aidermacs--send-command-backend buffer processed-command)
-    (when (and switch-to-buffer (not (string= (buffer-name) buffer-name)))
-      (aidermacs-switch-to-buffer buffer-name))))
+(defun aidermacs--prepare-for-code-edit ()
+  "Prepare for Aider code edits by capturing current file states."
+  (let ((files (when (boundp 'aidermacs--tracked-files)
+                 aidermacs--tracked-files)))
+    (when files
+      ;; Initialize the tracking variables if they don't exist
+      (unless (boundp 'aidermacs--pre-edit-files)
+        (setq-local aidermacs--pre-edit-files nil))
+      (unless (boundp 'aidermacs--pre-edit-buffers)
+        (setq-local aidermacs--pre-edit-buffers nil))
+
+      (setq aidermacs--pre-edit-files
+            (mapcar (lambda (file)
+                      (let ((clean-file (replace-regexp-in-string " (read-only)$" "" file)))
+                        (aidermacs--capture-file-state
+                         (expand-file-name clean-file (aidermacs-project-root)))))
+                    files)))))
+
+(defun aidermacs-cleanup-all-ediff-sessions ()
+  "Quit all active aidermacs ediff sessions and clean up all resources.
+This function ensures a complete cleanup of all ediff-related resources."
+  (interactive)
+  ;; Find and quit all active aidermacs ediff sessions
+  (dolist (buf (buffer-list))
+    (when (string-match-p "\\*ediff-aidermacs:" (buffer-name buf))
+      (with-current-buffer buf
+        ;; This will trigger the normal ediff cleanup process
+        (when (fboundp 'ediff-quit)
+          (ediff-quit)))))
+
+  ;; Force cleanup of any remaining resources
+  (aidermacs--cleanup-stale-pre-edit-buffers))
+
+(defun aidermacs--cleanup-stale-pre-edit-buffers ()
+  "Clean up any stale pre-edit buffers that weren't properly disposed of.
+This function should only handle truly orphaned resources that weren't
+cleaned up by the normal ediff quit process."
+  ;; Clean up any orphaned pre-edit buffers
+  (when (boundp 'aidermacs--pre-edit-buffers)
+    (dolist (pair aidermacs--pre-edit-buffers)
+      (let ((file (car pair))
+            (buffer (cdr pair)))
+        (when (and buffer (buffer-live-p buffer))
+          (message "Cleaning up orphaned pre-edit buffer for %s" file)
+          (kill-buffer buffer)))))
+
+  ;; Clean up any orphaned temp files
+  (when (boundp 'aidermacs--pre-edit-files)
+    (dolist (pair aidermacs--pre-edit-files)
+      (let ((file (car pair))
+            (temp-file (cdr pair)))
+        (when (and temp-file (stringp temp-file) (file-exists-p temp-file))
+          (message "Cleaning up orphaned temp file for %s" file)
+          (delete-file temp-file))))))
+
+(defun aidermacs--setup-ediff-cleanup-hooks ()
+  "Set up hooks to ensure proper cleanup of temporary buffers after ediff."
+  (add-hook 'ediff-quit-hook #'aidermacs--cleanup-stale-pre-edit-buffers)
+  ;; Also add to kill-emacs-hook to ensure cleanup on Emacs exit
+  (add-hook 'kill-emacs-hook #'aidermacs-cleanup-all-ediff-sessions))
+
+
+(defun aidermacs--detect-edited-files ()
+  "Parse current output to find files edited by Aider."
+  (let ((edited-files nil)
+        (output aidermacs--current-output))
+    (with-temp-buffer
+      (insert output)
+      (goto-char (point-min))
+      (while (re-search-forward "Applied edit to \\(.+\\)" nil t)
+        (push (match-string 1) edited-files)))
+    (nreverse edited-files)))
+
+(defun aidermacs--create-pre-edit-buffer (filename temp-file)
+  "Create a buffer for FILENAME using content from TEMP-FILE for ediff."
+  (condition-case err
+      (let ((buffer (generate-new-buffer (format "*aidermacs-pre-edit:%s*"
+                                                (file-name-nondirectory filename)))))
+        (with-current-buffer buffer
+          (condition-case err2
+              (progn
+                (insert-file-contents temp-file)
+                (set-buffer-modified-p nil)
+                ;; Use same major mode as the original file would have
+                (let ((buffer-file-name filename))
+                  (set-auto-mode))
+                (setq buffer-read-only t))
+            (error
+             (message "Error setting up pre-edit buffer: %s" (error-message-string err2))
+             (kill-buffer buffer)
+             nil)))
+        buffer)
+    (error
+     (message "Failed to create pre-edit buffer: %s" (error-message-string err))
+     nil)))
+
+(defun aidermacs--show-ediff-for-edited-files (edited-files)
+  "Show ediff for each file in EDITED-FILES."
+  (when edited-files
+    ;; Display a message about which files were changed
+    (message "Modified %d file(s): %s"
+             (length edited-files)
+             (mapconcat #'identity edited-files ", "))
+
+    (let ((file (car edited-files))
+          (remaining (cdr edited-files)))
+
+      ;; Find the pre-edit temp file for this file
+      (let* ((full-path (expand-file-name file (aidermacs-project-root)))
+             (pre-edit-pair (when (boundp 'aidermacs--pre-edit-files)
+                              (assoc full-path aidermacs--pre-edit-files)))
+             (temp-file (and pre-edit-pair (cdr pre-edit-pair))))
+
+        (if (and temp-file
+                 (stringp temp-file)
+                 (file-exists-p temp-file))
+            (progn
+              ;; Create buffer from temp file only when needed
+              (let ((pre-edit-buffer (aidermacs--create-pre-edit-buffer full-path temp-file)))
+                ;; Store buffer for cleanup
+                (unless (boundp 'aidermacs--pre-edit-buffers)
+                  (setq-local aidermacs--pre-edit-buffers nil))
+                (push (cons full-path pre-edit-buffer) aidermacs--pre-edit-buffers)
+
+                ;; Start ediff session
+                (ediff-buffers
+                 pre-edit-buffer
+                 (or (get-file-buffer full-path)
+                     (find-file-noselect full-path))
+                 ;; Setup callback for when this ediff session ends
+                 (lambda ()
+                   ;; Clean up resources immediately and directly
+                   ;; 1. Kill the pre-edit buffer immediately
+                   (when (and pre-edit-buffer (buffer-live-p pre-edit-buffer))
+                     (kill-buffer pre-edit-buffer))
+                   ;; 2. Remove this file from the buffer tracking list
+                   (when (boundp 'aidermacs--pre-edit-buffers)
+                     (setq aidermacs--pre-edit-buffers
+                           (assoc-delete-all full-path aidermacs--pre-edit-buffers)))
+                   ;; 3. Delete the temp file immediately
+                   (when (and temp-file (stringp temp-file) (file-exists-p temp-file))
+                     (delete-file temp-file))
+                   ;; 4. Remove this file from the temp file tracking list
+                   (when (boundp 'aidermacs--pre-edit-files)
+                     (setq aidermacs--pre-edit-files
+                           (assoc-delete-all full-path aidermacs--pre-edit-files)))
+                   ;; Process remaining files
+                   (when remaining
+                     (aidermacs--show-ediff-for-edited-files remaining)))))
+
+              ;; Customize ediff session
+              (when (boundp 'ediff-buffer)
+                (with-current-buffer ediff-buffer
+                  (rename-buffer (format "*ediff-aidermacs: %s*" file)))))
+
+          ;; If no pre-edit temp file found, continue with remaining files
+          (when remaining
+            (aidermacs--show-ediff-for-edited-files remaining)))))))
+
+(defun aidermacs--send-command-with-edit-tracking (buffer command)
+  "Send COMMAND to aidermacs with edit tracking to the BUFFER."
+  ;; Prepare for edits
+  (aidermacs--prepare-for-code-edit)
+  ;; Send command and track output
+  (aidermacs--send-command-backend
+   buffer command nil
+   (lambda ()
+     ;; Check if this was a code edit command and show ediff if needed
+     (when (aidermacs--is-edit-command-p command buffer)
+       (let ((edited-files (aidermacs--detect-edited-files)))
+         (when edited-files
+           (aidermacs--show-ediff-for-edited-files edited-files)))))))
 
 (defun aidermacs--is-edit-command-p (command buffer)
   "Determine if COMMAND might result in code edits based on current mode in BUFFER.
@@ -340,8 +516,12 @@ If CALLBACK is non-nil it will be called after the command finishes."
                             (get-buffer buffer-name))))
          (processed-command (aidermacs--process-message-if-multi-line command)))
 
+    ;; Reset current output before sending new command
+    (with-current-buffer buffer
+      (setq-local aidermacs--current-output nil))
+
     (if (aidermacs--is-edit-command-p command buffer)
-        (aidermacs--send-command-with-edit-tracking processed-command no-switch-to-buffer use-existing)
+        (aidermacs--send-command-with-edit-tracking buffer processed-command)
       (aidermacs--send-command-backend buffer processed-command redirect callback))
     (when (and (not no-switch-to-buffer) (not (string= (buffer-name) buffer-name)))
       (aidermacs-switch-to-buffer buffer-name))))
@@ -1038,6 +1218,9 @@ troubleshooting, etc."
   (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
     (setq-local aidermacs--current-mode 'help))
   (message "Switched to help mode - aider will answer questions about using aider"))
+
+;; Initialize the cleanup mechanisms
+(aidermacs--setup-ediff-cleanup-hooks)
 
 (provide 'aidermacs)
 ;;; aidermacs.el ends here

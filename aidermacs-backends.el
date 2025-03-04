@@ -188,7 +188,6 @@ BUFFER is the target buffer.  COMMAND is the text to send.
 If REDIRECT is non-nil it redirects the output (hidden) for comint backend.
 If CALLBACK is non-nil it will be called after the command finishes."
   (setq aidermacs--last-command command
-        aidermacs--current-output nil
         aidermacs--current-callback callback)
   (if (eq aidermacs-backend 'vterm)
       (aidermacs--send-command-vterm buffer command)
