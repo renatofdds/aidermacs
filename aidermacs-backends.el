@@ -30,6 +30,8 @@
                   (program args buffer-name))
 (declare-function aidermacs--send-command-vterm "aidermacs-backend-vterm"
                   (buffer command))
+(declare-function aidermacs-project-root "aidermacs"
+                  ())
 
 (defgroup aidermacs-backends nil
   "Backend customization for aidermacs."
@@ -84,6 +86,61 @@ Returns a list of (timestamp . output-text) pairs, most recent first."
 (defvar-local aidermacs--in-callback nil
   "Flag to prevent recursive callbacks.")
 
+(defvar-local aidermacs--tracked-files nil
+  "List of files that have been mentioned in the aidermacs output.
+This is used to avoid having to run /ls repeatedly.")
+
+(defun aidermacs--verify-tracked-files ()
+  "Verify if files in `aidermacs--tracked-files` exist relative to the project root.
+Remove any files that don't exist."
+  (let ((project-root (aidermacs-project-root))
+        (valid-files nil))
+    (dolist (file aidermacs--tracked-files)
+      (let* ((is-readonly (string-match-p " (read-only)$" file))
+             (actual-file (if is-readonly
+                              (substring file 0 (- (length file) 12))
+                            file))
+             (full-path (expand-file-name actual-file project-root)))
+        (when (file-exists-p full-path)
+          (push file valid-files))))
+    (setq aidermacs--tracked-files valid-files)))
+
+(defun aidermacs--parse-output-for-files (output)
+  "Parse OUTPUT for mentions of files and add them to `aidermacs--tracked-files`.
+Looks for patterns like 'Applied edit to <filename>' and similar."
+  (when output
+    (let ((lines (split-string output "\n")))
+      (dolist (line lines)
+        (cond
+         ;; Applied edit to <filename>
+         ((string-match "Applied edit to \\(.+\\)" line)
+          (when-let ((file (match-string 1 line)))
+            (add-to-list 'aidermacs--tracked-files file)))
+
+         ;; Added <filename> to the chat.
+         ((string-match "Added \\(.+\\) to the chat" line)
+          (when-let ((file (match-string 1 line)))
+            (add-to-list 'aidermacs--tracked-files file)))
+
+         ;; Removed <filename> from the chat
+         ((string-match "Removed \\(.+\\) from the chat" line)
+          (when-let ((file (match-string 1 line)))
+            (setq aidermacs--tracked-files (delete file aidermacs--tracked-files))))
+
+         ;; Added <filename> to read-only files.
+         ((string-match "Added \\(.+\\) to read-only files" line)
+          (when-let ((file (match-string 1 line)))
+            (add-to-list 'aidermacs--tracked-files (concat file " (read-only)"))))))
+      ;; Verify all tracked files exist
+      (aidermacs--verify-tracked-files))))
+
+(defun aidermacs-reset-tracked-files ()
+  "Reset the list of tracked files and force a refresh."
+  (interactive)
+  (setq aidermacs--tracked-files nil)
+  (aidermacs--get-files-in-session (lambda (files)
+                                     (message "Refreshed file list: %s" files))))
+
 (defun aidermacs--store-output (output)
   "Store output string in the history with timestamp.
 OUTPUT is the string to store.
@@ -93,6 +150,8 @@ If there's a callback function, call it with the output."
   (when (> (length aidermacs--output-history) aidermacs-output-limit)
     (setq aidermacs--output-history
           (seq-take aidermacs--output-history aidermacs-output-limit)))
+  ;; Parse output for file mentions
+  (aidermacs--parse-output-for-files output)
   (unless aidermacs--in-callback
     (when aidermacs--current-callback
       (let ((aidermacs--in-callback t))

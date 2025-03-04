@@ -348,12 +348,14 @@ If the current buffer is already the aidermacs buffer, do nothing."
 (defun aidermacs-clear-chat-history ()
   "Send the command \"/clear\" to the aidermacs buffer."
   (interactive)
+  (setq aidermacs--tracked-files nil)
   (aidermacs--send-command "/clear"))
 
 ;;;###autoload
 (defun aidermacs-reset ()
   "Send the command \"/reset\" to the aidermacs buffer."
   (interactive)
+  (setq aidermacs--tracked-files nil)
   (aidermacs--send-command "/reset"))
 
 ;;;###autoload
@@ -450,7 +452,8 @@ Returns a deduplicated list of such file names."
             (forward-line 1)))
 
         ;; Remove duplicates and return
-        (delete-dups (nreverse files))))))
+        (setq aidermacs--tracked-files (delete-dups (nreverse files)))
+        aidermacs--tracked-files))))
 
 ;;;###autoload
 (defun aidermacs-list-added-files ()
