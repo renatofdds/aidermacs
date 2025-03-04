@@ -182,25 +182,19 @@ and is using either comint or vterm mode."
                (and (fboundp 'vterm-mode)
                     (derived-mode-p 'vterm-mode)))))))
 
-(defun aidermacs--send-command-backend (buffer command)
-  "Send command to buffer using the appropriate backend.
-BUFFER is the target buffer.  COMMAND is the text to send."
-  (setq aidermacs--last-command command
-        aidermacs--current-output nil)
-  (if (eq aidermacs-backend 'vterm)
-      (aidermacs--send-command-vterm buffer command)
-    (aidermacs--send-command-comint buffer command)))
-
-(defun aidermacs--send-command-redirect-backend (buffer command &optional callback)
+(defun aidermacs--send-command-backend (buffer command &optional redirect callback)
   "Send command to buffer using the appropriate backend.
 BUFFER is the target buffer.  COMMAND is the text to send.
-CALLBACK if provided will be called with the command output when available."
+If REDIRECT is non-nil it redirects the output (hidden) for comint backend.
+If CALLBACK is non-nil it will be called after the command finishes."
   (setq aidermacs--last-command command
         aidermacs--current-output nil
         aidermacs--current-callback callback)
   (if (eq aidermacs-backend 'vterm)
       (aidermacs--send-command-vterm buffer command)
-    (aidermacs--send-command-redirect-comint buffer command)))
+    (if redirect
+        (aidermacs--send-command-redirect-comint buffer command)
+      (aidermacs--send-command-comint buffer command))))
 
 (provide 'aidermacs-backends)
 

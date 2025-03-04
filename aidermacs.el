@@ -314,17 +314,37 @@ If USE-EXISTING is non-nil, use an existing buffer instead of creating new."
     (when (and switch-to-buffer (not (string= (buffer-name) buffer-name)))
       (aidermacs-switch-to-buffer buffer-name))))
 
-(defun aidermacs--send-command-redirect (command callback &optional use-existing)
-  "Send command to the corresponding aidermacs process in the background.
+(defun aidermacs--is-edit-command-p (command buffer)
+  "Determine if COMMAND might result in code edits based on current mode in BUFFER.
+Returns non-nil if the command is a direct edit command or if we're in a mode
+that allows edits and the command isn't explicitly a non-edit command."
+  (with-current-buffer buffer
+    (or
+     ;; Explicit edit commands always trigger edit tracking
+     (string-match-p "^\\(/code\\|/architect\\)" command)
+
+     ;; In code or architect mode, any message that's not a command could edit code
+     (and (memq aidermacs--current-mode '(code architect))
+          (not (string-prefix-p "/" command))))))
+
+(defun aidermacs--send-command (command &optional no-switch-to-buffer use-existing redirect callback)
+  "Send command to the corresponding aidermacs process.
 COMMAND is the text to send.
-CALLBACK will be called with the command output when available.
-If USE-EXISTING is non-nil, use an existing buffer instead of creating new."
+If NO-SWITCH-TO-BUFFER is non-nil, don't switch to the aidermacs buffer.
+If USE-EXISTING is non-nil, use an existing buffer instead of creating new.
+If REDIRECT is non-nil it redirects the output (hidden) for comint backend.
+If CALLBACK is non-nil it will be called after the command finishes."
   (let* ((buffer-name (aidermacs-get-buffer-name use-existing))
          (buffer (or (get-buffer buffer-name)
                      (progn (aidermacs-run)
                             (get-buffer buffer-name))))
          (processed-command (aidermacs--process-message-if-multi-line command)))
-    (aidermacs--send-command-redirect-backend buffer processed-command callback)))
+
+    (if (aidermacs--is-edit-command-p command buffer)
+        (aidermacs--send-command-with-edit-tracking processed-command no-switch-to-buffer use-existing)
+      (aidermacs--send-command-backend buffer processed-command redirect callback))
+    (when (and (not no-switch-to-buffer) (not (string= (buffer-name) buffer-name)))
+      (aidermacs-switch-to-buffer buffer-name))))
 
 ;;;###autoload
 (defun aidermacs-switch-to-buffer (&optional buffer-name)
@@ -362,7 +382,7 @@ If the current buffer is already the aidermacs buffer, do nothing."
 (defun aidermacs-exit ()
   "Send the command \"/exit\" to the aidermacs buffer."
   (interactive)
-  (aidermacs--send-command "/exit"))
+  (aidermacs--send-command "/exit" t))
 
 
 (defun aidermacs--process-message-if-multi-line (str)
@@ -405,14 +425,14 @@ The full command will be \"COMMAND-PREFIX <current buffer file full path>\"."
   (interactive)
   (let ((command (aidermacs-read-string "Enter general aider command: ")))
     ;; Use the shared helper function to send the command
-    (aidermacs--send-command command t)))
+    (aidermacs--send-command command)))
 
 ;;;###autoload
 (defun aidermacs-direct-change ()
   "Prompt the user for an input and send it to aidemracs prefixed with \"/code \"."
   (interactive)
   (when-let ((command (aidermacs--form-prompt "/code" nil t "empty to change to code mode")))
-    (aidermacs--send-command command t)))
+    (aidermacs--send-command command)))
 
 (defun aidermacs--parse-ls-output (output)
   "Parse the /ls command output to extract files in chat.
@@ -454,6 +474,14 @@ Returns a deduplicated list of such file names."
         ;; Remove duplicates and return
         (setq aidermacs--tracked-files (delete-dups (nreverse files)))
         aidermacs--tracked-files))))
+
+(defun aidermacs--get-files-in-session (callback)
+  "Get list of files in current session and call CALLBACK with the result."
+  (aidermacs--send-command
+   "/ls" nil t
+   (lambda ()
+     (let ((files (aidermacs--parse-ls-output aidermacs--current-output)))
+       (funcall callback files)))))
 
 ;;;###autoload
 (defun aidermacs-list-added-files ()
@@ -526,41 +554,41 @@ If called from the aidermacs buffer, use general question instead."
       (call-interactively #'aidermacs-general-question)
     (when-let ((command (aidermacs--form-prompt "/ask" "Question")))
       (aidermacs-add-current-file)
-      (aidermacs--send-command command t))))
+      (aidermacs--send-command command))))
 
 ;;;###autoload
 (defun aidermacs-general-question ()
   "Prompt the user for a general question without code context."
   (interactive)
   (when-let ((command (aidermacs--form-prompt "/ask" nil t "empty to change to ask mode")))
-    (aidermacs--send-command command t)))
+    (aidermacs--send-command command)))
 
 ;;;###autoload
 (defun aidermacs-help ()
   "Prompt the user for an input prefixed with \"/help \"."
   (interactive)
   (when-let ((command (aidermacs--form-prompt "/help" nil t "empty for general /help")))
-    (aidermacs--send-command command t)))
+    (aidermacs--send-command command)))
 
 ;;;###autoload
 (defun aidermacs-general-architect ()
   "Prompt the user for an input prefixed with \"/architect \"."
   (interactive)
   (when-let ((command (aidermacs--form-prompt "/architect" nil t "empty to change to architect mode")))
-    (aidermacs--send-command command t)))
+    (aidermacs--send-command command)))
 
 ;;;###autoload
 (defun aidermacs-debug-exception ()
   "Prompt the user for an input and send it to aidemracs prefixed with \"/debug \"."
   (interactive)
   (when-let ((command (aidermacs--form-prompt "/ask" "Debug exception")))
-    (aidermacs--send-command command t)))
+    (aidermacs--send-command command)))
 
 ;;;###autoload
 (defun aidermacs-accept-change ()
   "Send the command \"go ahead\" to the aidemracs."
   (interactive)
-  (aidermacs--send-command "/code go ahead" t))
+  (aidermacs--send-command "/code go ahead"))
 
 
 ;;;###autoload
@@ -608,7 +636,7 @@ If point is in a function, inspect that function."
       (call-interactively #'aidermacs-general-architect)
     (when-let ((command (aidermacs--form-prompt "/architect" "Architect")))
       (aidermacs-add-current-file)
-      (aidermacs--send-command command t))))
+      (aidermacs--send-command command))))
 
 ;;;###autoload
 (defun aidermacs-question-this-symbol ()
@@ -623,14 +651,14 @@ If point is in a function, inspect that function."
     (if symbol
         (progn
           (aidermacs-add-current-file)
-          (aidermacs--send-command prompt t))
+          (aidermacs--send-command prompt))
       (error "No symbol under point!"))))
 
 (defun aidermacs-send-command-with-prefix (prefix command)
   "Send COMMAND to the aidermacs buffer with PREFIX.
 PREFIX is the text to prepend.  COMMAND is the text to send."
   (aidermacs-add-current-file)
-  (aidermacs--send-command (concat prefix command) t))
+  (aidermacs--send-command (concat prefix command)))
 
 (defun aidermacs--add-files-helper (files read-only &optional message)
   "Helper function to add files with read-only flag.
@@ -640,8 +668,9 @@ as read-only.  Optional MESSAGE can override the default success message."
          (files (delq nil files)))
     (if files
         (progn
-          (aidermacs--send-command (format "%s %s" cmd
-                                           (mapconcat #'identity files " ")) t)
+          (aidermacs--send-command
+           (format "%s %s" cmd
+                   (mapconcat #'identity files " ")))
           (message (or message
                        (format "Added %d files as %s"
                                (length files)
@@ -755,7 +784,7 @@ Otherwise:
                                 function-name))
                        (command (aidermacs--form-prompt "/architect" initial-input)))
                   (aidermacs-add-current-file)
-                  (aidermacs--send-command command t))
+                  (aidermacs--send-command command))
               (message "Current function '%s' does not appear to be a test function." function-name))
           (message "Please place cursor inside a test function to implement.")))
        ;; Non-test file case
@@ -769,7 +798,7 @@ Otherwise:
                           (file-name-nondirectory buffer-file-name) common-instructions)))
                (command (aidermacs--form-prompt "/architect" initial-input)))
           (aidermacs-add-current-file)
-          (aidermacs--send-command command t)))))))
+          (aidermacs--send-command command)))))))
 
 ;;;###autoload
 (defun aidermacs-fix-failing-test-under-cursor ()
@@ -781,7 +810,7 @@ This function assumes the cursor is on or inside a test function."
                                     test-function-name))
              (command (aidermacs--form-prompt "/architect" initial-input)))
         (aidermacs-add-current-file)
-        (aidermacs--send-command command t))
+        (aidermacs--send-command command))
     (message "No test function found at cursor position.")))
 
 (defun aidermacs-create-session-scratchpad ()
@@ -799,7 +828,7 @@ Use this to add functions, code snippets, or other content to the session."
       (insert ";; Add your code snippets, functions, or other content here\n")
       (insert ";; Just edit and save - changes will be available to aider\n\n")
       (write-file filename))
-    (aidermacs--send-command (format "/read %s" filename) t)
+    (aidermacs--send-command (format "/read %s" filename))
     (find-file-other-window filename)
     (message "Created and added scratchpad to session: %s" filename)))
 
@@ -815,7 +844,7 @@ This allows you to add the file's content to a specific session."
                                 nil nil t initial))))
     (if (not (file-exists-p file))
         (message "File does not exist: %s" file)
-      (aidermacs--send-command (format "/read %s" file) t t))))
+      (aidermacs--send-command (format "/read %s" file) nil t))))
 
 (defun aidermacs--is-comment-line (line)
   "Check if LINE is a comment line based on current buffer's comment syntax.
@@ -847,7 +876,7 @@ Otherwise implement TODOs for the entire current file."
                                      (format " on this comment: `%s`." current-line))
                                    " Keep existing code structure"))))
         (aidermacs-add-current-file)
-        (aidermacs--send-command command t)))))
+        (aidermacs--send-command command)))))
 
 ;;;###autoload
 (defun aidermacs-send-line-or-region ()
@@ -859,7 +888,7 @@ Otherwise, send the line under cursor."
                   (buffer-substring-no-properties (region-beginning) (region-end))
                 (string-trim (thing-at-point 'line t)))))
     (when text
-      (aidermacs--send-command text t))))
+      (aidermacs--send-command text))))
 
 ;;;###autoload
 (defun aidermacs-send-region-by-line ()
@@ -871,7 +900,7 @@ Otherwise, send the line under cursor."
         (mapc (lambda (line)
                 (let ((trimmed (string-trim line)))
                   (when (not (string-empty-p trimmed))
-                    (aidermacs--send-command trimmed t))))
+                    (aidermacs--send-command trimmed))))
               lines))
     (message "No region selected.")))
 
@@ -888,7 +917,7 @@ When sending paragraph content, preserve cursor position."
                       (buffer-substring-no-properties (region-beginning) (region-end))
                     (deactivate-mark))))))
     (when text
-      (aidermacs--send-command text t))))
+      (aidermacs--send-command text))))
 
 ;;;###autoload
 (defun aidermacs-open-prompt-file ()
@@ -973,7 +1002,7 @@ prompt files and other Aider-related files:
   "Switch aider to code mode.
 In code mode, aider will make changes to your code to satisfy your requests."
   (interactive)
-  (aidermacs--send-command "/chat-mode code" t)
+  (aidermacs--send-command "/chat-mode code")
   (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
     (setq-local aidermacs--current-mode 'code))
   (message "Switched to code mode <default> - aider will make changes to your code"))
@@ -983,7 +1012,7 @@ In code mode, aider will make changes to your code to satisfy your requests."
   "Switch aider to ask mode.
 In ask mode, aider will answer questions about your code, but never edit it."
   (interactive)
-  (aidermacs--send-command "/chat-mode ask" t)
+  (aidermacs--send-command "/chat-mode ask")
   (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
     (setq-local aidermacs--current-mode 'ask))
   (message "Switched to ask mode - you can chat freely, aider will not edit your code"))
@@ -994,7 +1023,7 @@ In ask mode, aider will answer questions about your code, but never edit it."
 In architect mode, aider will first propose a solution, then ask if you want
 it to turn that proposal into edits to your files."
   (interactive)
-  (aidermacs--send-command "/chat-mode architect" t)
+  (aidermacs--send-command "/chat-mode architect")
   (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
     (setq-local aidermacs--current-mode 'architect))
   (message "Switched to architect mode - aider will propose solutions before making changes"))
@@ -1005,7 +1034,7 @@ it to turn that proposal into edits to your files."
 In help mode, aider will answer questions about using aider, configuring,
 troubleshooting, etc."
   (interactive)
-  (aidermacs--send-command "/chat-mode help" t)
+  (aidermacs--send-command "/chat-mode help")
   (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
     (setq-local aidermacs--current-mode 'help))
   (message "Switched to help mode - aider will answer questions about using aider"))

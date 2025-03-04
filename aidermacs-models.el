@@ -26,8 +26,7 @@
 (require 'json)
 (require 'url)
 
-(declare-function aidermacs--send-command "aidermacs" (command &optional switch-to-buffer))
-(declare-function aidermacs--send-command-redirect "aidermacs" (command callback))
+(declare-function aidermacs--send-command "aidermacs" (command &optional no-switch-to-buffer use-existing redirect callback))
 (declare-function aidermacs-buffer-name "aidermacs" ())
 (declare-function aidermacs-exit "aidermacs" ())
 
@@ -126,14 +125,14 @@ This is a private function used internally."
   (condition-case nil
       (let ((model (completing-read "Select AI model: " aidermacs--cached-models nil t)))
         (when model
-          (aidermacs--send-command (format "/model %s" model) t)))
+          (aidermacs--send-command (format "/model %s" model))))
     (quit (message "Model selection cancelled"))))
 
 (defun aidermacs--get-available-models ()
   "Get list of models supported by aider using the /models command.
 This fetches models from various API providers and caches them."
-  (aidermacs--send-command-redirect
-   "/models /"
+  (aidermacs--send-command
+   "/models /" nil nil t
    (lambda ()
      (let* ((supported-models
              (seq-filter
