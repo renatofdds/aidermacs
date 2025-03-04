@@ -134,12 +134,12 @@ This is a private function used internally."
 This fetches models from various API providers and caches them."
   (aidermacs--send-command-redirect
    "/models /"
-   (lambda (output)
+   (lambda ()
      (let* ((supported-models
              (seq-filter
               (lambda (line)
                 (string-prefix-p "- " line))
-              (split-string output "\n" t)))
+              (split-string aidermacs--current-output "\n" t)))
             (models nil))
        (setq supported-models
              (mapcar (lambda (line)

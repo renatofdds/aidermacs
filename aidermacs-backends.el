@@ -96,7 +96,7 @@ If there's a callback function, call it with the output."
   (unless aidermacs--in-callback
     (when aidermacs--current-callback
       (let ((aidermacs--in-callback t))
-        (funcall aidermacs--current-callback output)
+        (funcall aidermacs--current-callback)
         (setq aidermacs--current-callback nil)))))
 
 ;; Backend dispatcher functions
@@ -110,6 +110,18 @@ BUFFER-NAME is the name for the aidermacs buffer."
     (aidermacs-run-vterm program args buffer-name))
    (t
     (aidermacs-run-comint program args buffer-name))))
+
+(defun aidermacs--is-aidermacs-buffer-p (&optional buffer)
+  "Check if BUFFER is any type of aidermacs buffer.
+If BUFFER is nil, check the current buffer.
+Returns non-nil if the buffer name matches the aidermacs buffer pattern
+and is using either comint or vterm mode."
+  (let ((buf (or buffer (current-buffer))))
+    (with-current-buffer buf
+      (and (string-match-p "^\\*aidermacs:" (buffer-name buf))
+           (or (derived-mode-p 'comint-mode)
+               (and (fboundp 'vterm-mode)
+                    (derived-mode-p 'vterm-mode)))))))
 
 (defun aidermacs--send-command-backend (buffer command)
   "Send command to buffer using the appropriate backend.

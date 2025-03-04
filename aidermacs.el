@@ -296,8 +296,8 @@ This is useful for working in monorepos where you want to limit aider's scope."
   "Get list of files in current session and call CALLBACK with the result."
   (aidermacs--send-command-redirect
    "/ls"
-   (lambda (output)
-     (let ((files (aidermacs--parse-ls-output output)))
+   (lambda ()
+     (let ((files (aidermacs--parse-ls-output aidermacs--current-output)))
        (funcall callback files)))))
 
 (defun aidermacs--send-command (command &optional switch-to-buffer use-existing)
