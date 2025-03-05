@@ -94,13 +94,13 @@ If the finish sequence is detected, store the output via
 
             ;; If we found a shell prompt
             (when (string-match-p expected prompt-line)
-              (let ((output (buffer-substring-no-properties start-point seq-start)))
+              (let ((output (buffer-substring-no-properties start-point seq-start))
+                    (edited-files (aidermacs--detect-edited-files)))
                 (aidermacs--store-output (string-trim output))
                 ;; Check if any files were edited and show ediff if needed
-                (let ((edited-files (aidermacs--detect-edited-files)))
-                  (when edited-files
-                    (aidermacs--show-ediff-for-edited-files edited-files)))
-                (aidermacs--cleanup-all-temp-files))
+                (if edited-files
+                    (aidermacs--show-ediff-for-edited-files edited-files)
+                  (aidermacs--cleanup-all-temp-files)))
               (set-process-filter proc orig-filter))))))))
 
 (defun aidermacs--vterm-output-advice (orig-fun &rest args)

@@ -109,10 +109,10 @@ that was matched at the start of the current syntax block.")
       (aidermacs--store-output aidermacs--comint-output-temp)
       ;; Check if any files were edited and show ediff if needed
       (let ((edited-files (aidermacs--detect-edited-files)))
-        (when edited-files
-          (aidermacs--show-ediff-for-edited-files edited-files)))
-      (setq aidermacs--comint-output-temp "")
-      (aidermacs--cleanup-all-temp-files))))
+        (if edited-files
+            (aidermacs--show-ediff-for-edited-files edited-files)
+          (aidermacs--cleanup-all-temp-files)))
+      (setq aidermacs--comint-output-temp ""))))
 
 (defun aidermacs-reset-font-lock-state ()
   "Reset font lock state to default for processing a new source block."
