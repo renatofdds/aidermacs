@@ -113,24 +113,49 @@ Looks for patterns like 'Applied edit to <filename>' and similar."
       (dolist (line lines)
         (cond
          ;; Applied edit to <filename>
-         ((string-match "Applied edit to \\(.+\\)" line)
-          (when-let ((file (match-string 1 line)))
+         ((string-match "Applied edit to \\(\\./\\)?\\(.+\\)" line)
+          (when-let ((file (match-string 2 line)))
             (add-to-list 'aidermacs--tracked-files file)))
 
          ;; Added <filename> to the chat.
-         ((string-match "Added \\(.+\\) to the chat" line)
-          (when-let ((file (match-string 1 line)))
+         ((string-match "Added \\(\\./\\)?\\(.+\\) to the chat" line)
+          (when-let ((file (match-string 2 line)))
             (add-to-list 'aidermacs--tracked-files file)))
 
-         ;; Removed <filename> from the chat
-         ((string-match "Removed \\(.+\\) from the chat" line)
-          (when-let ((file (match-string 1 line)))
+         ;; Removed <filename> from the chat (with or without ./ prefix)
+         ((string-match "Removed \\(\\./\\)?\\(.+\\) from the chat" line)
+          (when-let ((file (match-string 2 line)))
             (setq aidermacs--tracked-files (delete file aidermacs--tracked-files))))
 
          ;; Added <filename> to read-only files.
-         ((string-match "Added \\(.+\\) to read-only files" line)
-          (when-let ((file (match-string 1 line)))
-            (add-to-list 'aidermacs--tracked-files (concat file " (read-only)"))))))
+         ((string-match "Added \\(\\./\\)?\\(.+\\) to read-only files" line)
+          (when-let ((file (match-string 2 line)))
+            (add-to-list 'aidermacs--tracked-files (concat file " (read-only)"))))
+
+         ;; Moved <file> from editable to read-only files in the chat
+         ((string-match "Moved \\(\\./\\)?\\(.+\\) from editable to read-only files in the chat" line)
+          (when-let ((file (match-string 2 line)))
+            (let ((editable-file (replace-regexp-in-string " (read-only)$" "" file)))
+              (setq aidermacs--tracked-files (delete editable-file aidermacs--tracked-files))
+              (add-to-list 'aidermacs--tracked-files (concat file " (read-only)")))))
+
+         ;; Moved <file> from read-only to editable files in the chat
+         ((string-match "Moved \\(\\./\\)?\\(.+\\) from read-only to editable files in the chat" line)
+          (when-let ((file (match-string 2 line)))
+            (let ((read-only-file (concat file " (read-only)")))
+              (setq aidermacs--tracked-files (delete read-only-file aidermacs--tracked-files))
+              (add-to-list 'aidermacs--tracked-files file))))
+
+         ;; <file>\nAdd file to the chat?
+         ((string-match "\\(\\./\\)?\\(.+\\)\nAdd file to the chat?" line)
+          (when-let ((file (match-string 2 line)))
+            (add-to-list 'aidermacs--tracked-files file)))
+
+         ;; <file> is already in the chat as an editable file
+         ((string-match "\\(\\./\\)?\\(.+\\) is already in the chat as an editable file" line)
+          (when-let ((file (match-string 2 line)))
+            (add-to-list 'aidermacs--tracked-files file)))))
+
       ;; Verify all tracked files exist
       (aidermacs--verify-tracked-files))))
 

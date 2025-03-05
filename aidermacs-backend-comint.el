@@ -107,7 +107,12 @@ that was matched at the start of the current syntax block.")
     ;; Check if the output contains a prompt
     (when (string-match-p "\n[^[:space:]]*>[[:space:]]$" aidermacs--comint-output-temp)
       (aidermacs--store-output aidermacs--comint-output-temp)
-      (setq aidermacs--comint-output-temp ""))))
+      ;; Check if any files were edited and show ediff if needed
+      (let ((edited-files (aidermacs--detect-edited-files)))
+        (when edited-files
+          (aidermacs--show-ediff-for-edited-files edited-files)))
+      (setq aidermacs--comint-output-temp "")
+      (aidermacs--cleanup-all-temp-files))))
 
 (defun aidermacs-reset-font-lock-state ()
   "Reset font lock state to default for processing a new source block."
@@ -251,7 +256,7 @@ _OUTPUT is the text to be processed."
        (cdr (cl-assoc-if (lambda (re) (string-match re file)) auto-mode-alist))))
    'fundamental-mode))
 
-(defun aidermacs-kill-comint-syntax-fontify-buffer ()
+(defun aidermacs--comint-cleanup-hook ()
   "Clean up the fontify buffer."
   (when (bufferp aidermacs--syntax-work-buffer)
     (kill-buffer aidermacs--syntax-work-buffer)))
@@ -260,6 +265,11 @@ _OUTPUT is the text to be processed."
   "Reset font-lock state before executing a command.
 PROC is the process to send to.  STRING is the command to send."
   (aidermacs-reset-font-lock-state)
+  ;; Store the command for tracking in the correct buffer
+  (with-current-buffer (process-buffer proc)
+    (setq-local aidermacs--last-command string)
+    ;; Always prepare for potential edits
+    (aidermacs--prepare-for-code-edit))
   (comint-simple-send proc (aidermacs--process-message-if-multi-line string)))
 
 (defun aidermacs-run-comint (program args buffer-name)
@@ -276,7 +286,7 @@ BUFFER-NAME is the name for the aidermacs buffer."
         (setq-local comint-input-sender 'aidermacs-input-sender)
         (setq aidermacs--syntax-work-buffer
               (get-buffer-create (concat " *aidermacs-syntax" buffer-name)))
-        (add-hook 'kill-buffer-hook #'aidermacs-kill-comint-syntax-fontify-buffer nil t)
+        (add-hook 'kill-buffer-hook #'aidermacs--comint-cleanup-hook nil t)
         (add-hook 'comint-output-filter-functions #'aidermacs-fontify-blocks 100 t)
         (add-hook 'comint-output-filter-functions #'aidermacs--comint-output-filter)
         (let ((local-map (make-sparse-keymap)))
