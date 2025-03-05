@@ -38,6 +38,12 @@
 (declare-function vterm-send-return "vterm")
 (declare-function vterm-insert "vterm")
 
+(declare-function aidermacs--prepare-for-code-edit "aidermacs")
+(declare-function aidermacs--cleanup-all-temp-files "aidermacs")
+(declare-function aidermacs--show-ediff-for-edited-files "aidermacs")
+(declare-function aidermacs--detect-edited-files "aidermacs")
+(declare-function aidermacs--store-output "aidermacs")
+(declare-function aidermacs--is-aidermacs-buffer-p "aidermacs")
 
 (defvar-local aidermacs--vterm-active-timer nil
   "Store the active timer for vterm output processing.")
@@ -55,19 +61,11 @@
   :type 'string
   :group 'aidermacs)
 
-(defun aidermacs--is-aidermacs-vterm-buffer-p (&optional buffer)
-  "Check if BUFFER is an aidermacs vterm buffer.
-If BUFFER is nil, check the current buffer.
-Returns non-nil if the buffer name matches the aidermacs buffer pattern."
-  (let ((buf (or buffer (current-buffer))))
-    (and (derived-mode-p 'vterm-mode)
-         (string-match-p "^\\*aidermacs:" (buffer-name buf)))))
-
-(defun aidermacs--vterm-check-finish-sequence-repeated (proc orig-filter start-point expected)
+(defun aidermacs--vterm-check-finish-sequence-repeated (proc orig-filter start-point)
   "Check for the finish sequence in PROC's buffer.
 PROC is the process to check.  ORIG-FILTER is the original process filter.
-START-POINT is the starting position for output capture.  EXPECTED is the
-pattern to match.  If the finish sequence is detected, store the output via
+START-POINT is the starting position for output capture.
+If the finish sequence is detected, store the output via
 `aidermacs--store-output`, restore ORIG-FILTER, and return t."
   (when (buffer-live-p (process-buffer proc))
     (with-current-buffer (process-buffer proc)
@@ -82,7 +80,9 @@ pattern to match.  If the finish sequence is detected, store the output via
                              (error (point-max))))
              ;; Only check if we have a new prompt or haven't checked this position yet
              (last-check (or aidermacs--vterm-last-check-point start-point))
-             (should-check (> prompt-point last-check)))
+             (should-check (> prompt-point last-check))
+             ;; Simplified pattern that just looks for a shell prompt
+             (expected "^[^[:space:]]*>[[:space:]]"))
 
         ;; Update the last check point
         (setq aidermacs--vterm-last-check-point prompt-point)
@@ -100,8 +100,13 @@ pattern to match.  If the finish sequence is detected, store the output via
 
             ;; If we found a shell prompt
             (when (string-match-p expected prompt-line)
-              (let ((output (buffer-substring-no-properties start-point seq-start)))
-                (aidermacs--store-output (string-trim output)))
+              (let ((output (buffer-substring-no-properties start-point seq-start))
+                    (edited-files (aidermacs--detect-edited-files)))
+                (aidermacs--store-output (string-trim output))
+                ;; Check if any files were edited and show ediff if needed
+                (if edited-files
+                    (aidermacs--show-ediff-for-edited-files edited-files)
+                  (aidermacs--cleanup-all-temp-files)))
               (set-process-filter proc orig-filter))))))))
 
 (defun aidermacs--vterm-output-advice (orig-fun &rest args)
@@ -109,14 +114,17 @@ pattern to match.  If the finish sequence is detected, store the output via
 ORIG-FUN is the original function being advised.  ARGS are its arguments.
 This sets a temporary process filter that checks for the finish sequence
 after each output chunk, reducing the need for timers."
-  (if (aidermacs--is-aidermacs-vterm-buffer-p)
+  (if (aidermacs--is-aidermacs-buffer-p)
       (let* ((start-point (condition-case nil
                               (vterm--get-prompt-point)
                             (error (point-min))))
              (proc (get-buffer-process (current-buffer)))
-             ;; Simplified pattern that just looks for a shell prompt
-             (expected "^[^[:space:]]*>[[:space:]]")
              (orig-filter (process-filter proc)))
+
+        ;; Store the command for tracking in the correct buffer
+        (with-current-buffer (process-buffer proc)
+          (when (and args (car args) (stringp (car args)))
+            (setq-local aidermacs--last-command (car args))))
 
         ;; Initialize tracking variables
         (setq-local aidermacs--vterm-last-check-point nil)
@@ -137,7 +145,7 @@ after each output chunk, reducing the need for timers."
                     aidermacs-vterm-check-interval
                     (lambda ()
                       (when (aidermacs--vterm-check-finish-sequence-repeated
-                             proc orig-filter start-point expected)
+                             proc orig-filter start-point)
                         (when (timerp aidermacs--vterm-active-timer)
                           (cancel-timer aidermacs--vterm-active-timer)
                           (setq aidermacs--vterm-active-timer nil))
@@ -163,6 +171,8 @@ BUFFER-NAME is the name for the vterm buffer."
                     aidermacs--vterm-active-timer nil
                     aidermacs--vterm-last-check-point nil)
         (advice-add 'vterm-send-return :around #'aidermacs--vterm-output-advice)
+        (advice-add 'vterm-send-return :before #'aidermacs--vterm-capture-keyboard-input)
+        (advice-add 'vterm--self-insert :after #'aidermacs--cleanup-temp-files-on-interrupt-vterm)
         ;; Set up multi-line key binding
         (let ((map (make-sparse-keymap)))
           (set-keymap-parent map (current-local-map))
@@ -188,12 +198,40 @@ BUFFER is the target buffer to send to.  COMMAND is the text to send."
   (interactive)
   (vterm-insert "\n"))
 
+(defun aidermacs--vterm-capture-keyboard-input (orig-fun &rest args)
+  "Capture keyboard input in vterm.
+ORIG-FUN is the original function being advised. ARGS are its arguments."
+  (when (and (aidermacs--is-aidermacs-buffer-p)
+             (eq this-command 'vterm-send-return))
+    ;; Get the current line content which should be the command
+    ;; TODO: current line may not be enough
+    (save-excursion
+      (let* ((prompt-point (condition-case nil
+                               (vterm--get-prompt-point)
+                             (error (point-min))))
+             (command (buffer-substring-no-properties
+                       prompt-point
+                       (line-end-position))))
+        (when (not (string-empty-p command))
+          (setq-local aidermacs--last-command command)
+          ;; Always prepare for potential edits
+          (aidermacs--prepare-for-code-edit)))))
+  (apply orig-fun args))
+
 (defun aidermacs--vterm-cleanup ()
   "Clean up vterm resources when buffer is killed."
   (when aidermacs--vterm-active-timer
     (cancel-timer aidermacs--vterm-active-timer)
     (setq-local aidermacs--vterm-active-timer nil))
-  (setq-local aidermacs--vterm-last-check-point nil))
+  (setq-local aidermacs--vterm-last-check-point nil)
+  (advice-remove 'vterm-send-return #'aidermacs--vterm-capture-keyboard-input))
+
+(defun aidermacs--cleanup-temp-files-on-interrupt-vterm (&rest args)
+  "Run `aidermacs--cleanup-all-temp-files' after interrupting a vterm subjob.
+ARGS are the arguments."
+  (when (and (aidermacs--is-aidermacs-buffer-p)
+             (equal (this-command-keys) "\C-c\C-c"))
+    (aidermacs--cleanup-all-temp-files)))
 
 (provide 'aidermacs-backend-vterm)
 

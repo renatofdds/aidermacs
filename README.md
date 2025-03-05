@@ -4,10 +4,9 @@
 
 # Aidermacs: AI Pair Programming in Emacs
 
-Miss using [Cursor](https://cursor.sh) but prefer living in Emacs? Aidermacs brings Cursor-like AI-powered development to your Emacs workflow by integrating [Aider](https://github.com/paul-gauthier/aider), one of the most powerful open-source AI pair programming tools available. As a community-driven project, Aidermacs prioritizes the needs and preferences of Emacs users. It provides the same powerful features you'd find in Cursor:
+Missing [Cursor](https://cursor.sh) but prefer living in Emacs? Aidermacs brings Cursor-like AI-powered development to your Emacs workflow by integrating [Aider](https://github.com/paul-gauthier/aider), one of the most powerful open-source AI pair programming tools. As a community-driven project, Aidermacs prioritizes Emacs users' needs and preferences while providing the same powerful features found in Cursor!
 
-Key features:
-
+- Built-in **Ediff** integration for reviewing AI-generated changes
 - Top performance on the SWE Bench, solving real GitHub issues in major open source projects
 - Support for multi-file edits in complex codebases
 - Real-time file synchronization for true pair programming
@@ -22,14 +21,14 @@ Key features:
 
 ### Community-Driven Development
 
-Aidermacs thrives on community involvement. We believe that the best software is built collaboratively, with input from users and contributors. We encourage you to:
+Aidermacs thrives on community involvement. We believe collaborative development with user and contributor input creates the best software. We encourage you to:
 
 - Contribute Code: Submit pull requests with bug fixes, new features, or improvements to existing functionality.
 - Report Issues: Let us know about any bugs, unexpected behavior, or feature requests through GitHub Issues.
 - Share Ideas: Participate in discussions and propose new ideas for making Aidermacs even better.
 - Improve Documentation: Help us make the documentation clearer, more comprehensive, and easier to use.
 
-Your contributions are essential to making Aidermacs the best AI pair programming tool in Emacs!
+Your contributions are essential for making Aidermacs the best AI pair programming tool in Emacs!
 
 <a href = "https://github.com/MatthewZMD/aidermacs/graphs/contributors">
   <img src = "https://contrib.rocks/image?repo=MatthewZMD/aidermacs"/>
@@ -68,13 +67,13 @@ You can customize the default AI model used by Aidermacs by setting the `aiderma
 (setq aidermacs-default-model "sonnet")
 ```
 
-This allows you to easily switch between different AI models without modifying the `aidermacs-extra-args` variable.
+This enables easy switching between different AI models without modifying the `aidermacs-extra-args` variable.
 
 *Note: This configuration will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File)).*
 
 ### Dynamic Model Selection
 
-Aidermacs provides intelligent model selection for the solo (non-Architect) mode that automatically detects and integrates with multiple AI providers:
+Aidermacs offers intelligent model selection for solo (non-Architect) mode, automatically detecting and integrating with multiple AI providers:
 
 - Automatically fetches available models from supported providers (OpenAI, Anthropic, DeepSeek, Google Gemini, OpenRouter)
 - Caches model lists for quick access
@@ -97,7 +96,7 @@ The system will automatically filter models to only show ones that are:
 
 ### Architect Mode - Separating Code Reasoning and Editing Models
 
-Aidermacs supports an experimental mode that leverages two models for each coding task: an Architect model for reasoning and an Editor model for generating code edits. This approach has **achieved state-of-the-art (SOTA) results on aider's code editing benchmark**, as detailed in [this blog post](https://aider.chat/2024/09/26/architect.html).
+Aidermacs features an experimental mode using two specialized models for each coding task: an Architect model for reasoning and an Editor model for code generation. This approach has **achieved state-of-the-art (SOTA) results on aider's code editing benchmark**, as detailed in [this blog post](https://aider.chat/2024/09/26/architect.html).
 
 To enable this mode, set `aidermacs-use-architect-mode` to `t`. You must also configure the `aidermacs-architect-model` variable to specify the model to use for the Architect role.
 
@@ -117,7 +116,7 @@ When Architect mode is enabled, the `aidermacs-default-model` setting is ignored
 
 Choose your preferred terminal backend by setting `aidermacs-backend`:
 
-`vterm` provides better terminal compatibility, while `comint` is a simple, built-in option that's still fully compatible with aidermacs.
+`vterm` offers better terminal compatibility, while `comint` provides a simple, built-in option that remains fully compatible with Aidermacs.
 
 ```emacs-lisp
 ;; Use vterm backend (default is comint)
@@ -142,20 +141,20 @@ You can customize keybindings for multiline input, this key allows you to enter 
 
 ### Re-Enable Auto-Commits
 
-Aider by default automatically commits changes made by the AI. We find this behavior *very* intrusive, so we disabled it for you. You can re-enable auto-commits by setting `aidermacs-auto-commits` to `t`:
+Aider automatically commits AI-generated changes by default. We consider this behavior *very* intrusive, so we've disabled it. You can re-enable auto-commits by setting `aidermacs-auto-commits` to `t`:
 
 ```emacs-lisp
 ;; Enable auto-commits
 (setq aidermacs-auto-commits t)
 ```
 
-With auto-commits disabled, you'll need to manually commit changes using your preferred Git workflow.
+With auto-commits disabled, you must manually commit changes using your preferred Git workflow.
 
 *Note: This configuration will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File)).*
 
 ### Customizing Aider Options with `aidermacs-extra-args`
 
-If the above configurations aren't enough already, the `aidermacs-extra-args` variable allows you to pass any command-line options supported by Aider.
+If these configurations aren't sufficient, the `aidermacs-extra-args` variable enables passing any Aider-supported command-line options.
 
 See the [Aider configuration documentation](https://aider.chat/docs/config/options.html) for a full list of available options.
 
@@ -328,29 +327,36 @@ While `aider.el` strictly mirrors Aider's CLI behavior, `Aidermacs` is built aro
 
 With `Aidermacs`, you get:
 
-1. Intelligent Model Selection
+1. Built-in Ediff Integration for AI-Generated Changes
+   - Seamless Code Review: Automatically shows diffs for all AI-modified files using Emacs' powerful `ediff` interface
+   - Familiar Interface: Uses Emacs' native `ediff` workflow for reviewing changes
+   - Interactive Workflow: Accept or reject changes with standard `ediff` commands
+   - Syntax Highlighting: Maintains proper syntax highlighting during comparisons
+   - Safe Change Management: Preserves original file states for easy comparison and rollback
+
+2. Intelligent Model Selection
    - Automatic discovery of available models from multiple providers
    - Real-time model compatibility checking
    - Seamless integration with your configured API keys
    - Caching for quick access to frequently used models
    - Support for both popular pre-configured models and dynamically discovered ones
 
-2. Flexible Terminal Backend Support
+3. Flexible Terminal Backend Support
    - `Aidermacs` supports multiple terminal backends (comint and vterm) for better compatibility and performance
    - Easy configuration to choose your preferred terminal emulation
    - Extensible architecture for adding new backends
 
-3. Smarter Syntax Highlighting
+4. Smarter Syntax Highlighting
    - AI-generated code appears with proper syntax highlighting in major languages.
    - Ensures clarity and readability without additional configuration.
 
-4. Better Support for Multiline Input
+5. Better Support for Multiline Input
    - `aider` is primarily designed as a command-line program, where multiline input is restricted by terminal limitations.
    - Terminal-based tools require special syntax or manual formatting to handle multiline input, which can be cumbersome and unintuitive.
    - `Aidermacs` eliminates these restrictions by handling multiline prompts natively within Emacs, allowing you to compose complex AI requests just like any other text input.
    - Whether you're pasting blocks of code or refining AI-generated responses, multiline interactions in `Aidermacs` feel natural and seamless.
 
-5. Enhanced File Management from Emacs
+6. Enhanced File Management from Emacs
    - List files currently in chat with `M-x aidermacs-list-added-files`
    - Drop specific files from chat with `M-x aidermacs-drop-file`
    - View output history with `M-x aidermacs-show-output-history`
@@ -359,17 +365,17 @@ With `Aidermacs`, you get:
    - Create a temporary file for adding code snippets or notes to the Aider session with `M-x aidermacs-create-session-scratchpad`
    - and more
 
-6. Greater Configurability
+7. Greater Configurability
    - `Aidermacs` offers more customization options to tailor the experience to your preferences.
 
-7. Streamlined Transient Menu Selection
+8. Streamlined Transient Menu Selection
    - The transient menus have been completely redesigned to encompass functionality and ergonomics, prioritizing user experience.
 
-8. Flexible Ways to Add Content
+9. Flexible Ways to Add Content
    - `Aidermacs` provides multiple ways to add content to the Aider session, including adding files, creating temporary scratchpad files, and more.
 
-9. Community-Driven Development
-   - `Aidermacs` is actively developed and maintained by the community, incorporating user feedback and contributions.
-   - We prioritize features and improvements that directly benefit Emacs users, ensuring a tool that evolves with your needs.
+10. Community-Driven Development
+    - `Aidermacs` is actively developed and maintained by the community, incorporating user feedback and contributions.
+    - We prioritize features and improvements that directly benefit Emacs users, ensuring a tool that evolves with your needs.
 
 ... and more to come 🚀
