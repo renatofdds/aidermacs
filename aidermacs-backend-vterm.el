@@ -226,9 +226,9 @@ ORIG-FUN is the original function being advised. ARGS are its arguments."
   (setq-local aidermacs--vterm-last-check-point nil)
   (advice-remove 'vterm-send-return #'aidermacs--vterm-capture-keyboard-input))
 
-(defun aidermacs--cleanup-temp-files-on-interrupt-vterm (&rest args)
+(defun aidermacs--cleanup-temp-files-on-interrupt-vterm (&rest _args)
   "Run `aidermacs--cleanup-all-temp-files' after interrupting a vterm subjob.
-ARGS are the arguments."
+_ARGS are the arguments."
   (when (and (aidermacs--is-aidermacs-buffer-p)
              (equal (this-command-keys) "\C-c\C-c"))
     (aidermacs--cleanup-all-temp-files)))
