@@ -503,6 +503,7 @@ If CALLBACK is non-nil it will be called after the command finishes."
       (setq-local aidermacs--current-output nil)
       (setq-local aidermacs--last-command processed-command)
       ;; Always prepare for potential edits
+      (aidermacs--cleanup-all-temp-files)
       (aidermacs--prepare-for-code-edit))
 
     (aidermacs--send-command-backend buffer processed-command redirect callback)
@@ -977,9 +978,10 @@ This function assumes the cursor is on or inside a test function."
     (message "No test function found at cursor position.")))
 
 (defun aidermacs-create-session-scratchpad ()
-  "Create a new temporary file for adding content to the aider session.
-The file will be created in the system's temp directory with a timestamped name.
-Use this to add functions, code snippets, or other content to the session."
+  "Create a new temporary file for adding content to the aider
+session.  The file will be created in the system's temp directory
+with a timestamped name.  Use this to add functions, code
+snippets, or other content to the session."
   (interactive)
   (let* ((temp-dir (file-name-as-directory (temporary-file-directory)))
          (filename (expand-file-name
@@ -997,8 +999,9 @@ Use this to add functions, code snippets, or other content to the session."
 
 ;;;###autoload
 (defun aidermacs-add-file-to-session ()
-  "Interactively add a file to an existing aidermacs session using /read.
-This allows you to add the file's content to a specific session."
+  "Interactively add a file to an existing aidermacs session
+using /read.  This allows you to add the file's content to a
+specific session."
   (interactive)
   (let* ((initial (when buffer-file-name
                     (file-name-nondirectory buffer-file-name)))
@@ -1010,9 +1013,9 @@ This allows you to add the file's content to a specific session."
       (aidermacs--send-command (format "/read %s" file) nil t))))
 
 (defun aidermacs--is-comment-line (line)
-  "Check if LINE is a comment line based on current buffer's comment syntax.
-Returns non-nil if LINE starts with one or more comment characters,
-ignoring leading whitespace."
+  "Check if LINE is a comment line based on current buffer's
+comment syntax.  Returns non-nil if LINE starts with one or more
+comment characters, ignoring leading whitespace."
   (when comment-start
     (let ((comment-str (string-trim-right comment-start)))
       (string-match-p (concat "^[ \t]*"
@@ -1030,7 +1033,7 @@ Otherwise implement TODOs for the entire current file."
   (interactive)
   (if (not buffer-file-name)
       (message "Current buffer is not visiting a file.")
-    (let* ((current-line (string-trim (thing-at-point 'line t)))
+    (let* ((current-line (string-trim (thing-at-point 'line t))))
            (is-comment (aidermacs--is-comment-line current-line)))
       (when-let ((command (aidermacs--form-prompt
                            "/architect"
@@ -1039,7 +1042,7 @@ Otherwise implement TODOs for the entire current file."
                                      (format " on this comment: `%s`." current-line))
                                    " Keep existing code structure"))))
         (aidermacs-add-current-file)
-        (aidermacs--send-command command)))))
+        (aidermacs--send-command command))))
 
 ;;;###autoload
 (defun aidermacs-send-line-or-region ()
@@ -1048,7 +1051,8 @@ If region is active, send the selected region.
 Otherwise, send the line under cursor."
   (interactive)
   (let ((text (if (use-region-p)
-                  (buffer-substring-no-properties (region-beginning) (region-end))
+                  (buffer-substring-no-properties
+                   (region-beginning) (region-end))
                 (string-trim (thing-at-point 'line t)))))
     (when text
       (aidermacs--send-command text))))
@@ -1058,26 +1062,30 @@ Otherwise, send the line under cursor."
   "Send the text of the current selected region, split into lines."
   (interactive)
   (if (use-region-p)
-      (let* ((text (buffer-substring-no-properties (region-beginning) (region-end)))
+      (let* ((text (buffer-substring-no-properties
+                    (region-beginning) (region-end))))
              (lines (split-string text "\n" t)))
         (mapc (lambda (line)
                 (let ((trimmed (string-trim line)))
                   (when (not (string-empty-p trimmed))
                     (aidermacs--send-command trimmed))))
               lines))
-    (message "No region selected.")))
+    (message "No region selected."))
 
 ;;;###autoload
 (defun aidermacs-send-block-or-region ()
-  "Send the current active region text or current paragraph content.
-When sending paragraph content, preserve cursor position."
+  "Send the current active region text or current paragraph
+content.  When sending paragraph content, preserve cursor
+position."
   (interactive)
   (let ((text (if (use-region-p)
-                  (buffer-substring-no-properties (region-beginning) (region-end))
+                  (buffer-substring-no-properties
+                   (region-beginning) (region-end))
                 (save-excursion
                   (mark-paragraph)
                   (prog1
-                      (buffer-substring-no-properties (region-beginning) (region-end))
+                      (buffer-substring-no-properties
+                       (region-beginning) (region-end))
                     (deactivate-mark))))))
     (when text
       (aidermacs--send-command text))))
@@ -1085,7 +1093,8 @@ When sending paragraph content, preserve cursor position."
 ;;;###autoload
 (defun aidermacs-open-prompt-file ()
   "Open aidermacs prompt file under git repo root.
-If file doesn't exist, create it with command binding help and sample prompt."
+If file doesn't exist, create it with command binding help and
+sample prompt."
   (interactive)
   (let* ((git-root (vc-git-root default-directory))
          (prompt-file (when git-root
@@ -1116,7 +1125,8 @@ If file doesn't exist, create it with command binding help and sample prompt."
 
 ;;;###autoload
 (define-minor-mode aidermacs-minor-mode
-  "Minor mode for interacting with aidermacs AI pair programming tool.
+  "Minor mode for interacting with aidermacs AI pair programming
+tool.
 
 Provides these keybindings:
 \\{aidermacs-minor-mode-map}"
@@ -1141,15 +1151,17 @@ These are exact filename matches (including the dot prefix)."
   "Determines whether to enable `aidermacs-minor-mode'."
   (when (and buffer-file-name
              (when buffer-file-name
-               (let ((base-name (file-name-nondirectory buffer-file-name)))
+               (let ((base-name (file-name-nondirectory
+                                  buffer-file-name))))
                  (member base-name aidermacs-auto-mode-files))))
-    (aidermacs-minor-mode 1)))
+    (aidermacs-minor-mode 1))
 
 ;;;###autoload
 (defun aidermacs-setup-minor-mode ()
-  "Set up automatic enabling of `aidermacs-minor-mode' for specific files.
-This adds a hook to automatically enable the minor mode for files
-matching patterns in `aidermacs-auto-mode-files'.
+  "Set up automatic enabling of `aidermacs-minor-mode' for
+specific files.  This adds a hook to automatically enable the
+minor mode for files matching patterns in
+`aidermacs-auto-mode-files'.
 
 The minor mode provides convenient keybindings for working with
 prompt files and other Aider-related files:
@@ -1163,7 +1175,8 @@ prompt files and other Aider-related files:
 ;;;###autoload
 (defun aidermacs-switch-to-code-mode ()
   "Switch aider to code mode.
-In code mode, aider will make changes to your code to satisfy your requests."
+In code mode, aider will make changes to your code to satisfy
+your requests."
   (interactive)
   (aidermacs--send-command "/chat-mode code")
   (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
@@ -1173,7 +1186,8 @@ In code mode, aider will make changes to your code to satisfy your requests."
 ;;;###autoload
 (defun aidermacs-switch-to-ask-mode ()
   "Switch aider to ask mode.
-In ask mode, aider will answer questions about your code, but never edit it."
+In ask mode, aider will answer questions about your code, but
+never edit it."
   (interactive)
   (aidermacs--send-command "/chat-mode ask")
   (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
@@ -1183,8 +1197,8 @@ In ask mode, aider will answer questions about your code, but never edit it."
 ;;;###autoload
 (defun aidermacs-switch-to-architect-mode ()
   "Switch aider to architect mode.
-In architect mode, aider will first propose a solution, then ask if you want
-it to turn that proposal into edits to your files."
+In architect mode, aider will first propose a solution, then ask
+if you want it to turn that proposal into edits to your files."
   (interactive)
   (aidermacs--send-command "/chat-mode architect")
   (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
@@ -1194,8 +1208,8 @@ it to turn that proposal into edits to your files."
 ;;;###autoload
 (defun aidermacs-switch-to-help-mode ()
   "Switch aider to help mode.
-In help mode, aider will answer questions about using aider, configuring,
-troubleshooting, etc."
+In help mode, aider will answer questions about using aider,
+configuring, troubleshooting, etc."
   (interactive)
   (aidermacs--send-command "/chat-mode help")
   (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
