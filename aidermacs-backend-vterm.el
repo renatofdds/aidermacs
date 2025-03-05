@@ -203,6 +203,7 @@ ORIG-FUN is the original function being advised. ARGS are its arguments."
   (when (and (aidermacs--is-aidermacs-buffer-p)
              (eq this-command 'vterm-send-return))
     ;; Get the current line content which should be the command
+    ;; TODO: current line may not be enough
     (save-excursion
       (let* ((prompt-point (condition-case nil
                                (vterm--get-prompt-point)

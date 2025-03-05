@@ -272,9 +272,10 @@ PROC is the process to send to.  STRING is the command to send."
   (aidermacs-reset-font-lock-state)
   ;; Store the command for tracking in the correct buffer
   (with-current-buffer (process-buffer proc)
-    (setq-local aidermacs--last-command string)
-    ;; Always prepare for potential edits
-    (aidermacs--prepare-for-code-edit))
+    (unless (member string '("" "y" "n" "d" "yes" "no"))
+      (setq aidermacs--last-command string)
+      ;; Always prepare for potential edits
+      (aidermacs--prepare-for-code-edit)))
   (comint-simple-send proc (aidermacs--process-message-if-multi-line string)))
 
 (defun aidermacs-run-comint (program args buffer-name)

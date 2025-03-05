@@ -106,7 +106,8 @@ Remove any files that don't exist."
 (defun aidermacs--parse-output-for-files (output)
   "Parse OUTPUT for files and add them to `aidermacs--tracked-files'."
   (when output
-    (let ((lines (split-string output "\n")))
+    (let ((lines (split-string output "\n"))
+          (last-line ""))
       (dolist (line lines)
         (cond
          ;; Applied edit to <filename>
@@ -144,14 +145,14 @@ Remove any files that don't exist."
               (add-to-list 'aidermacs--tracked-files file))))
 
          ;; <file>\nAdd file to the chat?
-         ((string-match "\\(\\./\\)?\\(.+\\)\nAdd file to the chat?" line)
-          (when-let ((file (match-string 2 line)))
-            (add-to-list 'aidermacs--tracked-files file)))
+         ((string-match "Add file to the chat?" line)
+          (add-to-list 'aidermacs--tracked-files last-line))
 
          ;; <file> is already in the chat as an editable file
          ((string-match "\\(\\./\\)?\\(.+\\) is already in the chat as an editable file" line)
           (when-let ((file (match-string 2 line)))
-            (add-to-list 'aidermacs--tracked-files file)))))
+            (add-to-list 'aidermacs--tracked-files file))))
+        (setq last-line line))
 
       ;; Verify all tracked files exist
       (aidermacs--verify-tracked-files))))
