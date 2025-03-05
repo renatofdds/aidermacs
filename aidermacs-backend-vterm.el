@@ -172,6 +172,7 @@ BUFFER-NAME is the name for the vterm buffer."
                     aidermacs--vterm-last-check-point nil)
         (advice-add 'vterm-send-return :around #'aidermacs--vterm-output-advice)
         (advice-add 'vterm-send-return :before #'aidermacs--vterm-capture-keyboard-input)
+        (advice-add 'vterm--self-insert :after #'aidermacs--cleanup-temp-files-on-interrupt-vterm)
         ;; Set up multi-line key binding
         (let ((map (make-sparse-keymap)))
           (set-keymap-parent map (current-local-map))
@@ -224,6 +225,13 @@ ORIG-FUN is the original function being advised. ARGS are its arguments."
     (setq-local aidermacs--vterm-active-timer nil))
   (setq-local aidermacs--vterm-last-check-point nil)
   (advice-remove 'vterm-send-return #'aidermacs--vterm-capture-keyboard-input))
+
+(defun aidermacs--cleanup-temp-files-on-interrupt-vterm (&rest args)
+  "Run `aidermacs--cleanup-all-temp-files' after interrupting a vterm subjob.
+ARGS are the arguments."
+  (when (and (aidermacs--is-aidermacs-buffer-p)
+             (equal (this-command-keys) "\C-c\C-c"))
+    (aidermacs--cleanup-all-temp-files)))
 
 (provide 'aidermacs-backend-vterm)
 

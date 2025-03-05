@@ -295,6 +295,7 @@ BUFFER-NAME is the name for the aidermacs buffer."
         (add-hook 'kill-buffer-hook #'aidermacs--comint-cleanup-hook nil t)
         (add-hook 'comint-output-filter-functions #'aidermacs-fontify-blocks 100 t)
         (add-hook 'comint-output-filter-functions #'aidermacs--comint-output-filter)
+        (advice-add 'comint-interrupt-subjob :around #'aidermacs--cleanup-temp-files-on-interrupt-comint)
         (let ((local-map (make-sparse-keymap)))
           (set-keymap-parent local-map comint-mode-map)
           (define-key local-map (kbd aidermacs-comint-multiline-newline-key) #'comint-accumulate)
@@ -334,6 +335,13 @@ The output is collected and passed to the current callback."
           (comint-redirect-cleanup)))
       (aidermacs--store-output (with-current-buffer output-buffer
                                  (buffer-string))))))
+
+(defun aidermacs--cleanup-temp-files-on-interrupt-comint (orig-fun &rest args)
+  "Run `aidermacs--cleanup-all-temp-files' after interrupting a comint subjob.
+ORIG-FUN is the original function being advised.  ARGS are its arguments."
+  (apply orig-fun args)
+  (when (aidermacs--is-aidermacs-buffer-p)
+    (aidermacs--cleanup-all-temp-files)))
 
 (provide 'aidermacs-backend-comint)
 
