@@ -26,12 +26,10 @@
 (when (commandp 'vterm)
   (require 'aidermacs-backend-vterm))
 
-(declare-function aidermacs-run-vterm "aidermacs-backend-vterm"
-                  (program args buffer-name))
-(declare-function aidermacs--send-command-vterm "aidermacs-backend-vterm"
-                  (buffer command))
-(declare-function aidermacs-project-root "aidermacs"
-                  ())
+(declare-function aidermacs-run-vterm "aidermacs-backend-vterm" (program args buffer-name))
+(declare-function aidermacs--send-command-vterm "aidermacs-backend-vterm" (buffer command))
+(declare-function aidermacs-project-root "aidermacs" ())
+(declare-function aidermacs--get-files-in-session "aidermacs" (callback))
 
 (defgroup aidermacs-backends nil
   "Backend customization for aidermacs."
@@ -39,7 +37,7 @@
 
 (defcustom aidermacs-backend 'comint
   "Backend to use for the aidermacs process.
-Options are `'comint' (the default) or `'vterm'.  When set to `'vterm',
+Options are `comint' (the default) or `vterm'.  When set to `vterm',
 aidermacs launches a fully functional vterm buffer instead
 of using a comint process."
   :type '(choice (const :tag "Comint" comint)
@@ -91,7 +89,7 @@ Returns a list of (timestamp . output-text) pairs, most recent first."
 This is used to avoid having to run /ls repeatedly.")
 
 (defun aidermacs--verify-tracked-files ()
-  "Verify if files in `aidermacs--tracked-files` exist relative to the project root.
+  "Verify files in `aidermacs--tracked-files` exist.
 Remove any files that don't exist."
   (let ((project-root (aidermacs-project-root))
         (valid-files nil))
@@ -106,8 +104,7 @@ Remove any files that don't exist."
     (setq aidermacs--tracked-files valid-files)))
 
 (defun aidermacs--parse-output-for-files (output)
-  "Parse OUTPUT for mentions of files and add them to `aidermacs--tracked-files`.
-Looks for patterns like 'Applied edit to <filename>' and similar."
+  "Parse OUTPUT for files and add them to `aidermacs--tracked-files'."
   (when output
     (let ((lines (split-string output "\n")))
       (dolist (line lines)

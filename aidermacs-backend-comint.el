@@ -24,6 +24,11 @@
 
 (require 'comint)
 
+;; Forward declarations
+(declare-function aidermacs--prepare-for-code-edit "aidermacs")
+(declare-function aidermacs--cleanup-all-temp-files "aidermacs")
+(declare-function aidermacs--show-ediff-for-edited-files "aidermacs")
+(declare-function aidermacs--detect-edited-files "aidermacs")
 (declare-function aidermacs--process-message-if-multi-line "aidermacs" (str))
 
 (defcustom aidermacs-language-name-map '(("elisp" . "emacs-lisp")

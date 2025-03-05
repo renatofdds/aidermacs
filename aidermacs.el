@@ -41,7 +41,7 @@
 
 (defvar-local aidermacs--current-mode nil
   "Buffer-local variable to track the current aidermacs mode.
-Possible values: 'code, 'ask, 'architect, 'help.")
+Possible values: `code', `ask', `architect', `help'.")
 
 (declare-function magit-show-commit "magit-diff" (rev &optional noselect module))
 
@@ -320,6 +320,7 @@ This is useful for working in monorepos where you want to limit aider's scope."
 (defun aidermacs--cleanup-all-temp-files ()
   "Clean up all temporary files created for ediff sessions.
 This is called when all ediff sessions are complete."
+  (interactive)
   (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
     (dolist (file-pair aidermacs--pre-edit-files)
       (let ((temp-file (cdr file-pair)))
@@ -354,11 +355,8 @@ This function is called when an ediff session is quit and performs two tasks:
   ;; Clean up any pre-edit buffers
   (dolist (buf (buffer-list))
     (when (string-match "\\*aidermacs-pre-edit:\\(.*\\)\\*" (buffer-name buf))
-      (let* ((file-name (match-string 1 (buffer-name buf)))
-             (full-path (when file-name
-                          (expand-file-name file-name (aidermacs-project-root)))))
-        (when (buffer-live-p buf)
-          (kill-buffer buf)))))
+      (when (buffer-live-p buf)
+        (kill-buffer buf))))
   (aidermacs--process-next-ediff-file))
 
 (defun aidermacs--setup-ediff-cleanup-hooks ()
@@ -425,7 +423,7 @@ This function is called when an ediff session is quit and performs two tasks:
           ;; Create buffer from temp file only when needed
           (let* ((pre-edit-buffer (aidermacs--create-pre-edit-buffer full-path temp-file))
                  (current-buffer (or (get-file-buffer full-path)
-                                    (find-file-noselect full-path))))
+                                     (find-file-noselect full-path))))
             (with-current-buffer current-buffer
               (revert-buffer t t t))
             ;; Store buffer for cleanup
@@ -951,8 +949,8 @@ This function assumes the cursor is on or inside a test function."
     (message "No test function found at cursor position.")))
 
 (defun aidermacs-create-session-scratchpad ()
-  "Create a new temporary file for adding content to the aider
-session.  The file will be created in the system's temp directory
+  "Create a new temporary file for adding content to the aider session.
+The file will be created in the system's temp directory
 with a timestamped name.  Use this to add functions, code
 snippets, or other content to the session."
   (interactive)
@@ -972,8 +970,8 @@ snippets, or other content to the session."
 
 ;;;###autoload
 (defun aidermacs-add-file-to-session ()
-  "Interactively add a file to an existing aidermacs session
-using /read.  This allows you to add the file's content to a
+  "Interactively add a file to an existing aidermacs session using /read.
+This allows you to add the file's content to a
 specific session."
   (interactive)
   (let* ((initial (when buffer-file-name
@@ -986,8 +984,8 @@ specific session."
       (aidermacs--send-command (format "/read %s" file) nil t))))
 
 (defun aidermacs--is-comment-line (line)
-  "Check if LINE is a comment line based on current buffer's
-comment syntax.  Returns non-nil if LINE starts with one or more
+  "Check if LINE is a comment line based on current buffer's comment syntax.
+Returns non-nil if LINE starts with one or more
 comment characters, ignoring leading whitespace."
   (when comment-start
     (let ((comment-str (string-trim-right comment-start)))
@@ -1006,7 +1004,7 @@ Otherwise implement TODOs for the entire current file."
   (interactive)
   (if (not buffer-file-name)
       (message "Current buffer is not visiting a file.")
-    (let* ((current-line (string-trim (thing-at-point 'line t))))
+    (let* ((current-line (string-trim (thing-at-point 'line t)))
            (is-comment (aidermacs--is-comment-line current-line)))
       (when-let ((command (aidermacs--form-prompt
                            "/architect"
@@ -1015,7 +1013,7 @@ Otherwise implement TODOs for the entire current file."
                                      (format " on this comment: `%s`." current-line))
                                    " Keep existing code structure"))))
         (aidermacs-add-current-file)
-        (aidermacs--send-command command))))
+        (aidermacs--send-command command)))))
 
 ;;;###autoload
 (defun aidermacs-send-line-or-region ()
@@ -1036,19 +1034,19 @@ Otherwise, send the line under cursor."
   (interactive)
   (if (use-region-p)
       (let* ((text (buffer-substring-no-properties
-                    (region-beginning) (region-end))))
+                    (region-beginning) (region-end)))
              (lines (split-string text "\n" t)))
         (mapc (lambda (line)
                 (let ((trimmed (string-trim line)))
                   (when (not (string-empty-p trimmed))
                     (aidermacs--send-command trimmed))))
               lines))
-    (message "No region selected."))
+    (message "No region selected.")))
 
 ;;;###autoload
 (defun aidermacs-send-block-or-region ()
-  "Send the current active region text or current paragraph
-content.  When sending paragraph content, preserve cursor
+  "Send the current active region text or current paragraph content.
+When sending paragraph content, preserve cursor
 position."
   (interactive)
   (let ((text (if (use-region-p)
@@ -1098,8 +1096,7 @@ sample prompt."
 
 ;;;###autoload
 (define-minor-mode aidermacs-minor-mode
-  "Minor mode for interacting with aidermacs AI pair programming
-tool.
+  "Minor mode for interacting with aidermacs AI pair programming tool.
 
 Provides these keybindings:
 \\{aidermacs-minor-mode-map}"
@@ -1123,18 +1120,15 @@ These are exact filename matches (including the dot prefix)."
 (defun aidermacs--maybe-enable-minor-mode ()
   "Determines whether to enable `aidermacs-minor-mode'."
   (when (and buffer-file-name
-             (when buffer-file-name
-               (let ((base-name (file-name-nondirectory
-                                  buffer-file-name))))
-                 (member base-name aidermacs-auto-mode-files))))
-    (aidermacs-minor-mode 1))
+             (member (file-name-nondirectory buffer-file-name)
+                     aidermacs-auto-mode-files))
+    (aidermacs-minor-mode 1)))
 
 ;;;###autoload
 (defun aidermacs-setup-minor-mode ()
-  "Set up automatic enabling of `aidermacs-minor-mode' for
-specific files.  This adds a hook to automatically enable the
-minor mode for files matching patterns in
-`aidermacs-auto-mode-files'.
+  "Set up automatic enabling of `aidermacs-minor-mode' for specific files.
+This adds a hook to automatically enable the minor mode for files
+matching patterns in `aidermacs-auto-mode-files'.
 
 The minor mode provides convenient keybindings for working with
 prompt files and other Aider-related files:

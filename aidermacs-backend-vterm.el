@@ -38,6 +38,12 @@
 (declare-function vterm-send-return "vterm")
 (declare-function vterm-insert "vterm")
 
+(declare-function aidermacs--prepare-for-code-edit "aidermacs")
+(declare-function aidermacs--cleanup-all-temp-files "aidermacs")
+(declare-function aidermacs--show-ediff-for-edited-files "aidermacs")
+(declare-function aidermacs--detect-edited-files "aidermacs")
+(declare-function aidermacs--store-output "aidermacs")
+(declare-function aidermacs--is-aidermacs-buffer-p "aidermacs")
 
 (defvar-local aidermacs--vterm-active-timer nil
   "Store the active timer for vterm output processing.")
