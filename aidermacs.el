@@ -758,7 +758,7 @@ GUIDE is displayed in the prompt but not included in the final command."
          (prompt (concat command " " prompt-prefix context
                         (when guide (format "(%s)" guide)) ": "))
          (user-command (aidermacs-read-string prompt)))
-    (concat command (unless (string= user-command "")
+    (concat command (unless (string-empty-p user-command)
                       (concat " " prompt-prefix context ": " user-command)))))
 
 (defun aidermacs-architect-this-code ()

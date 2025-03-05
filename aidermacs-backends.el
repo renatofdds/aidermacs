@@ -168,18 +168,19 @@ Remove any files that don't exist."
   "Store output string in the history with timestamp.
 OUTPUT is the string to store.
 If there's a callback function, call it with the output."
-  (setq aidermacs--current-output (substring-no-properties output))
-  (push (cons (current-time) (substring-no-properties output)) aidermacs--output-history)
-  (when (> (length aidermacs--output-history) aidermacs-output-limit)
-    (setq aidermacs--output-history
-          (seq-take aidermacs--output-history aidermacs-output-limit)))
-  ;; Parse output for file mentions
-  (aidermacs--parse-output-for-files output)
-  (unless aidermacs--in-callback
-    (when aidermacs--current-callback
-      (let ((aidermacs--in-callback t))
-        (funcall aidermacs--current-callback)
-        (setq aidermacs--current-callback nil)))))
+  (when (stringp output)
+    (setq aidermacs--current-output (substring-no-properties output))
+    (push (cons (current-time) (substring-no-properties output)) aidermacs--output-history)
+    (when (> (length aidermacs--output-history) aidermacs-output-limit)
+      (setq aidermacs--output-history
+            (seq-take aidermacs--output-history aidermacs-output-limit)))
+    ;; Parse output for file mentions
+    (aidermacs--parse-output-for-files output)
+    (unless aidermacs--in-callback
+      (when (functionp aidermacs--current-callback)
+        (let ((aidermacs--in-callback t))
+          (funcall aidermacs--current-callback)
+          (setq aidermacs--current-callback nil))))))
 
 ;; Backend dispatcher functions
 (defun aidermacs-run-backend (program args buffer-name)
