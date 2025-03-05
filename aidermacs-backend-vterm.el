@@ -44,6 +44,7 @@
 (declare-function aidermacs--detect-edited-files "aidermacs")
 (declare-function aidermacs--store-output "aidermacs")
 (declare-function aidermacs--is-aidermacs-buffer-p "aidermacs")
+(declare-function aidermacs-get-buffer-name "aidermacs")
 
 (defvar-local aidermacs--vterm-active-timer nil
   "Store the active timer for vterm output processing.")
@@ -154,7 +155,7 @@ after each output chunk, reducing the need for timers."
 (defun aidermacs--maybe-cancel-active-timer (&optional buffer)
   "Cancel the active timer if it exists.
 Use BUFFER if provided, otherwise retrieve it from `aidermacs-get-buffer-name'"
-  (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
+  (with-current-buffer (get-buffer (or buffer (aidermacs-get-buffer-name)))
     (when (timerp aidermacs--vterm-active-timer)
       (cancel-timer aidermacs--vterm-active-timer)
       (setq aidermacs--vterm-active-timer nil))))
