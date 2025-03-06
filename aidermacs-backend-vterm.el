@@ -39,7 +39,7 @@
 (declare-function vterm-insert "vterm")
 
 (declare-function aidermacs--prepare-for-code-edit "aidermacs")
-(declare-function aidermacs--cleanup-all-temp-files "aidermacs")
+(declare-function aidermacs--cleanup-temp-buffers "aidermacs")
 (declare-function aidermacs--show-ediff-for-edited-files "aidermacs")
 (declare-function aidermacs--detect-edited-files "aidermacs")
 (declare-function aidermacs--store-output "aidermacs")
@@ -108,7 +108,7 @@ If the finish sequence is detected, store the output via
                 ;; Check if any files were edited and show ediff if needed
                   (if edited-files
                       (aidermacs--show-ediff-for-edited-files edited-files)
-                    (aidermacs--cleanup-all-temp-files))
+                    (aidermacs--cleanup-temp-buffers))
                   ;; Restore the original process filter now that we've finished processing
                   ;; this command's output. This returns vterm to its normal behavior.
                   (set-process-filter proc orig-filter)
@@ -235,7 +235,7 @@ BUFFER is the target buffer to send to.  COMMAND is the text to send."
   (advice-remove 'vterm-send-return #'aidermacs--vterm-capture-keyboard-input))
 
 (defun aidermacs--cleanup-temp-files-on-interrupt-vterm (&rest _args)
-  "Run `aidermacs--cleanup-all-temp-files' after interrupting a vterm subjob.
+  "Run `aidermacs--cleanup-temp-buffers' after interrupting a vterm subjob.
 _ARGS are the arguments."
   (when (and (aidermacs--is-aidermacs-buffer-p)
              (equal (this-command-keys) "\C-c\C-c"))
@@ -243,7 +243,7 @@ _ARGS are the arguments."
     (setq-local aidermacs--vterm-processing-command nil)
     ;; Cancel any active timer
     (aidermacs--maybe-cancel-active-timer)
-    (aidermacs--cleanup-all-temp-files)))
+    (aidermacs--cleanup-temp-buffers)))
 
 (provide 'aidermacs-backend-vterm)
 ;;; aidermacs-backend-vterm.el ends here

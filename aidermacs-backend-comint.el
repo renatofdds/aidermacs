@@ -26,7 +26,7 @@
 
 ;; Forward declarations
 (declare-function aidermacs--prepare-for-code-edit "aidermacs")
-(declare-function aidermacs--cleanup-all-temp-files "aidermacs")
+(declare-function aidermacs--cleanup-temp-buffers "aidermacs")
 (declare-function aidermacs--show-ediff-for-edited-files "aidermacs")
 (declare-function aidermacs--detect-edited-files "aidermacs")
 (declare-function aidermacs--process-message-if-multi-line "aidermacs" (str))
@@ -116,7 +116,7 @@ that was matched at the start of the current syntax block.")
       (let ((edited-files (aidermacs--detect-edited-files)))
         (if edited-files
             (aidermacs--show-ediff-for-edited-files edited-files)
-          (aidermacs--cleanup-all-temp-files)))
+          (aidermacs--cleanup-temp-buffers)))
       (setq aidermacs--comint-output-temp ""))))
 
 (defun aidermacs-reset-font-lock-state ()
@@ -337,11 +337,11 @@ The output is collected and passed to the current callback."
                                  (buffer-string))))))
 
 (defun aidermacs--cleanup-temp-files-on-interrupt-comint (orig-fun &rest args)
-  "Run `aidermacs--cleanup-all-temp-files' after interrupting a comint subjob.
+  "Run `aidermacs--cleanup-temp-buffers' after interrupting a comint subjob.
 ORIG-FUN is the original function being advised.  ARGS are its arguments."
   (apply orig-fun args)
   (when (aidermacs--is-aidermacs-buffer-p)
-    (aidermacs--cleanup-all-temp-files)))
+    (aidermacs--cleanup-temp-buffers)))
 
 (provide 'aidermacs-backend-comint)
 
