@@ -1,6 +1,6 @@
 ;;; aidermacs.el --- Aidermacs package for interactive conversation with aider -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
-;; Version: 0.9.0
+;; Version: 1.0.0
 ;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
@@ -345,6 +345,9 @@ This is called when all ediff sessions are complete."
                     files))
       ;; Remove nil entries from the list (where capture failed or was skipped)
       (setq aidermacs--pre-edit-files (delq nil aidermacs--pre-edit-files))
+      ;; Run again if it's nil
+      (unless aidermacs--pre-edit-files
+        (aidermacs--prepare-for-code-edit))
       (message "Updated Temp Files: %s" aidermacs--pre-edit-files))))
 
 (defun aidermacs--ediff-quit-handler ()
@@ -426,13 +429,13 @@ This function is called when an ediff session is quit and performs two tasks:
                                      (find-file-noselect full-path))))
             (with-current-buffer current-buffer
               (revert-buffer t t t))
+            (delete-other-windows (get-buffer-window (switch-to-buffer current-buffer)))
             ;; Store buffer for cleanup
             (unless (boundp 'aidermacs--pre-edit-buffers)
               (setq-local aidermacs--pre-edit-buffers nil))
             (push (cons full-path pre-edit-buffer) aidermacs--pre-edit-buffers)
             ;; Debug info
             (message "Comparing %s with %s" temp-file full-path)
-            ;; Give Emacs a moment to finish buffer setup
             ;; Start ediff session
             (ediff-buffers pre-edit-buffer current-buffer)))
       ;; If no pre-edit temp file found, continue with next file
@@ -503,7 +506,6 @@ If the current buffer is already the aidermacs buffer, do nothing."
 (defun aidermacs-clear-chat-history ()
   "Send the command \"/clear\" to the aidermacs buffer."
   (interactive)
-  (setq aidermacs--tracked-files nil)
   (aidermacs--send-command "/clear"))
 
 ;;;###autoload

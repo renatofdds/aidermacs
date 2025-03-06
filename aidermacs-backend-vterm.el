@@ -1,6 +1,6 @@
 ;;; aidermacs-backend-vterm.el --- VTerm backend for aidermacs.el -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
-;; Version: 0.9.0
+;; Version: 1.0.0
 ;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
 ;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
@@ -53,7 +53,7 @@
   "Store the last position checked in the vterm buffer.")
 
 
-(defvar-local aidermacs-vterm-check-interval 0.2
+(defvar-local aidermacs-vterm-check-interval 0.5
   "Interval in seconds between checks for command completion in vterm.")
 
 
