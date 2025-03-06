@@ -41,7 +41,7 @@ Your contributions are essential for making Aidermacs the best AI pair programmi
 - [Aider](https://aider.chat/docs/install.html)
 - [Transient](https://github.com/magit/transient)
 
-### Sample Config With Straight
+### Sample Config
 ```emacs-lisp
 (use-package aidermacs
   :vc (:url "https://github.com/MatthewZMD/aidermacs" :rev :newest)
@@ -52,10 +52,10 @@ Your contributions are essential for making Aidermacs the best AI pair programmi
   (aidermacs-setup-minor-mode)
 
   :custom
+  ; See the Configuration section below
   (aidermacs-auto-commits t)
   (aidermacs-use-architect-mode t)
-  (aidermacs-architect-model "ollama_chat/dolphin-mixtral:8x7b")
-  (aidermacs-default-model "ollama_chat/dolphin-mixtral:8x7b"))
+  (aidermacs-default-model "sonnet"))
 ```
 
 ## Configuration
