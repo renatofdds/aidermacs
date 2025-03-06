@@ -44,17 +44,18 @@ Your contributions are essential for making Aidermacs the best AI pair programmi
 ### Sample Config With Straight
 ```emacs-lisp
 (use-package aidermacs
-  :straight (:host github :repo "MatthewZMD/aidermacs" :files ("*.el"))
+  :vc (:url "https://github.com/MatthewZMD/aidermacs" :rev :newest)
+  :bind (("C-c p" . aidermacs-transient-menu))
+
   :config
-  (setq aidermacs-default-model "sonnet")
-  (global-set-key (kbd "C-c a") 'aidermacs-transient-menu)
   ; Enable minor mode for Aider files
   (aidermacs-setup-minor-mode)
-  ; See the Configuration section below
-  (setq aidermacs-auto-commits t)
-  (setq aidermacs-use-architect-mode t)
-  ; Ensure emacs can access *_API_KEY through .bashrc or setenv
-  (setenv "ANTHROPIC_API_KEY" anthropic-api-key))
+
+  :custom
+  (aidermacs-auto-commits t)
+  (aidermacs-use-architect-mode t)
+  (aidermacs-architect-model "ollama_chat/dolphin-mixtral:8x7b")
+  (aidermacs-default-model "ollama_chat/dolphin-mixtral:8x7b"))
 ```
 
 ## Configuration
