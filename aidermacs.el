@@ -336,19 +336,20 @@ This is called when all ediff sessions are complete."
   (let ((files aidermacs--tracked-files))
     (when files
       (setq aidermacs--pre-edit-files
-            (mapcar (lambda (file)
-                      (let* ((clean-file (replace-regexp-in-string " (read-only)$" "" file))
-                             (full-path (expand-file-name clean-file (aidermacs-project-root))))
-                        ;; Check if a pre-edit file already exists for this file
-                        (unless (assoc full-path aidermacs--pre-edit-files)
-                          (aidermacs--capture-file-state full-path))))
-                    files))
+            (cl-remove-duplicates
+             (mapcar (lambda (file)
+                       (let* ((clean-file (replace-regexp-in-string " (read-only)$" "" file))
+                              (full-path (expand-file-name clean-file (aidermacs-project-root))))
+                         ;; Only capture state if we don't already have it
+                         (or (assoc full-path aidermacs--pre-edit-files)
+                             (aidermacs--capture-file-state full-path))))
+                     files)
+             :test (lambda (a b) (equal (car a) (car b)))))
       ;; Remove nil entries from the list (where capture failed or was skipped)
       (setq aidermacs--pre-edit-files (delq nil aidermacs--pre-edit-files))
       ;; Run again if it's nil
       (unless aidermacs--pre-edit-files
-        (aidermacs--prepare-for-code-edit))
-      (message "Updated Temp Files: %s" aidermacs--pre-edit-files))))
+        (aidermacs--prepare-for-code-edit)))))
 
 (defun aidermacs--ediff-quit-handler ()
   "Handle ediff session cleanup and process next files in queue.
