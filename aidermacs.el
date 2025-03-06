@@ -103,9 +103,8 @@ This is the file name without path."
   "History list for aidermacs read string inputs.")
 
 (defvar-local aidermacs--pre-edit-file-buffers nil
-  "Alist of (filename . temp-buffer) pairs storing file state before Aider edits.
-These buffers contain the original content of files that might be modified by Aider.
-Instead of writing to temporary files, we keep the original content in memory buffers.")
+  "Alist of (filename . temp-buffer) storing file state before Aider edits.
+These contain the original content of files that might be modified by Aider.")
 
 
 ;;;###autoload
@@ -410,7 +409,7 @@ pre-edit state stored in temporary buffers."
       (aidermacs--cleanup-temp-buffers))))
 
 (defun aidermacs--show-ediff-for-file (file)
-  "Uses the pre-edit buffer stored in memory to compare with the current file state."
+  "Uses the pre-edit buffer stored to compare with the current FILE state."
   (let* ((full-path (expand-file-name file (aidermacs-project-root)))
          (pre-edit-pair (assoc full-path aidermacs--pre-edit-file-buffers))
          (pre-edit-buffer (and pre-edit-pair (cdr pre-edit-pair))))
