@@ -19,7 +19,7 @@ Missing [Cursor](https://cursor.sh) but prefer living in Emacs? Aidermacs brings
 
 ### Video Demo
 
-[<img src="https://img.youtube.com/vi/TPpyxaGZg1A/0.jpg" width=600>](https://www.youtube.com/watch?v=TPpyxaGZg1A)
+[<img src="https://img.youtube.com/vi/fB3-ie6zs4Y/0.jpg" width=600>](https://www.youtube.com/watch?v=fB3-ie6zs4Y)
 
 ### Community-Driven Development
 
