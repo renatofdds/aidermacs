@@ -62,6 +62,8 @@
   :type 'string
   :group 'aidermacs)
 
+(defvar aidermacs-prompt-regexp)
+
 (defun aidermacs--vterm-check-finish-sequence-repeated (proc orig-filter start-point)
   "Check for the finish sequence in PROC's buffer.
 PROC is the process to check.  ORIG-FILTER is the original process filter.

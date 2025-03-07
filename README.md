@@ -19,6 +19,10 @@ Missing [Cursor](https://cursor.sh) but prefer living in Emacs? Aidermacs brings
   <img style='height: auto; width: 80%; object-fit: contain' src="./introscreen.png">
 </p>
 
+### Video Demo!
+
+[<img src="https://img.youtube.com/vi/TPpyxaGZg1A/0.jpg" width=400>](https://www.youtube.com/watch?v=TPpyxaGZg1A)
+
 ### Community-Driven Development
 
 Aidermacs thrives on community involvement. We believe collaborative development with user and contributor input creates the best software. We encourage you to:
@@ -34,14 +38,14 @@ Your contributions are essential for making Aidermacs the best AI pair programmi
   <img src = "https://contrib.rocks/image?repo=MatthewZMD/aidermacs"/>
 </a>
 
-## Installation
+## Quick Start
 
-### Requirements
+1. Requirements
 - Emacs ≥ 28.1
 - [Aider](https://aider.chat/docs/install.html)
 - [Transient](https://github.com/magit/transient)
 
-### Sample Config
+2. Modify this **sample config** to your Emacs `init.el`:
 ```emacs-lisp
 (use-package aidermacs
   :vc (:url "https://github.com/MatthewZMD/aidermacs" :rev :newest)
@@ -57,6 +61,8 @@ Your contributions are essential for making Aidermacs the best AI pair programmi
   (aidermacs-use-architect-mode t)
   (aidermacs-default-model "sonnet"))
 ```
+3. Open a project and run `M-x aidermacs-transient-menu` or `C-c p` (where you bind it)
+4. Add files and start coding with AI!
 
 ## Configuration
 
@@ -380,3 +386,51 @@ With `Aidermacs`, you get:
     - We prioritize features and improvements that directly benefit Emacs users, ensuring a tool that evolves with your needs.
 
 ... and more to come 🚀
+
+## Troubleshooting
+
+### Aider not found
+- Ensure Aider is installed: `pip install aider-chat`
+- Check `aidermacs-program` points to correct path
+
+### No response from AI
+- Verify API keys are set correctly
+- Check model selection matches your API access
+- Try simpler prompts first
+
+### Ediff not working
+- Ensure `ediff` is installed
+- Check file permissions
+- Try restarting Emacs
+
+## Example Workflows
+
+### Implementing a Feature
+1. Add relevant files with `f` or `F`
+2. Switch to Architect mode with `3`
+3. Describe the feature: "/architect Implement user login system"
+4. Review changes with Ediff
+5. Accept/reject changes
+
+### Debugging Code
+1. Add file with error
+2. Place cursor on error
+3. Run `!` (Debug Exception)
+4. Follow AI's debugging steps
+
+### Writing Tests
+1. Add file to test
+2. Run `t` (Write Test)
+3. Review generated tests
+4. Run tests to verify
+
+## FAQ
+
+### How is this different from Copilot?
+Aidermacs uses Aider which is more focused on code modification and architecture rather than just completion.
+
+### Can I use my own AI models?
+Yes! Aidermacs supports any OpenAI-compatible API endpoint.
+
+### Is my code sent to the AI provider?
+Yes, the code you add to the session is sent to the AI provider. Be mindful of sensitive code.

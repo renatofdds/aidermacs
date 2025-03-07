@@ -331,7 +331,6 @@ and syntax highlighting to match the original file."
 This is called when all ediff sessions are complete.
 Kills all pre-edit buffers that were created to store original file content."
   (interactive)
-  (message "Cleaning up")
   (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
     ;; Clean up buffers in the tracking list
     (dolist (file-pair aidermacs--pre-edit-file-buffers)
@@ -386,7 +385,6 @@ the next file in the ediff queue if any remain."
 Returns a list of files that have been modified according to the output."
   (let ((edited-files nil)
         (output aidermacs--current-output))
-    (message "Detecting edited files from output...")
     (when output
       (let ((lines (split-string output "\n"))
             (last-line ""))
@@ -395,14 +393,12 @@ Returns a list of files that have been modified according to the output."
            ;; Case 1: Look for "Applied edit to <filename>" pattern
            ((string-match "Applied edit to \\(\\./\\)?\\(.+\\)" line)
             (when-let ((file (match-string 2 line)))
-              (message "Found edited file (applied edit): %s" file)
               (push file edited-files)))
 
            ;; Case 2: Look for a filename followed by triple backticks on next line
            ((string-match "^```" line)
             (let ((potential-file (string-trim last-line)))
               (when (not (string-empty-p potential-file))
-                (message "Found potential file (code block): %s" potential-file)
                 (push potential-file edited-files)))))
 
           (setq last-line line))))
@@ -414,7 +410,6 @@ Returns a list of files that have been modified according to the output."
                          (lambda (file)
                            (file-exists-p (expand-file-name file project-root)))
                          unique-files)))
-      (message "Detected valid edited files: %s" valid-files)
       (nreverse valid-files))))
 
 (defvar-local aidermacs--ediff-queue nil

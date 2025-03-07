@@ -104,6 +104,8 @@ that was matched at the start of the current syntax block.")
 (defvar-local aidermacs--comint-output-temp ""
   "Temporary output variable storing the raw output string.")
 
+(defvar aidermacs-prompt-regexp)
+
 (defun aidermacs--comint-output-filter (output)
   "Accumulate OUTPUT string until a prompt is detected, then store it."
   (when (and (aidermacs--is-aidermacs-buffer-p) (not (string-empty-p output)))

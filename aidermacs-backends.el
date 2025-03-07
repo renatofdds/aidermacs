@@ -146,7 +146,8 @@ Remove any files that don't exist."
 
          ;; <file>\nAdd file to the chat?
          ((string-match "Add file to the chat?" line)
-          (add-to-list 'aidermacs--tracked-files last-line))
+          (add-to-list 'aidermacs--tracked-files last-line)
+          (aidermacs--prepare-for-code-edit))
 
          ;; <file> is already in the chat as an editable file
          ((string-match "\\(\\./\\)?\\(.+\\) is already in the chat as an editable file" line)
