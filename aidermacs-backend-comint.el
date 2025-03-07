@@ -110,7 +110,7 @@ that was matched at the start of the current syntax block.")
     (setq aidermacs--comint-output-temp
           (concat aidermacs--comint-output-temp (substring-no-properties output)))
     ;; Check if the output contains a prompt
-    (when (string-match-p "\n[^[:space:]]*>[[:space:]]$" aidermacs--comint-output-temp)
+    (when (string-match-p aidermacs-prompt-regexp aidermacs--comint-output-temp)
       (aidermacs--store-output aidermacs--comint-output-temp)
       ;; Check if any files were edited and show ediff if needed
       (let ((edited-files (aidermacs--detect-edited-files)))
@@ -288,7 +288,7 @@ BUFFER-NAME is the name for the aidermacs buffer."
       (apply #'make-comint-in-buffer "aidermacs" buffer-name program nil args)
       (with-current-buffer buffer-name
         (comint-mode)
-        (setq-local comint-prompt-regexp "[^[:space:]]*>[[:space:]]$")
+        (setq-local comint-prompt-regexp aidermacs-prompt-regexp)
         (setq-local comint-input-sender 'aidermacs-input-sender)
         (setq aidermacs--syntax-work-buffer
               (get-buffer-create (concat " *aidermacs-syntax" buffer-name)))

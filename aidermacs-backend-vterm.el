@@ -83,7 +83,7 @@ If the finish sequence is detected, store the output via
              (last-check (or aidermacs--vterm-last-check-point start-point))
              (should-check (> prompt-point last-check))
              ;; Simplified pattern that just looks for a shell prompt
-             (expected "^[^[:space:]]*>[[:space:]]"))
+             (expected aidermacs-prompt-regexp))
 
         ;; Update the last check point
         (setq aidermacs--vterm-last-check-point prompt-point)

@@ -99,6 +99,9 @@ This is the file name without path."
   :type 'string
   :group 'aidermacs)
 
+(defvar aidermacs-prompt-regexp "^[^[:space:]<]*>[[:space:]]$"
+  "Regexp to match Aider's command prompt.")
+
 (defvar-local aidermacs-read-string-history nil
   "History list for aidermacs read string inputs.")
 
@@ -328,6 +331,7 @@ and syntax highlighting to match the original file."
 This is called when all ediff sessions are complete.
 Kills all pre-edit buffers that were created to store original file content."
   (interactive)
+  (message "Cleaning up")
   (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
     ;; Clean up buffers in the tracking list
     (dolist (file-pair aidermacs--pre-edit-file-buffers)
