@@ -284,10 +284,11 @@ This function sets up the appropriate arguments and launches the process."
              (when aidermacs-subtree-only
                '("--subtree-only")))))
          (final-args (append backend-args flat-extra-args)))
-    (if (get-buffer buffer-name)
+    (if (and (get-buffer buffer-name)
+	     (process-live-p (get-buffer-process buffer-name)))
         (aidermacs-switch-to-buffer buffer-name)
       (aidermacs-run-backend aidermacs-program final-args buffer-name)
-      (with-current-buffer (get-buffer buffer-name)
+      (with-current-buffer buffer-name
         ;; Set initial mode based on startup configuration
         (setq-local aidermacs--current-mode (if aidermacs-use-architect-mode 'architect 'code)))
       (aidermacs-switch-to-buffer buffer-name))))
