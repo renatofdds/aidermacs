@@ -41,20 +41,21 @@ Your contributions are essential for making Aidermacs the best AI pair programmi
 - [Aider](https://aider.chat/docs/install.html)
 - [Transient](https://github.com/magit/transient)
 
-### Sample Config With Straight
+### Sample Config
 ```emacs-lisp
 (use-package aidermacs
-  :straight (:host github :repo "MatthewZMD/aidermacs" :files ("*.el"))
+  :vc (:url "https://github.com/MatthewZMD/aidermacs" :rev :newest)
+  :bind (("C-c p" . aidermacs-transient-menu))
+
   :config
-  (setq aidermacs-default-model "sonnet")
-  (global-set-key (kbd "C-c a") 'aidermacs-transient-menu)
   ; Enable minor mode for Aider files
   (aidermacs-setup-minor-mode)
+
+  :custom
   ; See the Configuration section below
-  (setq aidermacs-auto-commits t)
-  (setq aidermacs-use-architect-mode t)
-  ; Ensure emacs can access *_API_KEY through .bashrc or setenv
-  (setenv "ANTHROPIC_API_KEY" anthropic-api-key))
+  (aidermacs-auto-commits t)
+  (aidermacs-use-architect-mode t)
+  (aidermacs-default-model "sonnet"))
 ```
 
 ## Configuration
