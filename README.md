@@ -15,13 +15,11 @@ Missing [Cursor](https://cursor.sh) but prefer living in Emacs? Aidermacs brings
 
 ## Why Aidermacs?
 
-<p align="center">
-  <img style='height: auto; width: 80%; object-fit: contain' src="./introscreen.png">
-</p>
+<img style='height: auto; width: 80%; object-fit: contain' src="./introscreen.png">
 
-### Video Demo!
+### Video Demo
 
-[<img src="https://img.youtube.com/vi/TPpyxaGZg1A/0.jpg" width=400>](https://www.youtube.com/watch?v=TPpyxaGZg1A)
+[<img src="https://img.youtube.com/vi/TPpyxaGZg1A/0.jpg" width=600>](https://www.youtube.com/watch?v=TPpyxaGZg1A)
 
 ### Community-Driven Development
 
@@ -387,50 +385,13 @@ With `Aidermacs`, you get:
 
 ... and more to come 🚀
 
-## Troubleshooting
-
-### Aider not found
-- Ensure Aider is installed: `pip install aider-chat`
-- Check `aidermacs-program` points to correct path
-
-### No response from AI
-- Verify API keys are set correctly
-- Check model selection matches your API access
-- Try simpler prompts first
-
-### Ediff not working
-- Ensure `ediff` is installed
-- Check file permissions
-- Try restarting Emacs
-
-## Example Workflows
-
-### Implementing a Feature
-1. Add relevant files with `f` or `F`
-2. Switch to Architect mode with `3`
-3. Describe the feature: "/architect Implement user login system"
-4. Review changes with Ediff
-5. Accept/reject changes
-
-### Debugging Code
-1. Add file with error
-2. Place cursor on error
-3. Run `!` (Debug Exception)
-4. Follow AI's debugging steps
-
-### Writing Tests
-1. Add file to test
-2. Run `t` (Write Test)
-3. Review generated tests
-4. Run tests to verify
-
 ## FAQ
 
-### How is this different from Copilot?
-Aidermacs uses Aider which is more focused on code modification and architecture rather than just completion.
+### Aider?
+Please check [Aider's FAQ](https://aider.chat/docs/faq.html) for Aider related questions.
 
 ### Can I use my own AI models?
-Yes! Aidermacs supports any OpenAI-compatible API endpoint.
+Yes! Aidermacs supports any OpenAI-compatible API endpoint. Check Aider documentation on [Ollama](https://aider.chat/docs/llms/ollama.html) and [LiteLLM](https://aider.chat/docs/llms/other.html).
 
 ### Is my code sent to the AI provider?
 Yes, the code you add to the session is sent to the AI provider. Be mindful of sensitive code.
