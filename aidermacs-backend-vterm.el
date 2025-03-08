@@ -53,7 +53,7 @@
   "Store the last position checked in the vterm buffer.")
 
 
-(defvar-local aidermacs-vterm-check-interval 0.5
+(defvar-local aidermacs-vterm-check-interval 0.7
   "Interval in seconds between checks for command completion in vterm.")
 
 
@@ -99,22 +99,25 @@ If the finish sequence is detected, store the output via
                                 (point-min)))
                  ;; Only get the prompt line, not the whole sequence (limit to 200 chars)
                  (prompt-line-end (min (+ seq-start 200) (point-max)))
-                 (prompt-line (buffer-substring-no-properties seq-start prompt-line-end)))
+                 (prompt-line (buffer-substring-no-properties seq-start prompt-line-end))
+                 (output (buffer-substring-no-properties start-point seq-start)))
+
+            ;; Parse output for files
+            (aidermacs--parse-output-for-files output)
 
             ;; If we found a shell prompt indicating output finished
             (when (string-match-p expected prompt-line)
-              (let ((output (buffer-substring-no-properties start-point seq-start)))
-                (setq-local aidermacs--vterm-processing-command nil)
-                (aidermacs--store-output (string-trim output))
-                (let ((edited-files (aidermacs--detect-edited-files)))
+              (setq-local aidermacs--vterm-processing-command nil)
+              (aidermacs--store-output (string-trim output))
+              (let ((edited-files (aidermacs--detect-edited-files)))
                 ;; Check if any files were edited and show ediff if needed
-                  (if edited-files
-                      (aidermacs--show-ediff-for-edited-files edited-files)
-                    (aidermacs--cleanup-temp-buffers))
-                  ;; Restore the original process filter now that we've finished processing
-                  ;; this command's output. This returns vterm to its normal behavior.
-                  (set-process-filter proc orig-filter)
-                  (aidermacs--maybe-cancel-active-timer (process-buffer proc)))))))))))
+                (if edited-files
+                    (aidermacs--show-ediff-for-edited-files edited-files)
+                  (aidermacs--cleanup-temp-buffers))
+                ;; Restore the original process filter now that we've finished processing
+                ;; this command's output. This returns vterm to its normal behavior.
+                (set-process-filter proc orig-filter)
+                (aidermacs--maybe-cancel-active-timer (process-buffer proc))))))))))
 
 (defvar-local aidermacs--vterm-processing-command nil
   "Flag to indicate if we're currently processing a command.")

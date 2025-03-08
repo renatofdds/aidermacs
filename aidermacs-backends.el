@@ -29,6 +29,7 @@
 (declare-function aidermacs-run-vterm "aidermacs-backend-vterm" (program args buffer-name))
 (declare-function aidermacs--send-command-vterm "aidermacs-backend-vterm" (buffer command))
 (declare-function aidermacs-project-root "aidermacs" ())
+(declare-function aidermacs--prepare-for-code-edit "aidermacs" ())
 (declare-function aidermacs--get-files-in-session "aidermacs" (callback))
 
 (defgroup aidermacs-backends nil
