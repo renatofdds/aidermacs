@@ -108,7 +108,9 @@ Remove any files that don't exist."
   "Parse OUTPUT for files and add them to `aidermacs--tracked-files'."
   (when output
     (let ((lines (split-string output "\n"))
-          (last-line ""))
+          (last-line "")
+          (in-udiff nil)
+          (current-udiff-file nil))
       (dolist (line lines)
         (cond
          ;; Applied edit to <filename>
@@ -153,7 +155,26 @@ Remove any files that don't exist."
          ;; <file> is already in the chat as an editable file
          ((string-match "\\(\\./\\)?\\(.+\\) is already in the chat as an editable file" line)
           (when-let ((file (match-string 2 line)))
-            (add-to-list 'aidermacs--tracked-files file))))
+            (add-to-list 'aidermacs--tracked-files file)))
+ 
+         ;; Handle udiff format
+         ;; Detect start of udiff with "--- filename"
+         ((string-match "^--- \\(\\./\\)?\\(.+\\)" line)
+          (setq in-udiff t
+                current-udiff-file (match-string 2 line)))
+
+         ;; Confirm udiff file with "+++ filename" line
+         ((and in-udiff
+               current-udiff-file
+               (string-match "^\\+\\+\\+ \\(\\./\\)?\\(.+\\)" line))
+          (let ((plus-file (match-string 2 line)))
+            ;; Only add if the filenames match (ignoring ./ prefix)
+            (when (string= (file-name-nondirectory current-udiff-file)
+                           (file-name-nondirectory plus-file))
+              (add-to-list 'aidermacs--tracked-files current-udiff-file)
+              (setq in-udiff nil
+                    current-udiff-file nil)))))
+
         (setq last-line line))
 
       ;; Verify all tracked files exist

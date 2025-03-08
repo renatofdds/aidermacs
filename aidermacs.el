@@ -388,7 +388,9 @@ Returns a list of files that have been modified according to the output."
         (output aidermacs--current-output))
     (when output
       (let ((lines (split-string output "\n"))
-            (last-line ""))
+            (last-line "")
+            (in-udiff nil)
+            (current-udiff-file nil))
         (dolist (line lines)
           (cond
            ;; Case 1: Look for "Applied edit to <filename>" pattern
@@ -400,7 +402,25 @@ Returns a list of files that have been modified according to the output."
            ((string-match "^```" line)
             (let ((potential-file (string-trim last-line)))
               (when (not (string-empty-p potential-file))
-                (push potential-file edited-files)))))
+                (push potential-file edited-files))))
+
+           ;; Case 3: Handle udiff format
+           ;; Detect start of udiff with "--- filename"
+           ((string-match "^--- \\(\\./\\)?\\(.+\\)" line)
+            (setq in-udiff t
+                  current-udiff-file (match-string 2 line)))
+
+           ;; Confirm udiff file with "+++ filename" line
+           ((and in-udiff
+                 current-udiff-file
+                 (string-match "^\\+\\+\\+ \\(\\./\\)?\\(.+\\)" line))
+            (let ((plus-file (match-string 2 line)))
+              ;; Only add if the filenames match (ignoring ./ prefix)
+              (when (string= (file-name-nondirectory current-udiff-file)
+                             (file-name-nondirectory plus-file))
+                (push current-udiff-file edited-files)
+                (setq in-udiff nil
+                      current-udiff-file nil)))))
 
           (setq last-line line))))
 
