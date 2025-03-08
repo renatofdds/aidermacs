@@ -1,8 +1,8 @@
-;;; aidermacs.el --- Aidermacs package for interactive conversation with aider -*- lexical-binding: t; -*-
+;;; aidermacs.el --- AI pair programming with Aider in Emacs -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Version: 1.0.0
 ;; Package-Requires: ((emacs "28.1"))
-;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
+;; Keywords: ai emacs llm aider ai-pair-programming tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
 ;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
 ;; SPDX-License-Identifier: Apache-2.0
@@ -11,18 +11,17 @@
 ;;
 ;;; Commentary:
 ;;
-;; Aidermacs is an Emacs package that integrates with Aider, an AI
-;; pair programming tool, to bring AI-powered code modification and
-;; assistance to your Emacs workflow. It allows you to interact with
-;; Aider through an Emacs buffer, providing commands for adding and
-;; dropping files, asking questions, generating code, and more.
+;; Aidermacs integrates with Aider for AI-assisted code modification
+;; in Emacs. Provides interface to interact with Aider through Emacs
+;; buffer with commands for file management, code generation, and
+;; question answering.
 ;;
-;; Key features include:
-;; - Integration with Aider for AI-assisted code modification.
-;; - Support for multiple backends, including Comint and VTerm.
-;; - Commands for managing files, asking questions, and generating code.
-;; - Transient menus for easy access to commands.
-;; - Minor mode for convenient keybindings in prompt files.
+;; Features:
+;; - AI-assisted code modification
+;; - Multiple backends (Comint and VTerm)
+;; - File management commands
+;; - Transient menus for quick access
+;; - Minor mode for prompt files
 ;;
 ;;; Code:
 

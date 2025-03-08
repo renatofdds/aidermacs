@@ -1,7 +1,7 @@
-;;; aidermacs-backend-comint.el --- Comint backend for aidermacs.el -*- lexical-binding: t; -*-
+;;; aidermacs-backend-comint.el --- Comint backend for aidermacs -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Version: 1.0.0
-;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
+;; Keywords: ai emacs llm aider ai-pair-programming tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
 ;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
 ;; SPDX-License-Identifier: Apache-2.0
@@ -10,15 +10,14 @@
 ;;
 ;;; Commentary:
 ;;
-;; This file implements the Comint backend for Aidermacs, providing
-;; an interface for interacting with the Aider process within an
-;; Emacs buffer. It handles sending commands to Aider, displaying
-;; output, and managing the interaction flow.
+;; Implements Comint backend for Aidermacs, providing interface to
+;; interact with Aider process in Emacs buffer. Handles command
+;; sending, output display, and interaction flow.
 ;;
-;; Key features include:
-;; - Syntax highlighting for Aider's output.
-;; - Custom keybindings for multi-line input.
-;; - Management of the Aider process within a Comint buffer.
+;; Features:
+;; - Syntax highlighting for Aider output
+;; - Custom keybindings for multi-line input
+;; - Process management in Comint buffer
 ;;
 ;;; Code:
 

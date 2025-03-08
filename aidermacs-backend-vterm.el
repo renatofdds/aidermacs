@@ -1,7 +1,7 @@
-;;; aidermacs-backend-vterm.el --- VTerm backend for aidermacs.el -*- lexical-binding: t; -*-
+;;; aidermacs-backend-vterm.el --- VTerm backend for aidermacs -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Version: 1.0.0
-;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
+;; Keywords: ai emacs llm aider ai-pair-programming tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
 ;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
 ;; SPDX-License-Identifier: Apache-2.0
@@ -10,16 +10,15 @@
 ;;
 ;;; Commentary:
 ;;
-;; This file implements the VTerm backend for Aidermacs, providing
-;; an interface for interacting with the Aider process within a
-;; VTerm buffer. It leverages the VTerm package for a more
-;; feature-rich terminal experience.
+;; Implements VTerm backend for Aidermacs, providing interface to
+;; interact with Aider process in VTerm buffer. Uses VTerm package
+;; for rich terminal experience.
 ;;
-;; Key features include:
-;; - Integration with the VTerm package for terminal emulation.
-;; - Asynchronous output processing using timers and advices.
-;; - Custom keybindings for multi-line input.
-;; - Management of the Aider process within a VTerm buffer.
+;; Features:
+;; - VTerm integration for terminal emulation
+;; - Async output processing with timers
+;; - Custom multi-line input keybindings
+;; - Aider process management in VTerm
 ;;
 ;;; Code:
 

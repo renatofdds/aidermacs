@@ -1,7 +1,7 @@
-;;; aidermacs-backends.el --- Backend implementations for aidermacs.el -*- lexical-binding: t; -*-
+;;; aidermacs-backends.el --- Backend dispatcher for aidermacs -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Version: 1.0.0
-;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
+;; Keywords: ai emacs llm aider ai-pair-programming tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
 ;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
 ;; SPDX-License-Identifier: Apache-2.0
@@ -10,15 +10,14 @@
 ;;
 ;;; Commentary:
 ;;
-;; This file serves as the backend dispatcher for Aidermacs,
-;; allowing users to choose between different backend implementations
-;; for interacting with the Aider process. Currently, it supports
-;; Comint and VTerm backends.
+;; Backend dispatcher for Aidermacs, allowing choice between
+;; different backend implementations for Aider process.
+;; Supports Comint and VTerm backends.
 ;;
-;; Key features include:
-;; - Selection of the backend via the `aidermacs-backend` custom variable.
-;; - Abstraction of backend-specific functions for running Aider.
-;; - Management of output history and callbacks.
+;; Features:
+;; - Backend selection via `aidermacs-backend` variable
+;; - Abstracts backend-specific Aider functions
+;; - Manages output history and callbacks
 ;;
 ;;; Code:
 

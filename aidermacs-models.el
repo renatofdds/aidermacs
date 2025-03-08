@@ -1,7 +1,7 @@
-;;; aidermacs-models.el --- Model selection for aidermacs.el -*- lexical-binding: t; -*-
+;;; aidermacs-models.el --- Model selection for aidermacs -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Version: 1.0.0
-;; Keywords: ai emacs agents llm aider ai-pair-programming, convenience, tools
+;; Keywords: ai emacs llm aider ai-pair-programming tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
 ;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
 ;; SPDX-License-Identifier: Apache-2.0
@@ -10,16 +10,15 @@
 ;;
 ;;; Commentary:
 ;;
-;; This file provides model selection functionality for Aidermacs,
-;; allowing users to choose between different AI models for their
-;; Aider sessions. It supports fetching models from various API
-;; providers and caching them for faster access.
+;; Provides model selection for Aidermacs, allowing choice between
+;; different AI models for Aider sessions. Supports fetching models
+;; from various API providers and caching for faster access.
 ;;
-;; Key features include:
-;; - Selection of AI models via a completing-read interface.
-;; - Fetching of available models from OpenAI-compatible API endpoints.
-;; - Caching of models for faster access.
-;; - Customization of default models for different tasks.
+;; Features:
+;; - Model selection via completing-read interface
+;; - Fetch models from OpenAI-compatible APIs
+;; - Model caching for faster access
+;; - Custom default models for different tasks
 ;;
 ;;; Code:
 
