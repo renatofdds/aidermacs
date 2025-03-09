@@ -3,6 +3,7 @@
 </p>
 
 # Aidermacs: AI Pair Programming in Emacs
+[![MELPA](https://melpa.org/packages/aidermacs-badge.svg)](https://melpa.org/#/aidermacs)
 
 Missing [Cursor](https://cursor.sh) but prefer living in Emacs? Aidermacs brings Cursor-like AI-powered development to your Emacs workflow by integrating [Aider](https://github.com/paul-gauthier/aider), one of the most powerful open-source AI pair programming tools. As a community-driven project, Aidermacs prioritizes Emacs users' needs and preferences while providing the same powerful features found in Cursor!
 
@@ -42,24 +43,21 @@ Your contributions are essential for making Aidermacs the best AI pair programmi
 - Emacs ≥ 28.1
 - [Aider](https://aider.chat/docs/install.html)
 - [Transient](https://github.com/magit/transient)
-
-2. Modify this **sample config** to your Emacs `init.el`:
+2. Download Aidermacs through [melpa](https://melpa.org/#/aidermacs), or clone manually
+2. Modify this **sample config** and place it in your your Emacs `init.el`:
 ```emacs-lisp
 (use-package aidermacs
-  :vc (:url "https://github.com/MatthewZMD/aidermacs" :rev :newest)
-  :bind (("C-c p" . aidermacs-transient-menu))
-
+  :bind (("C-c a" . aidermacs-transient-menu))
   :config
   ; Enable minor mode for Aider files
   (aidermacs-setup-minor-mode)
-
   :custom
   ; See the Configuration section below
   (aidermacs-auto-commits t)
   (aidermacs-use-architect-mode t)
   (aidermacs-default-model "sonnet"))
 ```
-3. Open a project and run `M-x aidermacs-transient-menu` or `C-c p` (where you bind it)
+3. Open a project and run `M-x aidermacs-transient-menu` or `C-c a` (where you bind it)
 4. Add files and start coding with AI!
 
 ## Configuration
