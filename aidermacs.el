@@ -499,7 +499,7 @@ If CALLBACK is non-nil it will be called after the command finishes."
       ;; Always prepare for potential edits
       (aidermacs--cleanup-temp-buffers)
       (aidermacs--prepare-for-code-edit)
-      (aidermacs--send-command-backend buffer processed-command redirect callback))
+      (aidermacs--send-command-backend buffer processed-command redirect))
     (when (and (not no-switch-to-buffer) (not (string= (buffer-name) buffer-name)))
       (aidermacs-switch-to-buffer buffer-name))))
 
