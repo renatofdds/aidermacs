@@ -155,7 +155,7 @@ Remove any files that don't exist."
          ((string-match "\\(\\./\\)?\\(.+\\) is already in the chat as an editable file" line)
           (when-let ((file (match-string 2 line)))
             (add-to-list 'aidermacs--tracked-files file)))
- 
+
          ;; Handle udiff format
          ;; Detect start of udiff with "--- filename"
          ((string-match "^--- \\(\\./\\)?\\(.+\\)" line)
@@ -191,13 +191,16 @@ Remove any files that don't exist."
 OUTPUT is the string to store.
 If there's a callback function, call it with the output."
   (when (stringp output)
+    ;; Store the output
     (setq aidermacs--current-output (substring-no-properties output))
     (push (cons (current-time) (substring-no-properties output)) aidermacs--output-history)
+    ;; Trim history if needed
     (when (> (length aidermacs--output-history) aidermacs-output-limit)
       (setq aidermacs--output-history
             (seq-take aidermacs--output-history aidermacs-output-limit)))
-    ;; Parse output for file mentions
+    ;; Parse files from output
     (aidermacs--parse-output-for-files output)
+    ;; Handle callback if present
     (unless aidermacs--in-callback
       (when (functionp aidermacs--current-callback)
         (let ((aidermacs--in-callback t))
@@ -233,8 +236,6 @@ and is using either comint or vterm mode."
 BUFFER is the target buffer.  COMMAND is the text to send.
 If REDIRECT is non-nil it redirects the output (hidden) for comint backend.
 If CALLBACK is non-nil it will be called after the command finishes."
-  (setq aidermacs--last-command command
-        aidermacs--current-callback callback)
   (if (eq aidermacs-backend 'vterm)
       (aidermacs--send-command-vterm buffer command)
     (if redirect
