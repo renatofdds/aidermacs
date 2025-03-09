@@ -1,4 +1,4 @@
-;;; aidermacs.el --- AI pair programming with Aider in Emacs -*- lexical-binding: t; -*-
+;;; aidermacs.el --- AI pair programming with Aider -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Version: 1.0.0
 ;; Package-Requires: ((emacs "28.1"))
