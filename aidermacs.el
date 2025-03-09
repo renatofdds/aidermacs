@@ -98,7 +98,7 @@ This is the file name without path."
   :type 'string
   :group 'aidermacs)
 
-(defvar aidermacs-prompt-regexp "^[^[:space:]<]*>[[:space:]]$"
+(defvar aidermacs-prompt-regexp "^[^[:space:]<]*>[[:space:]]+$"
   "Regexp to match Aider's command prompt.")
 
 (defvar-local aidermacs-read-string-history nil
@@ -493,13 +493,13 @@ If CALLBACK is non-nil it will be called after the command finishes."
 
     ;; Reset current output before sending new command
     (with-current-buffer buffer
-      (setq-local aidermacs--current-output nil)
-      (setq-local aidermacs--last-command processed-command)
+      (setq aidermacs--current-output "")
+      (setq aidermacs--current-callback callback)
+      (setq aidermacs--last-command processed-command)
       ;; Always prepare for potential edits
       (aidermacs--cleanup-temp-buffers)
-      (aidermacs--prepare-for-code-edit))
-
-    (aidermacs--send-command-backend buffer processed-command redirect callback)
+      (aidermacs--prepare-for-code-edit)
+      (aidermacs--send-command-backend buffer processed-command redirect callback))
     (when (and (not no-switch-to-buffer) (not (string= (buffer-name) buffer-name)))
       (aidermacs-switch-to-buffer buffer-name))))
 
@@ -604,8 +604,7 @@ Returns a deduplicated list of such file names."
       (insert output)
       (goto-char (point-min))
       (let ((files '())
-            (base (or (vc-git-root default-directory)
-                      default-directory)))
+            (base (aidermacs-project-root)))
         ;; Parse read-only files section
         (when (search-forward "Read-only files:" nil t)
           (forward-line 1)
@@ -614,7 +613,10 @@ Returns a deduplicated list of such file names."
             (let* ((line (string-trim (thing-at-point 'line t)))
                    (file (car (split-string line))))
               (when (and file (file-exists-p (expand-file-name file base)))
-                (push (concat file " (read-only)") files)))
+                ;; Store relative path with read-only marker
+                (push (concat (file-relative-name (expand-file-name file base) base)
+                             " (read-only)")
+                      files)))
             (forward-line 1)))
 
         ;; Parse files in chat section
@@ -625,7 +627,8 @@ Returns a deduplicated list of such file names."
             (let* ((line (string-trim (thing-at-point 'line t)))
                    (file (car (split-string line))))
               (when (and file (file-exists-p (expand-file-name file base)))
-                (push file files)))
+                ;; Store relative path
+                (push (file-relative-name (expand-file-name file base) base) files)))
             (forward-line 1)))
 
         ;; Remove duplicates and return
