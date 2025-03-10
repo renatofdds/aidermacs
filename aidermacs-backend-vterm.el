@@ -36,6 +36,7 @@
 (declare-function vterm-send-string "vterm")
 (declare-function vterm-send-return "vterm")
 (declare-function vterm-insert "vterm")
+(declare-function vterm-send-C-c "vterm")
 
 (declare-function aidermacs--prepare-for-code-edit "aidermacs")
 (declare-function aidermacs--cleanup-temp-buffers "aidermacs")
@@ -193,7 +194,7 @@ BUFFER is the target buffer to send to.  COMMAND is the text to send."
   (vterm-send-return))
 
 (defun aidermacs-vterm-send-C-c ()
-  "Send C-c to the aidermacs vterm buffer, and clenaup."
+  "Send \\[vterm-send-key] C-c to the aidermacs vterm buffer, and cleanup."
   (interactive)
   (vterm-send-C-c)
   (aidermacs--cleanup-temp-files-on-interrupt-vterm))
