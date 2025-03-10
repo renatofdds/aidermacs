@@ -222,14 +222,11 @@ BUFFER-NAME is the name for the aidermacs buffer."
 (defun aidermacs--is-aidermacs-buffer-p (&optional buffer)
   "Check if BUFFER is any type of aidermacs buffer.
 If BUFFER is nil, check the current buffer.
-Returns non-nil if the buffer name matches the aidermacs buffer pattern
-and is using either comint or vterm mode."
+Returns non-nil if the buffer has either aidermacs-comint-mode or aidermacs-vterm-mode enabled."
   (let ((buf (or buffer (current-buffer))))
     (with-current-buffer buf
-      (and (string-match-p "^\\*aidermacs:" (buffer-name buf))
-           (or (derived-mode-p 'comint-mode)
-               (and (fboundp 'vterm-mode)
-                    (derived-mode-p 'vterm-mode)))))))
+      (or (bound-and-true-p aidermacs-comint-mode)
+          (bound-and-true-p aidermacs-vterm-mode)))))
 
 (defun aidermacs--send-command-backend (buffer command &optional redirect)
   "Send command to buffer using the appropriate backend.

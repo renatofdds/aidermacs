@@ -184,8 +184,7 @@ If there are multiple, prompt to select one interactively.
 Returns nil if no aidermacs buffers exist.
 This is used when you want to target an existing session."
   (let* ((buffers (cl-remove-if-not
-                   (lambda (buf)
-                     (string-match-p "^\\*aidermacs:" (buffer-name buf)))
+                   #'aidermacs--is-aidermacs-buffer-p
                    (buffer-list)))
          (buffer-names (mapcar #'buffer-name buffers)))
     (cond
@@ -203,8 +202,7 @@ If USE-EXISTING is non-nil, use an existing buffer instead of creating new."
          ;; Get all existing aidermacs buffers
          (aidermacs-buffers
           (cl-remove-if-not
-           (lambda (buf)
-             (string-match-p "^\\*aidermacs:" (buffer-name buf)))
+           #'aidermacs--is-aidermacs-buffer-p
            (buffer-list)))
          ;; Extract directory paths and subtree status from buffer names
          (buffer-dirs
@@ -710,7 +708,7 @@ If cursor is inside a function, include the function name as context.
 If called from the aidermacs buffer, use general question instead."
   (interactive)
   ;; Dispatch to general question if in aidermacs buffer
-  (if (string= (buffer-name) (aidermacs-get-buffer-name))
+  (if (aidermacs--is-aidermacs-buffer-p)
       (call-interactively #'aidermacs-general-question)
     (when-let ((command (aidermacs--form-prompt "/ask" "Question")))
       (aidermacs-add-current-file)
@@ -1211,7 +1209,7 @@ configuring, troubleshooting, etc."
 ;; Add a hook to clean up temp buffers when an aidermacs buffer is killed
 (defun aidermacs--cleanup-on-buffer-kill ()
   "Clean up temporary buffers when an aidermacs buffer is killed."
-  (when (string-match "^\\*aidermacs:" (buffer-name))
+  (when (aidermacs--is-aidermacs-buffer-p)
     (aidermacs--cleanup-temp-buffers)))
 
 (defun aidermacs--setup-cleanup-hooks ()
