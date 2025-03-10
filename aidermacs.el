@@ -441,13 +441,20 @@ Returns a list of files that have been modified according to the output."
 (defvar-local aidermacs--ediff-queue nil
   "Buffer-local queue of files waiting to be processed by ediff.")
 
+(defvar aidermacs--pre-ediff-window-config nil
+  "Window configuration before starting ediff sessions.")
+
 (defun aidermacs--process-next-ediff-file ()
   "Process the next file in the ediff queue for the current buffer."
   (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
     (if aidermacs--ediff-queue
         (let ((file (pop aidermacs--ediff-queue)))
           (aidermacs--show-ediff-for-file file))
-      (aidermacs--cleanup-temp-buffers))))
+      (aidermacs--cleanup-temp-buffers)
+      ;; Restore original window configuration
+      (when aidermacs--pre-ediff-window-config
+        (set-window-configuration aidermacs--pre-ediff-window-config)
+        (setq aidermacs--pre-ediff-window-config nil)))))
 
 (defun aidermacs--show-ediff-for-file (file)
   "Uses the pre-edit buffer stored to compare with the current FILE state."
@@ -471,6 +478,9 @@ Returns a list of files that have been modified according to the output."
   "Show ediff for each file in EDITED-FILES.
 This is skipped if `aidermacs-show-diff-after-change' is nil."
   (when (and aidermacs-show-diff-after-change edited-files)
+    ;; Save current window configuration
+    (setq aidermacs--pre-ediff-window-config (current-window-configuration))
+
     ;; Display a message about which files were changed
     (message "Modified %d file(s): %s"
              (length edited-files)
