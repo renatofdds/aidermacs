@@ -25,6 +25,8 @@
 (require 'json)
 (require 'url)
 
+(defvar url-http-end-of-headers)
+
 (declare-function aidermacs--send-command "aidermacs" (command &optional no-switch-to-buffer use-existing redirect callback))
 (declare-function aidermacs-buffer-name "aidermacs" ())
 (declare-function aidermacs-exit "aidermacs" ())

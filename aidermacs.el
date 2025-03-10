@@ -525,7 +525,7 @@ If CALLBACK is non-nil it will be called after the command finishes."
   "Switch to the aidermacs buffer.
 If BUFFER-NAME is provided, switch to that buffer.
 If not, try to get a buffer using `aidermacs-get-buffer-name`.
-If that fails, try to select an existing buffer with `aidermacs-select-buffer-name`.
+If that fails, try an existing buffer with `aidermacs-select-buffer-name`.
 If the buffer is already visible in a window, switch to that window.
 If the current buffer is already the aidermacs buffer, do nothing."
   (interactive)
