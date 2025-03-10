@@ -297,11 +297,7 @@ BUFFER-NAME is the name for the aidermacs buffer."
         (add-hook 'kill-buffer-hook #'aidermacs--comint-cleanup-hook nil t)
         (add-hook 'comint-output-filter-functions #'aidermacs-fontify-blocks 100 t)
         (add-hook 'comint-output-filter-functions #'aidermacs--comint-output-filter)
-        (advice-add 'comint-interrupt-subjob :around #'aidermacs--cleanup-temp-files-on-interrupt-comint)
-        (let ((local-map (make-sparse-keymap)))
-          (set-keymap-parent local-map comint-mode-map)
-          (define-key local-map (kbd aidermacs-comint-multiline-newline-key) #'comint-accumulate)
-          (use-local-map local-map))
+        (aidermacs-comint-mode 1)
         (font-lock-add-keywords nil aidermacs-font-lock-keywords t)))))
 
 (defun aidermacs--send-command-comint (buffer command)
@@ -338,12 +334,24 @@ The output is collected and passed to the current callback."
       (aidermacs--store-output (with-current-buffer output-buffer
                                  (buffer-string))))))
 
-(defun aidermacs--cleanup-temp-files-on-interrupt-comint (orig-fun &rest args)
-  "Run `aidermacs--cleanup-temp-buffers' after interrupting a comint subjob.
-ORIG-FUN is the original function being advised.  ARGS are its arguments."
-  (apply orig-fun args)
+(defun aidermacs-comint-interrupt-subjob ()
+  "Run `aidermacs--cleanup-temp-buffers' after interrupting a comint subjob."
+  (interactive)
+  (comint-interrupt-subjob)
   (when (aidermacs--is-aidermacs-buffer-p)
     (aidermacs--cleanup-temp-buffers)))
+
+(defvar aidermacs-comint-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd aidermacs-comint-multiline-newline-key) #'comint-accumulate)
+    (define-key map (kbd "C-c C-c") #'aidermacs-comint-interrupt-subjob)
+    map)
+  "Keymap used when `aidermacs-comint-mode' is enabled.")
+
+(define-minor-mode aidermacs-comint-mode
+  "Minor mode for vterm backend buffer used by aidermacs."
+  :init-value nil
+  :keymap aidermacs-comint-mode-map)
 
 (provide 'aidermacs-backend-comint)
 
