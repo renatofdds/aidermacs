@@ -141,6 +141,20 @@ You can customize keybindings for multiline input, this key allows you to enter 
 (setq aidermacs-vterm-multiline-newline-key "S-<return>")
 ```
 
+### Diff and Change Review
+
+Control whether to show diffs for AI-generated changes with `aidermacs-show-diff-after-change`:
+
+```emacs-lisp
+;; Enable/disable showing diffs after changes (default: t)
+(setq aidermacs-show-diff-after-change t)
+```
+
+When enabled, Aidermacs will:
+- Capture the state of files before AI edits
+- Show diffs using Emacs' built-in ediff interface
+- Allow you to review and accept/reject changes
+
 ### Re-Enable Auto-Commits
 
 Aider automatically commits AI-generated changes by default. We consider this behavior *very* intrusive, so we've disabled it. You can re-enable auto-commits by setting `aidermacs-auto-commits` to `t`:

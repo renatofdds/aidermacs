@@ -49,6 +49,12 @@ Possible values: `code', `ask', `architect', `help'.")
   :prefix "aidermacs-"
   :group 'convenience)
 
+(defcustom aidermacs-show-diff-after-change t
+  "When non-nil, enable ediff for reviewing AI-generated changes.
+When nil, skip preparing temp buffers and showing ediff comparisons."
+  :type 'boolean
+  :group 'aidermacs)
+
 (defcustom aidermacs-program "aider"
   "The name or path of the aidermacs program."
   :type 'string
@@ -345,24 +351,26 @@ Kills all pre-edit buffers that were created to store original file content."
 
 (defun aidermacs--prepare-for-code-edit ()
   "Prepare for code edits by capturing current file states in memory buffers.
-Creates temporary buffers containing the original content of all tracked files."
-  (let ((files aidermacs--tracked-files))
-    (when files
-      (setq aidermacs--pre-edit-file-buffers
-            (cl-remove-duplicates
-             (mapcar (lambda (file)
-                       (let* ((clean-file (replace-regexp-in-string " (read-only)$" "" file))
-                              (full-path (expand-file-name clean-file (aidermacs-project-root))))
-                         ;; Only capture state if we don't already have it
-                         (or (assoc full-path aidermacs--pre-edit-file-buffers)
-                             (aidermacs--capture-file-state full-path))))
-                     files)
-             :test (lambda (a b) (equal (car a) (car b)))))
-      ;; Remove nil entries from the list (where capture failed or was skipped)
-      (setq aidermacs--pre-edit-file-buffers (delq nil aidermacs--pre-edit-file-buffers))
-      ;; Run again if it's nil
-      (unless aidermacs--pre-edit-file-buffers
-        (aidermacs--prepare-for-code-edit)))))
+Creates temporary buffers containing the original content of all tracked files.
+This is skipped if `aidermacs-show-diff-after-change' is nil."
+  (when aidermacs-show-diff-after-change
+    (let ((files aidermacs--tracked-files))
+      (when files
+        (setq aidermacs--pre-edit-file-buffers
+              (cl-remove-duplicates
+               (mapcar (lambda (file)
+                         (let* ((clean-file (replace-regexp-in-string " (read-only)$" "" file))
+                                (full-path (expand-file-name clean-file (aidermacs-project-root))))
+                           ;; Only capture state if we don't already have it
+                           (or (assoc full-path aidermacs--pre-edit-file-buffers)
+                               (aidermacs--capture-file-state full-path))))
+                       files)
+               :test (lambda (a b) (equal (car a) (car b)))))
+        ;; Remove nil entries from the list (where capture failed or was skipped)
+        (setq aidermacs--pre-edit-file-buffers (delq nil aidermacs--pre-edit-file-buffers))
+        ;; Run again if it's nil
+        (unless aidermacs--pre-edit-file-buffers
+          (aidermacs--prepare-for-code-edit))))))
 
 (defun aidermacs--ediff-quit-handler ()
   "Handle ediff session cleanup and process next files in queue.
@@ -460,8 +468,9 @@ Returns a list of files that have been modified according to the output."
       (aidermacs--process-next-ediff-file))))
 
 (defun aidermacs--show-ediff-for-edited-files (edited-files)
-  "Show ediff for each file in EDITED-FILES."
-  (when edited-files
+  "Show ediff for each file in EDITED-FILES.
+This is skipped if `aidermacs-show-diff-after-change' is nil."
+  (when (and aidermacs-show-diff-after-change edited-files)
     ;; Display a message about which files were changed
     (message "Modified %d file(s): %s"
              (length edited-files)
