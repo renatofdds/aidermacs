@@ -34,6 +34,7 @@
 (require 'which-func)
 (require 'ansi-color)
 (require 'cl-lib)
+(require 'tramp)
 
 (require 'aidermacs-backends)
 (require 'aidermacs-models)
@@ -575,27 +576,17 @@ https://aidermacs.chat/docs/usage/commands.html#entering-multi-line-chat-message
     str))
 
 ;;;###autoload
-(defun aidermacs-act-on-current-file (command-prefix)
-  "Send a command with the current file path to the aidermacs buffer.
-COMMAND-PREFIX is the command to prepend to the file path.
-The full command will be \"COMMAND-PREFIX <current buffer file full path>\"."
-  ;; Ensure the current buffer is associated with a file
-  (if (not buffer-file-name)
-      (message "Current buffer is not associated with a file.")
-    (let* ((file-path (buffer-file-name))
-           ;; Use buffer-file-name directly
-           (formatted-path (if (string-match-p " " file-path)
-                               (format "\"%s\"" file-path)
-                             file-path))
-           (command (format "%s %s" command-prefix formatted-path)))
-      ;; Use the shared helper function to send the command
-      (aidermacs--send-command command))))
-
-;;;###autoload
 (defun aidermacs-drop-current-file ()
   "Drop the current file from aidermacs session."
   (interactive)
-  (aidermacs-act-on-current-file "/drop"))
+  (if (not buffer-file-name)
+      (message "Current buffer is not associated with a file.")
+    (let* ((file-path (aidermacs--localize-tramp-path buffer-file-name))
+           (formatted-path (if (string-match-p " " file-path)
+                               (format "\"%s\"" file-path)
+                             file-path))
+           (command (format "/drop %s" formatted-path)))
+      (aidermacs--send-command command))))
 
 ;;;###autoload
 (defun aidermacs-general-command ()
@@ -624,8 +615,9 @@ Returns a deduplicated list of such file names."
     (with-temp-buffer
       (insert output)
       (goto-char (point-min))
-      (let ((files '())
-            (base (aidermacs-project-root)))
+      (let* ((files '())
+             (base (aidermacs-project-root))
+             (is-remote (file-remote-p base)))
         ;; Parse read-only files section
         (when (search-forward "Read-only files:" nil t)
           (forward-line 1)
@@ -633,11 +625,15 @@ Returns a deduplicated list of such file names."
                       (string-match-p "^[[:space:]]" (thing-at-point 'line t)))
             (let* ((line (string-trim (thing-at-point 'line t)))
                    (file (car (split-string line))))
-              (when (and file (file-exists-p (expand-file-name file base)))
-                ;; Store relative path with read-only marker
-                (push (concat (file-relative-name (expand-file-name file base) base)
-                             " (read-only)")
-                      files)))
+              ;; For remote files, we don't try to verify existence or convert paths
+              (when file
+                (if is-remote
+                    (push (concat file " (read-only)") files)
+                  ;; For local files, verify existence and convert to relative path
+                  (when (file-exists-p (expand-file-name file base))
+                    (push (concat (file-relative-name (expand-file-name file base) base)
+                                  " (read-only)")
+                          files)))))
             (forward-line 1)))
 
         ;; Parse files in chat section
@@ -647,9 +643,13 @@ Returns a deduplicated list of such file names."
                       (string-match-p "^[[:space:]]" (thing-at-point 'line t)))
             (let* ((line (string-trim (thing-at-point 'line t)))
                    (file (car (split-string line))))
-              (when (and file (file-exists-p (expand-file-name file base)))
-                ;; Store relative path
-                (push (file-relative-name (expand-file-name file base) base) files)))
+              ;; For remote files, we don't try to verify existence or convert paths
+              (when file
+                (if is-remote
+                    (push file files)
+                  ;; For local files, verify existence and convert to relative path
+                  (when (file-exists-p (expand-file-name file base))
+                    (push (file-relative-name (expand-file-name file base) base) files)))))
             (forward-line 1)))
 
         ;; Remove duplicates and return
@@ -682,7 +682,8 @@ Sends the \"/ls\" command and returns the list of files via callback."
    (lambda (files)
      (if-let* ((file (completing-read "Select file to drop: " files nil t))
                (clean-file (replace-regexp-in-string " (read-only)$" "" file)))
-         (aidermacs--send-command (format "/drop ./%s" clean-file))
+         (let ((command (aidermacs--prepare-file-paths-for-command "/drop" (list (concat "./" clean-file)))))
+           (aidermacs--send-command command))
        (message "No files available to drop")))))
 
 
@@ -841,17 +842,33 @@ PREFIX is the text to prepend.  COMMAND is the text to send."
   (aidermacs-add-current-file)
   (aidermacs--send-command (concat prefix command)))
 
+(defun aidermacs--localize-tramp-path (file)
+  "If FILE is a TRAMP path, extract the local part of the path.
+Otherwise, return FILE unchanged."
+  (if (and (fboundp 'tramp-tramp-file-p) (tramp-tramp-file-p file))
+      (let ((local-name (tramp-file-name-localname (tramp-dissect-file-name file))))
+        local-name)
+    file))
+
+(defun aidermacs--prepare-file-paths-for-command (command files)
+  "Prepare FILES for use with COMMAND in aider.
+Handles TRAMP paths by extracting local parts and formats the command string."
+  (let ((localized-files (mapcar #'aidermacs--localize-tramp-path (delq nil files))))
+    (if localized-files
+        (format "%s %s" command
+                (mapconcat #'identity localized-files " "))
+      (format "%s" command))))
+
 (defun aidermacs--add-files-helper (files read-only &optional message)
   "Helper function to add files with read-only flag.
 FILES is a list of file paths to add.  READ-ONLY determines if files are added
 as read-only.  Optional MESSAGE can override the default success message."
   (let* ((cmd (if read-only "/read-only" "/add"))
+         (command (aidermacs--prepare-file-paths-for-command cmd files))
          (files (delq nil files)))
     (if files
         (progn
-          (aidermacs--send-command
-           (format "%s %s" cmd
-                   (mapconcat #'identity files " ")))
+          (aidermacs--send-command command)
           (message (or message
                        (format "Added %d files as %s"
                                (length files)
@@ -1010,7 +1027,8 @@ snippets, or other content to the session."
       (insert ";; Add your code snippets, functions, or other content here\n")
       (insert ";; Just edit and save - changes will be available to aider\n\n")
       (write-file filename))
-    (aidermacs--send-command (format "/read %s" filename))
+    (let ((command (aidermacs--prepare-file-paths-for-command "/read" (list filename))))
+      (aidermacs--send-command command))
     (find-file-other-window filename)
     (message "Created and added scratchpad to session: %s" filename)))
 
@@ -1027,7 +1045,8 @@ specific session."
                                 nil nil t initial))))
     (if (not (file-exists-p file))
         (message "File does not exist: %s" file)
-      (aidermacs--send-command (format "/read %s" file) nil t))))
+      (let ((command (aidermacs--prepare-file-paths-for-command "/read" (list file))))
+        (aidermacs--send-command command nil t)))))
 
 (defun aidermacs--is-comment-line (line)
   "Check if LINE is a comment line based on current buffer's comment syntax.
