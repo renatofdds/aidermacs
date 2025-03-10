@@ -53,7 +53,6 @@ Your contributions are essential for making Aidermacs the best AI pair programmi
   (aidermacs-setup-minor-mode)
   :custom
   ; See the Configuration section below
-  (aidermacs-auto-commits t)
   (aidermacs-use-architect-mode t)
   (aidermacs-default-model "sonnet"))
 ```
