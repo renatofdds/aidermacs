@@ -194,7 +194,7 @@ BUFFER is the target buffer to send to.  COMMAND is the text to send."
   (vterm-send-return))
 
 (defun aidermacs-vterm-send-C-c ()
-  "Send \\[vterm-send-key] C-c to the aidermacs vterm buffer, and cleanup."
+  "Send interrupt to the aidermacs vterm buffer, and cleanup."
   (interactive)
   (vterm-send-C-c)
   (aidermacs--cleanup-temp-files-on-interrupt-vterm))
