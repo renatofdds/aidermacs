@@ -505,19 +505,23 @@ If CALLBACK is non-nil it will be called after the command finishes."
 (defun aidermacs-switch-to-buffer (&optional buffer-name)
   "Switch to the aidermacs buffer.
 If BUFFER-NAME is provided, switch to that buffer.
+If not, try to get a buffer using `aidermacs-get-buffer-name`.
+If that fails, try to select an existing buffer with `aidermacs-select-buffer-name`.
 If the buffer is already visible in a window, switch to that window.
 If the current buffer is already the aidermacs buffer, do nothing."
   (interactive)
-  (let* ((target-buffer-name (or buffer-name (aidermacs-get-buffer-name)))
-         (buffer (get-buffer target-buffer-name)))
+  (let* ((target-buffer-name (or buffer-name
+                                 (aidermacs-get-buffer-name t)
+                                 (aidermacs-select-buffer-name)))
+         (buffer (and target-buffer-name (get-buffer target-buffer-name))))
     (cond
-     ((string= (buffer-name) target-buffer-name) t)
+     ((and target-buffer-name (string= (buffer-name) target-buffer-name)) t)
      ((and buffer (get-buffer-window buffer))
       (select-window (get-buffer-window buffer)))  ;; Switch to existing window
      (buffer
       (pop-to-buffer buffer))
      (t
-      (message "Buffer '%s' does not exist." target-buffer-name)))))
+      (message "No aidermacs buffer exists.")))))
 
 ;;;###autoload
 (defun aidermacs-clear-chat-history ()
