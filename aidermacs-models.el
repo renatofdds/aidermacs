@@ -102,6 +102,7 @@ API provider."
              (if (string= hostname "generativelanguage.googleapis.com")
                  (concat url "/models?key=" token)
                (concat url "/models"))))
+        (goto-char url-http-end-of-headers)
         (let* ((json-object-type 'alist)
                (json-data (json-read))
                (models (if (string= hostname "generativelanguage.googleapis.com")
