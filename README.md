@@ -44,7 +44,7 @@ Your contributions are essential for making Aidermacs the best AI pair programmi
 - [Aider](https://aider.chat/docs/install.html)
 - [Transient](https://github.com/magit/transient)
 2. Download Aidermacs through [melpa](https://melpa.org/#/aidermacs), or clone manually
-2. Modify this **sample config** and place it in your your Emacs `init.el`:
+2. Modify this **sample config** and place it in your Emacs `init.el`:
 ```emacs-lisp
 (use-package aidermacs
   :bind (("C-c a" . aidermacs-transient-menu))
