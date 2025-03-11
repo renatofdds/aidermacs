@@ -61,8 +61,10 @@ Here's what the community is saying about Aidermacs:
 (use-package aidermacs
   :bind (("C-c a" . aidermacs-transient-menu))
   :config
-  ; Enable minor mode for Aider files
-  (aidermacs-setup-minor-mode)
+  ; Set API_KEY in .bashrc, that will automatically picked up by aider or in elisp
+  (setenv "ANTHROPIC_API_KEY" "sk-...")
+  ; defun my-get-openrouter-api-key yourself elsewhere for security reasons
+  (setenv "OPENROUTER_API_KEY" (my-get-openrouter-api-key))
   :custom
   ; See the Configuration section below
   (aidermacs-use-architect-mode t)
@@ -92,7 +94,7 @@ Aidermacs offers intelligent model selection for solo (non-Architect) mode, auto
 - Automatically fetches available models from supported providers (OpenAI, Anthropic, DeepSeek, Google Gemini, OpenRouter)
 - Caches model lists for quick access
 - Supports both popular pre-configured models and dynamically discovered ones
-- Handles API keys and authentication automatically
+- Handles API keys and authentication automatically from your .bashrc
 - Provides model compatibility checking
 
 The dynamic model selection is only for the solo (non-Architect) mode.
