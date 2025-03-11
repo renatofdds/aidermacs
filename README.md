@@ -37,6 +37,18 @@ Your contributions are essential for making Aidermacs the best AI pair programmi
   <img src = "https://contrib.rocks/image?repo=MatthewZMD/aidermacs"/>
 </a>
 
+#### The Community Speaks
+
+Here's what the community is saying about Aidermacs:
+
+> "This is amazing... every time I upgrade my packages I see your new commits. I feel this the authentic aider for emacs" - u/wchmbo
+
+> "Between Aidermacs and Gptel it's wild how bleeding edge Emacs is with this stuff. My workplace is exploring MCP registries and even clients that are all the rage (E.g Cursor) lag behind what I can do with mcp.el and gptel for tool use." - u/no_good_names_avail
+
+> "This looks amazing... I have been using ellama with local llms, looks like that will work here too. Great stuff!!" - u/lugpocalypse
+
+> "Honestly huge fan of this. Thank you for the updates!" - u/ieoa
+
 ## Quick Start
 
 1. Requirements
