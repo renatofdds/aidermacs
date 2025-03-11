@@ -141,6 +141,25 @@ You can customize keybindings for multiline input, this key allows you to enter 
 (setq aidermacs-vterm-multiline-newline-key "S-<return>")
 ```
 
+### Remote File Support with Tramp
+
+Aidermacs fully supports working with remote files through Emacs' Tramp mode. This allows you to use Aidermacs on files hosted on remote servers via SSH, Docker, and other protocols supported by Tramp.
+
+When working with remote files:
+- File paths are automatically localized for the remote system
+- All Aidermacs features work seamlessly across local and remote files
+- Edits are applied directly to the remote files
+- Diffs and change reviews work as expected
+
+Example usage:
+```emacs-lisp
+;; Open a remote file via SSH
+(find-file "/ssh:user@remotehost:/path/to/file.py")
+
+;; Start Aidermacs session - it will automatically detect the remote context
+M-x aidermacs-transient-menu
+```
+
 ### Diff and Change Review
 
 Control whether to show diffs for AI-generated changes with `aidermacs-show-diff-after-change`:
@@ -379,6 +398,7 @@ With `Aidermacs`, you get:
    - Interactively select files to add with `M-x aidermacs-add-files-interactively`
    - Add content from any file to a specific session with `M-x aidermacs-add-file-to-session`
    - Create a temporary file for adding code snippets or notes to the Aider session with `M-x aidermacs-create-session-scratchpad`
+   - Full support for remote files via Tramp (SSH, Docker, etc.)
    - and more
 
 7. Greater Configurability

@@ -91,7 +91,8 @@ This is used to avoid having to run /ls repeatedly.")
 (defun aidermacs--verify-tracked-files ()
   "Verify files in `aidermacs--tracked-files` exist.
 Remove any files that don't exist."
-  (let ((project-root (aidermacs-project-root))
+  (let* ((project-root (aidermacs-project-root))
+         (is-remote (file-remote-p project-root))
         (valid-files nil))
     (dolist (file aidermacs--tracked-files)
       (let* ((is-readonly (string-match-p " (read-only)$" file))
@@ -99,7 +100,7 @@ Remove any files that don't exist."
                               (substring file 0 (- (length file) 12))
                             file))
              (full-path (expand-file-name actual-file project-root)))
-        (when (file-exists-p full-path)
+        (when (or (file-exists-p full-path) is-remote)
           (push file valid-files))))
     (setq aidermacs--tracked-files valid-files)))
 
