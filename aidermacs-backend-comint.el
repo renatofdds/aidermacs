@@ -260,7 +260,9 @@ _OUTPUT is the text to be processed."
                (re-search-backward "^\\([^`[:space:]]+\\)$" (line-beginning-position -3) t)))
      (let ((file (match-string 1)))
        (cdr (cl-assoc-if (lambda (re) (string-match re file)) auto-mode-alist))))
-   'fundamental-mode))
+   (progn
+     (message "aidermacs warning: can't detect major mode at %d" (point))
+     'fundamental-mode)))
 
 (defun aidermacs--comint-cleanup-hook ()
   "Clean up the fontify buffer."
