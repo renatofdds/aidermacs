@@ -37,9 +37,11 @@ Your contributions are essential for making Aidermacs the best AI pair programmi
   <img src = "https://contrib.rocks/image?repo=MatthewZMD/aidermacs"/>
 </a>
 
-#### The Community Speaks
+#### Community Speaks
 
 Here's what the community is saying about Aidermacs:
+
+> "Are you using aidermacs? For me superior to cursor." - u/berenddeboer
 
 > "This is amazing... every time I upgrade my packages I see your new commits. I feel this the authentic aider for emacs" - u/wchmbo
 

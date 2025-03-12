@@ -3,13 +3,12 @@
 ;; Version: 1.0.0
 ;; Keywords: ai emacs llm aider ai-pair-programming tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
-;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
 ;; SPDX-License-Identifier: Apache-2.0
-;;
+
 ;; This file is not part of GNU Emacs.
-;;
+
 ;;; Commentary:
-;;
+
 ;; Implements VTerm backend for Aidermacs, providing interface to
 ;; interact with Aider process in VTerm buffer. Uses VTerm package
 ;; for rich terminal experience.
@@ -19,7 +18,9 @@
 ;; - Async output processing with timers
 ;; - Custom multi-line input keybindings
 ;; - Aider process management in VTerm
-;;
+
+;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
+
 ;;; Code:
 
 (require 'vterm nil 'noerror)

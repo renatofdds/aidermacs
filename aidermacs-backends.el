@@ -3,13 +3,12 @@
 ;; Version: 1.0.0
 ;; Keywords: ai emacs llm aider ai-pair-programming tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
-;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
 ;; SPDX-License-Identifier: Apache-2.0
-;;
+
 ;; This file is not part of GNU Emacs.
-;;
+
 ;;; Commentary:
-;;
+
 ;; Backend dispatcher for Aidermacs, allowing choice between
 ;; different backend implementations for Aider process.
 ;; Supports Comint and VTerm backends.
@@ -18,7 +17,9 @@
 ;; - Backend selection via `aidermacs-backend` variable
 ;; - Abstracts backend-specific Aider functions
 ;; - Manages output history and callbacks
-;;
+
+;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
+
 ;;; Code:
 
 (require 'aidermacs-backend-comint)
