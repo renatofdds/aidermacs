@@ -277,7 +277,7 @@ PROC is the process to send to.  STRING is the command to send."
   (aidermacs-reset-font-lock-state)
   ;; Store the command for tracking in the correct buffer
   (with-current-buffer (process-buffer proc)
-    (if (member string '("" "y" "n" "d" "yes" "no"))
+    (if (member (downcase string) '("" "y" "n" "d" "yes" "no"))
         (aidermacs--parse-output-for-files aidermacs--comint-output-temp)
       (setq aidermacs--last-command string)
       ;; Always prepare for potential edits
