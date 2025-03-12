@@ -29,4 +29,4 @@ jobs:
           review_id: ${{inputs.review_id}}
           author_username: ${{inputs.author_username}}
           aider_args: ${{inputs.aider_args}}
-          aider_api_key: ${{secrets.AIDER_API_KEY}}
+          aider_api_key: ${{secrets.ANTHROPIC_API_KEY}}
