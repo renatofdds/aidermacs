@@ -136,7 +136,8 @@ These contain the original content of files that might be modified by Aider.")
    ["Drop Files"
     ("j" "Drop File" aidermacs-drop-file)
     ("J" "Drop Current File" aidermacs-drop-current-file)
-    ("k" "Drop All Files" aidermacs-drop-all-files)]
+    ("K" "Drop All Files" aidermacs-drop-all-files)
+    ("k" "Drop From Dired (marked)" aidermacs-batch-drop-dired-marked-files)]
    ["Others"
     ("S" "Create Session Scratchpad" aidermacs-create-session-scratchpad)
     ("G" "Add File to Session" aidermacs-add-file-to-session)
@@ -685,6 +686,11 @@ Sends the \"/ls\" command and displays the results in a Dired buffer."
   (interactive)
   (aidermacs--send-command "/drop"))
 
+(defun aidermacs-batch-drop-dired-marked-files ()
+  "Drop Dired files."
+  (interactive)
+  (aidermacs--drop-files-helper (dired-get-marked-files)))
+
 (defun aidermacs-show-output-history ()
   "Display the AI output history in a new buffer."
   (interactive)
@@ -861,6 +867,20 @@ as read-only.  MESSAGE can override the default success message."
                                (length files)
                                (if read-only "read-only" "editable")))))
       (message "No files to add."))))
+
+(defun aidermacs--drop-files-helper (files &optional message)
+  "Helper function to drop files.
+FILES is a list of file paths to drop.  Optional MESSAGE can override the
+default success message."
+  (let* ((command (aidermacs--prepare-file-paths-for-command "/drop" files))
+         (files (delq nil files)))
+    (if files
+        (progn
+          (aidermacs--send-command command)
+          (message (or message
+                       (format "Dropped %d files"
+                               (length files)))))
+      (message "No files to drop."))))
 
 (defun aidermacs-add-current-file (&optional read-only)
   "Add current file with optional READ-ONLY flag.
