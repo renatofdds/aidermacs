@@ -63,8 +63,7 @@
 
 (defcustom aidermacs-vterm-multiline-newline-key "S-<return>"
   "Key binding to enter a newline without sending in vterm."
-  :type 'string
-  :group 'aidermacs)
+  :type 'string)
 
 (defvar aidermacs-prompt-regexp)
 
@@ -88,7 +87,7 @@ If the finish sequence is detected, store the output via
              ;; Only check if we have a new prompt or haven't checked this position yet
              (last-check (or aidermacs--vterm-last-check-point start-point))
              (should-check (> prompt-point last-check))
-             ;; Simplified pattern that just looks for a shell prompt
+             ;; Pattern that looks for a shell prompt
              (expected aidermacs-prompt-regexp))
         ;; Update the last check point
         (setq aidermacs--vterm-last-check-point prompt-point)
@@ -125,31 +124,32 @@ This sets a temporary process filter that checks for the finish sequence
 after each output chunk, reducing the need for timers."
   (when (and (aidermacs--is-aidermacs-buffer-p)
              (not (string-empty-p aidermacs--last-command)))
-      (let* ((start-point (condition-case nil
-                              (vterm--get-prompt-point)
-                            (error (point-min))))
-             (proc (get-buffer-process (current-buffer)))
-             (orig-filter (process-filter proc)))
-        ;; Store the command for tracking in the correct buffer
-        (with-current-buffer (process-buffer proc)
-          ;; Initialize tracking variables
-          (setq aidermacs--vterm-last-check-point nil)
-          ;; Cancel any existing timer first
-          (aidermacs--maybe-cancel-active-timer)
-          ;; Create a new timer immediately to start checking for command completion
-          (setq aidermacs--vterm-active-timer
-                (run-with-timer
-                 aidermacs-vterm-check-interval
-                 aidermacs-vterm-check-interval
-                 (lambda () (aidermacs--vterm-check-finish-sequence-repeated proc orig-filter start-point))))))))
+    (let* ((start-point (condition-case nil
+                            (vterm--get-prompt-point)
+                          (error (point-min))))
+           (proc (get-buffer-process (current-buffer)))
+           (orig-filter (process-filter proc)))
+      ;; Store the command for tracking in the correct buffer
+      (with-current-buffer (process-buffer proc)
+        ;; Initialize tracking variables
+        (setq aidermacs--vterm-last-check-point nil)
+        ;; Cancel any existing timer first
+        (aidermacs--maybe-cancel-active-timer)
+        ;; Create a new timer immediately to start checking for command completion
+        (setq aidermacs--vterm-active-timer
+              (run-with-timer
+               aidermacs-vterm-check-interval
+               aidermacs-vterm-check-interval
+               (lambda () (aidermacs--vterm-check-finish-sequence-repeated proc orig-filter start-point))))))))
 
 (defun aidermacs--maybe-cancel-active-timer (&optional buffer)
   "Cancel the active timer if it exists.
-Use BUFFER if provided, otherwise retrieve it from `aidermacs-get-buffer-name'"
-  (with-current-buffer (get-buffer (or buffer (aidermacs-get-buffer-name)))
-    (when (timerp aidermacs--vterm-active-timer)
-      (cancel-timer aidermacs--vterm-active-timer)
-      (setq aidermacs--vterm-active-timer nil))))
+Use BUFFER if provided, otherwise retrieve it from `aidermacs-get-buffer-name'."
+  (when-let ((buf (get-buffer (or buffer (aidermacs-get-buffer-name)))))
+    (with-current-buffer buf
+      (when (timerp aidermacs--vterm-active-timer)
+        (cancel-timer aidermacs--vterm-active-timer)
+        (setq aidermacs--vterm-active-timer nil)))))
 
 (defun aidermacs-run-vterm (program args buffer-name)
   "Create a vterm-based buffer and run aidermacs program.
@@ -243,7 +243,7 @@ _ARGS are the arguments."
     (define-key map (kbd "C-c C-c") #'aidermacs-vterm-send-C-c)
     (when (featurep 'evil)
       (evil-define-minor-mode-key map 'insert
-          (kbd "RET") (function aidermacs-vterm-send-return)))
+                                  (kbd "RET") (function aidermacs-vterm-send-return)))
     map)
   "Keymap used when `aidermacs-vterm-mode' is enabled.")
 

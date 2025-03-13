@@ -32,28 +32,17 @@
 (declare-function aidermacs--prepare-for-code-edit "aidermacs" ())
 (declare-function aidermacs--get-files-in-session "aidermacs" (callback))
 
-(defgroup aidermacs-backends nil
-  "Backend customization for aidermacs."
-  :group 'aidermacs)
-
 (defcustom aidermacs-backend 'comint
   "Backend to use for the aidermacs process.
 Options are `comint' (the default) or `vterm'.  When set to `vterm',
 aidermacs launches a fully functional vterm buffer instead
 of using a comint process."
   :type '(choice (const :tag "Comint" comint)
-                 (const :tag "VTerm" vterm))
-  :group 'aidermacs-backends)
-
-;; Core output management functionality
-(defgroup aidermacs-output nil
-  "Output handling for aidermacs."
-  :group 'aidermacs)
+                 (const :tag "VTerm" vterm)))
 
 (defcustom aidermacs-output-limit 10
   "Maximum number of output entries to keep in history."
-  :type 'integer
-  :group 'aidermacs-output)
+  :type 'integer)
 
 (defvar-local aidermacs--output-history nil
   "List to store aidermacs output history.
@@ -94,7 +83,7 @@ This is used to avoid having to run /ls repeatedly.")
 Remove any files that don't exist."
   (let* ((project-root (aidermacs-project-root))
          (is-remote (file-remote-p project-root))
-        (valid-files nil))
+         (valid-files nil))
     (dolist (file aidermacs--tracked-files)
       (let* ((is-readonly (string-match-p " (read-only)$" file))
              (actual-file (if is-readonly

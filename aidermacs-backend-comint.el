@@ -39,8 +39,7 @@
                                          ("cpp" . "c++"))
   "Map external language names to Emacs names."
   :type '(alist :key-type (string :tag "Language Name/Alias")
-                :value-type (string :tag "Mode Name (without -mode)"))
-  :group 'aidermacs)
+                :value-type (string :tag "Mode Name (without -mode)")))
 
 (defconst aidermacs-search-marker "<<<<<<< SEARCH")
 (defconst aidermacs-diff-marker "=======")
@@ -52,24 +51,20 @@
 (defcustom aidermacs-comint-multiline-newline-key "S-<return>"
   "Key binding for `comint-accumulate' in Aidermacs buffers.
 This allows for multi-line input without sending the command."
-  :type 'string
-  :group 'aidermacs)
+  :type 'string)
 
 (defface aidermacs-command-separator
   '((((type graphic)) :strike-through t :extend t)
     (((type tty)) :inherit font-lock-comment-face :underline t :extend t))
-  "Face for command separator in aidermacs."
-  :group 'aidermacs)
+  "Face for command separator in aidermacs.")
 
 (defface aidermacs-command-text
   '((t :inherit bold))
-  "Face for commands sent to aidermacs buffer."
-  :group 'aidermacs)
+  "Face for commands sent to aidermacs buffer.")
 
 (defface aidermacs-search-replace-block
   '((t :inherit 'diff-refine-added :bold t))
-  "Face for search/replace block content."
-  :group 'aidermacs)
+  "Face for search/replace block content.")
 
 (defvar aidermacs-font-lock-keywords
   '(("^\x2500+\n?" 0 '(face aidermacs-command-separator) t)

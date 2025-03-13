@@ -10,17 +10,16 @@
 
 ;;; Commentary:
 
-;; Aidermacs integrates with Aider for AI-assisted code modification
-;; in Emacs. Provides interface to interact with Aider through Emacs
-;; buffer with commands for file management, code generation, and
-;; question answering.
-;;
-;; Features:
-;; - AI-assisted code modification
-;; - Multiple backends (Comint and VTerm)
-;; - File management commands
-;; - Transient menus for quick access
-;; - Minor mode for prompt files
+;; Aidermacs integrates with Aider (https://aider.chat/) for AI-assisted code
+;; modification in Emacs. Aider lets you pair program with LLMs to edit code
+;; in your local git repository. It works with both new projects and existing
+;; code bases, supporting Claude, DeepSeek, ChatGPT, and can connect to almost
+;; any LLM including local models. Think of it as having a helpful coding
+;; partner that can understand your code, suggest improvements, fix bugs, and
+;; even write new code for you. Whether you're working on a new feature,
+;; debugging, or just need help understanding some code, Aidermacs provides an
+;; intuitive way to collaborate with AI while staying in your familiar Emacs
+;; environment.
 
 ;; Originally forked from Kang Tu <tninja@gmail.com>'s Aider.el.
 
@@ -201,7 +200,7 @@ If USE-EXISTING is non-nil, use an existing buffer instead of creating new."
                     (file-exists-p (car dir-info))))
              buffer-dirs)
             (lambda (a b)
-              ;; Sort by path length (deeper paths first)
+              ;; Sort by length of filenames (deeper filenames first)
               (> (length (car a)) (length (car b)))))))
          (display-root (cond
                         ;; Use current directory for new subtree session
@@ -218,6 +217,11 @@ If USE-EXISTING is non-nil, use an existing buffer instead of creating new."
   "Run aidermacs process using the selected backend.
 This function sets up the appropriate arguments and launches the process."
   (interactive)
+  ;; Set up necessary hooks when aidermacs is actually run
+  (aidermacs--setup-ediff-cleanup-hooks)
+  (aidermacs--setup-cleanup-hooks)
+  (aidermacs-setup-minor-mode)
+  
   (let* ((buffer-name (aidermacs-get-buffer-name))
          ;; Process extra args: split each string on whitespace.
          (flat-extra-args
@@ -351,8 +355,10 @@ the next file in the ediff queue if any remain."
     (aidermacs--process-next-ediff-file)))
 
 (defun aidermacs--setup-ediff-cleanup-hooks ()
-  "Set up hooks to ensure proper cleanup of temporary buffers after ediff."
-  (add-hook 'ediff-quit-hook #'aidermacs--ediff-quit-handler))
+  "Set up hooks to ensure proper cleanup of temporary buffers after ediff.
+Only adds the hook if it's not already present."
+  (unless (member #'aidermacs--ediff-quit-handler ediff-quit-hook)
+    (add-hook 'ediff-quit-hook #'aidermacs--ediff-quit-handler)))
 
 (defun aidermacs--detect-edited-files ()
   "Parse current output to find files edited by Aider.
@@ -973,7 +979,7 @@ snippets, or other content to the session."
       (insert ";; Just edit and save - changes will be available to aider\n\n")
       (write-file filename))
     (let ((command (aidermacs--prepare-file-paths-for-command "/read" (list filename))))
-      (aidermacs--send-command command))
+      (aidermacs--send-command command t t))
     (find-file-other-window filename)
     (message "Created and added scratchpad to session: %s" filename)))
 
@@ -1046,7 +1052,7 @@ Otherwise, send the line under cursor."
   (with-restriction start end
     (save-excursion
       (goto-char (point-min))
-      (while (search-forward "^[[:space:]]*\\(.+\\)[[:space:]]*$" nil t)
+      (while (search-forward "^[[:space:]]*\\([^[:space:]].*\\)[[:space:]]*$" nil t)
         (aidermacs--send-command (match-string 1))))))
 
 (defun aidermacs-send-block-or-region ()
@@ -1130,6 +1136,7 @@ These are exact filename matches (including the dot prefix)."
   "Set up automatic enabling of `aidermacs-minor-mode' for specific files.
 This adds a hook to automatically enable the minor mode for files
 matching patterns in `aidermacs-auto-mode-files'.
+Only adds the hook if it's not already present.
 
 The minor mode provides convenient keybindings for working with
 prompt files and other Aider-related files:
@@ -1138,7 +1145,8 @@ prompt files and other Aider-related files:
 \\[aidermacs-send-block-or-region] - Send block/region as whole
 \\[aidermacs-switch-to-buffer] - Switch to Aidermacs buffer"
   (interactive)
-  (add-hook 'find-file-hook #'aidermacs--maybe-enable-minor-mode))
+  (unless (member #'aidermacs--maybe-enable-minor-mode find-file-hook)
+    (add-hook 'find-file-hook #'aidermacs--maybe-enable-minor-mode)))
 
 ;;;###autoload
 (defun aidermacs-switch-to-code-mode ()
@@ -1191,12 +1199,10 @@ configuring, troubleshooting, etc."
     (aidermacs--cleanup-temp-buffers)))
 
 (defun aidermacs--setup-cleanup-hooks ()
-  "Set up hooks to ensure proper cleanup of temporary buffers."
-  (add-hook 'kill-buffer-hook #'aidermacs--cleanup-on-buffer-kill))
-
-(aidermacs--setup-ediff-cleanup-hooks)
-(aidermacs-setup-minor-mode)
-(aidermacs--setup-ediff-cleanup-hooks)
+  "Set up hooks to ensure proper cleanup of temporary buffers.
+Only adds the hook if it's not already present."
+  (unless (member #'aidermacs--cleanup-on-buffer-kill kill-buffer-hook)
+    (add-hook 'kill-buffer-hook #'aidermacs--cleanup-on-buffer-kill)))
 
 (provide 'aidermacs)
 ;;; aidermacs.el ends here

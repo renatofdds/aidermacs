@@ -32,30 +32,22 @@
 (declare-function aidermacs-buffer-name "aidermacs" ())
 (declare-function aidermacs-exit "aidermacs" ())
 
-(defgroup aidermacs-models nil
-  "Model selection customization for aidermacs."
-  :group 'aidermacs)
-
 (defcustom aidermacs-default-model "sonnet"
   "Default AI model to use for aidermacs sessions when not in Architect mode."
-  :type 'string
-  :group 'aidermacs-models)
+  :type 'string)
 
 (defcustom aidermacs-architect-model "sonnet"
   "Default AI model to use for architectural reasoning in aidermacs sessions."
-  :type 'string
-  :group 'aidermacs-models)
+  :type 'string)
 
 (defcustom aidermacs-editor-model aidermacs-default-model
   "Default AI model to use for code editing in aidermacs sessions.
 Defaults to `aidermacs-default-model` if not explicitly set."
-  :type 'string
-  :group 'aidermacs-models)
+  :type 'string)
 
 (defcustom aidermacs-use-architect-mode nil
   "If non-nil, use separate Architect/Editor mode."
-  :type 'boolean
-  :group 'aidermacs-models)
+  :type 'boolean)
 
 (defcustom aidermacs-popular-models
   '("sonnet"
@@ -66,8 +58,7 @@ Defaults to `aidermacs-default-model` if not explicitly set."
   "List of available AI models for selection.
 Each model should be in the format expected by the aidermacs CLI.
 Also based on aidermacs LLM benchmark: https://aidermacs.chat/docs/leaderboards/"
-  :type '(repeat string)
-  :group 'aidermacs-models)
+  :type '(repeat string))
 
 (defvar aidermacs--cached-models aidermacs-popular-models
   "Cache of available AI models.")
@@ -79,28 +70,31 @@ Returns a list of model names with appropriate prefixes based on the
 API provider."
   (let* ((url-parsed (url-generic-parse-url url))
          (hostname (url-host url-parsed))
-         (prefix (cond ((string= hostname "api.openai.com") "openai")
-                       ((string= hostname "openrouter.ai") "openrouter")
-                       ((string= hostname "api.deepseek.com") "deepseek")
-                       ((string= hostname "api.anthropic.com") "anthropic")
-                       ((string= hostname "generativelanguage.googleapis.com") "gemini")
-                       (t (error "Unknown API host: %s" hostname))))
-         (token (cond ((string= hostname "api.openai.com") (getenv "OPENAI_API_KEY"))
-                      ((string= hostname "openrouter.ai") (getenv "OPENROUTER_API_KEY"))
-                      ((string= hostname "api.deepseek.com") (getenv "DEEPSEEK_API_KEY"))
-                      ((string= hostname "api.anthropic.com") (getenv "ANTHROPIC_API_KEY"))
-                      ((string= hostname "generativelanguage.googleapis.com") (getenv "GEMINI_API_KEY"))
-                      (t (error "Unknown API host: %s" hostname)))))
+         (prefix (pcase hostname
+                   ("api.openai.com" "openai")
+                   ("openrouter.ai" "openrouter")
+                   ("api.deepseek.com" "deepseek")
+                   ("api.anthropic.com" "anthropic")
+                   ("generativelanguage.googleapis.com" "gemini")
+                   (_ (error "Unknown API host: %s" hostname))))
+         (token (pcase hostname
+                  ("api.openai.com" (getenv "OPENAI_API_KEY"))
+                  ("openrouter.ai" (getenv "OPENROUTER_API_KEY"))
+                  ("api.deepseek.com" (getenv "DEEPSEEK_API_KEY"))
+                  ("api.anthropic.com" (getenv "ANTHROPIC_API_KEY"))
+                  ("generativelanguage.googleapis.com" (getenv "GEMINI_API_KEY"))
+                  (_ (error "Unknown API host: %s" hostname)))))
     (with-local-quit
       (with-current-buffer
           (let ((url-request-extra-headers
-                 (cond ((string= hostname "api.anthropic.com")
-                        `(("x-api-key" . ,token)
-                          ("anthropic-version" . "2023-06-01")))
-                       ((string= hostname "generativelanguage.googleapis.com")
-                        nil)  ; No auth headers for Gemini, key is in URL
-                       (t
-                        `(("Authorization" . ,(concat "Bearer " token)))))))
+                 (pcase hostname
+                   ("api.anthropic.com"
+                    `(("x-api-key" . ,token)
+                      ("anthropic-version" . "2023-06-01")))
+                   ("generativelanguage.googleapis.com"
+                    nil)  ; No auth headers for Gemini, key is in URL
+                   (_
+                    `(("Authorization" . ,(concat "Bearer " token)))))))
             (url-retrieve-synchronously
              (if (string= hostname "generativelanguage.googleapis.com")
                  (concat url "/models?key=" token)
@@ -120,7 +114,6 @@ API provider."
                              (t (or (alist-get 'id model)
                                     (alist-get 'name model))))))
                   models))))))
-
 
 (defun aidermacs--select-model ()
   "Provide model selection with completion.
