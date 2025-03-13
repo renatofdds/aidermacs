@@ -72,7 +72,7 @@ This allows for multi-line input without sending the command."
     ("^\\([0-9]+\\). " 0 font-lock-constant-face)
     ("^>>>>>>> REPLACE" 0 'aidermacs-search-replace-block t)
     ("^<<<<<<< SEARCH" 0 'aidermacs-search-replace-block t)
-    ("^\\(```\\)\\([^[:space:]]*\\)" (1 'shadow t) (2 font-lock-builtin-face t))
+    ("^[:space:]*\\(```\\)\\([^[:space:]]*\\)" (1 'shadow t) (2 font-lock-builtin-face t))
     ("^=======$" 0 'aidermacs-search-replace-block t))
   "Font lock keywords for aidermacs buffer.")
 
@@ -247,7 +247,7 @@ _OUTPUT is the text to be processed."
    ;; check if the block has a language id
    (when (save-excursion
            (end-of-line)
-           (re-search-backward "^``` *\\([^[:space:]]+\\)" (line-beginning-position -1) t))
+           (re-search-backward "^[:space:]*``` *\\([^[:space:]]+\\)" (line-beginning-position -1) t))
      (let* ((lang (downcase (match-string 1)))
             (mode (map-elt aidermacs-language-name-map lang lang)))
        (intern-soft (concat mode "-mode"))))
