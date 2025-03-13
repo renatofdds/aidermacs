@@ -221,7 +221,7 @@ This function sets up the appropriate arguments and launches the process."
   (aidermacs--setup-ediff-cleanup-hooks)
   (aidermacs--setup-cleanup-hooks)
   (aidermacs-setup-minor-mode)
-  
+
   (let* ((buffer-name (aidermacs-get-buffer-name))
          ;; Process extra args: split each string on whitespace.
          (flat-extra-args
@@ -1046,14 +1046,19 @@ Otherwise, send the line under cursor."
     (when text
       (aidermacs--send-command text))))
 
-(defun aidermacs-send-region-by-line (start end)
-  "Send the text between START and END, line by line."
-  (interactive "r")
-  (with-restriction start end
-    (save-excursion
-      (goto-char (point-min))
-      (while (search-forward "^[[:space:]]*\\([^[:space:]].*\\)[[:space:]]*$" nil t)
-        (aidermacs--send-command (match-string 1))))))
+(defun aidermacs-send-region-by-line ()
+  "Send the text of the current selected region, split into lines."
+  (interactive)
+  (if (use-region-p)
+      (let* ((text (buffer-substring-no-properties
+                    (region-beginning) (region-end)))
+             (lines (split-string text "\n" t)))
+        (mapc (lambda (line)
+                (let ((trimmed (string-trim line)))
+                  (when (not (string-empty-p trimmed))
+                    (aidermacs--send-command trimmed))))
+              lines))
+    (message "No region selected.")))
 
 (defun aidermacs-send-block-or-region ()
   "Send the current active region text or current paragraph content.
