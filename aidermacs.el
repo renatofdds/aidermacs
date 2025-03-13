@@ -82,7 +82,7 @@ When nil, disable auto-commits requiring manual git commits."
   "Get the project root using project.el, VC, or fallback to file directory.
 This function tries multiple methods to determine the project root."
   (or (when-let ((proj (project-current)))
-          (project-root proj))
+        (project-root proj))
       (vc-git-root default-directory)
       (when buffer-file-name
         (file-name-directory buffer-file-name))
@@ -175,42 +175,42 @@ This is used when you want to target an existing session."
 If USE-EXISTING is non-nil, use an existing buffer instead of creating new."
   (if use-existing
       (aidermacs-select-buffer-name)
-  (let* ((root (aidermacs-project-root))
-         (current-dir (file-truename default-directory))
-         ;; Get all existing aidermacs buffers
-         (aidermacs-buffers
-          (match-buffers #'aidermacs--is-aidermacs-buffer-p))
-         ;; Extract directory paths and subtree status from buffer names
-         (buffer-dirs
-          (mapcar
-           (lambda (buf)
-             (when (string-match "^\\*aidermacs:\\(.*?\\)\\*$"
-                                 (buffer-name buf))
-               (cons (match-string 1 (buffer-name buf))
-                     (match-string 2 (buffer-name buf)))))
-           aidermacs-buffers))
-         ;; Find closest parent directory that has an aidermacs session
-         (closest-parent
-          (caar
-           (sort
-            (cl-remove-if-not
-             (lambda (dir-info)
-               (and (car dir-info)
-                    (string-prefix-p (car dir-info) current-dir)
-                    (file-exists-p (car dir-info))))
-             buffer-dirs)
-            (lambda (a b)
-              ;; Sort by length of filenames (deeper filenames first)
-              (> (length (car a)) (length (car b)))))))
-         (display-root (cond
-                        ;; Use current directory for new subtree session
-                        (aidermacs-subtree-only current-dir)
-                        ;; Use closest parent if it exists
-                        (closest-parent closest-parent)
-                        ;; Fall back to project root for new non-subtree session
-                        (t root))))
-    (format "*aidermacs:%s*"
-            (file-truename display-root)))))
+    (let* ((root (aidermacs-project-root))
+           (current-dir (file-truename default-directory))
+           ;; Get all existing aidermacs buffers
+           (aidermacs-buffers
+            (match-buffers #'aidermacs--is-aidermacs-buffer-p))
+           ;; Extract directory paths and subtree status from buffer names
+           (buffer-dirs
+            (mapcar
+             (lambda (buf)
+               (when (string-match "^\\*aidermacs:\\(.*?\\)\\*$"
+                                   (buffer-name buf))
+                 (cons (match-string 1 (buffer-name buf))
+                       (match-string 2 (buffer-name buf)))))
+             aidermacs-buffers))
+           ;; Find closest parent directory that has an aidermacs session
+           (closest-parent
+            (caar
+             (sort
+              (cl-remove-if-not
+               (lambda (dir-info)
+                 (and (car dir-info)
+                      (string-prefix-p (car dir-info) current-dir)
+                      (file-exists-p (car dir-info))))
+               buffer-dirs)
+              (lambda (a b)
+                ;; Sort by length of filenames (deeper filenames first)
+                (> (length (car a)) (length (car b)))))))
+           (display-root (cond
+                          ;; Use current directory for new subtree session
+                          (aidermacs-subtree-only current-dir)
+                          ;; Use closest parent if it exists
+                          (closest-parent closest-parent)
+                          ;; Fall back to project root for new non-subtree session
+                          (t root))))
+      (format "*aidermacs:%s*"
+              (file-truename display-root)))))
 
 ;;;###autoload
 (defun aidermacs-run ()
@@ -262,7 +262,7 @@ This function sets up the appropriate arguments and launches the process."
                '("--subtree-only")))))
          (final-args (append backend-args flat-extra-args)))
     (if (and (get-buffer buffer-name)
-	     (process-live-p (get-buffer-process buffer-name)))
+	         (process-live-p (get-buffer-process buffer-name)))
         (aidermacs-switch-to-buffer buffer-name)
       (aidermacs-run-backend aidermacs-program final-args buffer-name)
       (with-current-buffer buffer-name
@@ -363,53 +363,54 @@ Only adds the hook if it's not already present."
 (defun aidermacs--detect-edited-files ()
   "Parse current output to find files edited by Aider.
 Returns a list of files that have been modified according to the output."
-  (let ((edited-files nil)
-        (output aidermacs--current-output))
+  (let ((project-root (aidermacs-project-root))
+        (output aidermacs--current-output)
+        (edited-files)
+        (unique-files)
+        (valid-files))
     (when output
-      (let ((lines (split-string output "\n"))
-            (last-line "")
-            (in-udiff nil)
-            (current-udiff-file nil))
-        (dolist (line lines)
-          (cond
-           ;; Case 1: Look for "Applied edit to <filename>" pattern
-           ((string-match "Applied edit to \\(\\./\\)?\\(.+\\)" line)
-            (when-let ((file (match-string 2 line)))
-              (push file edited-files)))
+      (with-temp-buffer
+        (insert output)
+        (goto-char (point-min))
 
-           ;; Case 2: Look for a filename followed by triple backticks on next line
-           ((string-match "^```" line)
-            (let ((potential-file (string-trim last-line)))
-              (when (not (string-empty-p potential-file))
+        ;; Case 1: Find "Applied edit to" lines
+        (while (search-forward "Applied edit to" nil t)
+          (beginning-of-line)
+          (when-let ((file (and (looking-at ".*Applied edit to \\(\\./\\)?\\([^[:space:]]+\\)")
+                                (match-string-no-properties 2))))
+            (push file edited-files))
+          (forward-line 1))
+
+        ;; Case 2: Find triple backtick blocks with filenames
+        (goto-char (point-min))
+        (while (search-forward "```" nil t)
+          (save-excursion
+            (forward-line -1)
+            (let ((potential-file (string-trim (buffer-substring (line-beginning-position) (line-end-position)))))
+              (when (and (not (string-empty-p potential-file))
+                         (not (string-match-p "\\`[[:space:]]*\\'" potential-file))
+                         (not (string-match-p "^```" potential-file)))
                 (push potential-file edited-files))))
+          (forward-line 1))
 
-           ;; Case 3: Handle udiff format
-           ;; Detect start of udiff with "--- filename"
-           ((string-match "^--- \\(\\./\\)?\\(.+\\)" line)
-            (setq in-udiff t
-                  current-udiff-file (match-string 2 line)))
+        ;; Case 3: Handle udiff format
+        (goto-char (point-min))
+        (while (search-forward "--- " nil t)
+          (let* ((line-end (line-end-position))
+                 (current-udiff-file (buffer-substring (point) line-end)))
+            (forward-line 1)
+            (when (looking-at "\\+\\+\\+ ")
+              (let ((plus-file (buffer-substring (+ (point) 4) (line-end-position))))
+                (when (string= (file-name-nondirectory current-udiff-file)
+                               (file-name-nondirectory plus-file))
+                  (push current-udiff-file edited-files)))))))
 
-           ;; Confirm udiff file with "+++ filename" line
-           ((and in-udiff
-                 current-udiff-file
-                 (string-match "^\\+\\+\\+ \\(\\./\\)?\\(.+\\)" line))
-            (let ((plus-file (match-string 2 line)))
-              ;; Only add if the filenames match (ignoring ./ prefix)
-              (when (string= (file-name-nondirectory current-udiff-file)
-                             (file-name-nondirectory plus-file))
-                (push current-udiff-file edited-files)
-                (setq in-udiff nil
-                      current-udiff-file nil)))))
-
-          (setq last-line line))))
-
-    ;; Filter the list to only include valid files
-    (let* ((project-root (aidermacs-project-root))
-           (unique-files (delete-dups edited-files))
-           (valid-files (cl-remove-if-not
+      ;; Filter the list to only include valid files
+      (setq unique-files (delete-dups edited-files))
+      (setq valid-files (cl-remove-if-not
                          (lambda (file)
                            (file-exists-p (expand-file-name file project-root)))
-                         unique-files)))
+                         unique-files))
       (nreverse valid-files))))
 
 (defvar-local aidermacs--ediff-queue nil
@@ -438,7 +439,7 @@ Returns a list of files that have been modified according to the output."
     (if (and pre-edit-buffer (buffer-live-p pre-edit-buffer))
         (progn
           (let ((current-buffer (or (get-file-buffer full-path)
-                                   (find-file-noselect full-path))))
+                                    (find-file-noselect full-path))))
             (with-current-buffer current-buffer
               (revert-buffer t t t))
             (delete-other-windows (get-buffer-window (switch-to-buffer current-buffer)))
@@ -639,6 +640,7 @@ Sends the \"/ls\" command and returns the list of files via callback."
   (aidermacs--get-files-in-session
    (lambda (files)
      (message "%S" files)
+     (setq aidermacs--tracked-files files)
      files)))
 
 (defun aidermacs-drop-file ()
@@ -765,7 +767,7 @@ GUIDE is displayed in the prompt but not included in the final command."
                           (when region-text
                             (format " on code block:\n```\n%s\n```\n" region-text))))
          (prompt (concat command " " prompt-prefix context
-                        (when guide (format "(%s)" guide)) ": "))
+                         (when guide (format "(%s)" guide)) ": "))
          (user-command (aidermacs-plain-read-string prompt)))
     (concat command (unless (string-empty-p user-command)
                       (concat " " prompt-prefix context ": " user-command)))))
