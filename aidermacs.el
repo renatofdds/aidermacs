@@ -1094,19 +1094,18 @@ Otherwise, send the line under cursor."
     (when text
       (aidermacs--send-command text))))
 
-(defun aidermacs-send-region-by-line ()
-  "Send the text of the current selected region, split into lines."
-  (interactive)
-  (if (use-region-p)
-      (let* ((text (buffer-substring-no-properties
-                    (region-beginning) (region-end)))
-             (lines (split-string text "\n" t)))
-        (mapc (lambda (line)
-                (let ((trimmed (string-trim line)))
-                  (when (not (string-empty-p trimmed))
-                    (aidermacs--send-command trimmed))))
-              lines))
-    (message "No region selected.")))
+(defun aidermacs-send-region-by-line (start end)
+  "Send the text between START and END, line by line.
+Only sends non-empty lines after trimming whitespace."
+  (interactive "r")
+  (with-restriction start end
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+        (let ((line (string-trim (thing-at-point 'line t))))
+          (when (not (string-empty-p line))
+            (aidermacs--send-command line)))
+        (forward-line 1)))))
 
 (defun aidermacs-send-block-or-region ()
   "Send the current active region text or current paragraph content.
