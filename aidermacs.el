@@ -122,6 +122,7 @@ These contain the original content of files that might be modified by Aider.")
      :if (lambda () aidermacs-auto-commits))
     ("u" "Undo Last Commit" aidermacs-undo-last-commit
      :if (lambda () aidermacs-auto-commits))
+    ("R" "Refresh Repo Map" aidermacs-refresh-repo-map)
     ("h" "Session History" aidermacs-show-output-history)
     ("o" "Change Main Model" aidermacs-change-model)
     ("O" "Clear Selection Cache" aidermacs-clear-model-cache)
@@ -136,8 +137,8 @@ These contain the original content of files that might be modified by Aider.")
    ["Drop Files"
     ("j" "Drop File" aidermacs-drop-file)
     ("J" "Drop Current File" aidermacs-drop-current-file)
-    ("K" "Drop All Files" aidermacs-drop-all-files)
-    ("k" "Drop From Dired (marked)" aidermacs-batch-drop-dired-marked-files)]
+    ("k" "Drop From Dired (marked)" aidermacs-batch-drop-dired-marked-files)
+    ("K" "Drop All Files" aidermacs-drop-all-files)]
    ["Others"
     ("S" "Create Session Scratchpad" aidermacs-create-session-scratchpad)
     ("G" "Add File to Session" aidermacs-add-file-to-session)
@@ -1243,6 +1244,13 @@ configuring, troubleshooting, etc."
   (with-current-buffer (get-buffer (aidermacs-get-buffer-name))
     (setq-local aidermacs--current-mode 'help))
   (message "Switched to help mode - aider will answer questions about using aider"))
+
+(defun aidermacs-refresh-repo-map ()
+  "Force a refresh of the repository map.
+This updates aider's understanding of the repository structure and files."
+  (interactive)
+  (aidermacs--send-command "/map-refresh")
+  (message "Refreshing repository map..."))
 
 ;; Add a hook to clean up temp buffers when an aidermacs buffer is killed
 (defun aidermacs--cleanup-on-buffer-kill ()
