@@ -96,9 +96,6 @@ This is the file name without path."
 (defconst aidermacs-prompt-regexp "^[^[:space:]<]*>[[:space:]]+$"
   "Regexp to match Aider's command prompt.")
 
-(defvar-local aidermacs-read-string-history nil
-  "History list for aidermacs read string inputs.")
-
 (defvar-local aidermacs--pre-edit-file-buffers nil
   "Alist of (filename . temp-buffer) storing file state before Aider edits.
 These contain the original content of files that might be modified by Aider.")
@@ -125,8 +122,7 @@ These contain the original content of files that might be modified by Aider.")
     ("R" "Refresh Repo Map" aidermacs-refresh-repo-map)
     ("h" "Session History" aidermacs-show-output-history)
     ("o" "Change Main Model" aidermacs-change-model)
-    ("O" "Clear Selection Cache" aidermacs-clear-model-cache)
-    ("?" "Aider Help" aidermacs-help)]]
+    ("?" "Aider Meta-level Help" aidermacs-help)]]
   ["File Actions"
    ["Add Files (C-u: read-only)"
     ("f" "Add File" aidermacs-add-file)
@@ -144,17 +140,16 @@ These contain the original content of files that might be modified by Aider.")
     ("G" "Add File to Session" aidermacs-add-file-to-session)
     ("A" "List Added Files" aidermacs-list-added-files)]]
   ["Code Actions"
-   ["Architect"
-    ("c" "General Architect" aidermacs-general-architect)
-    ("r" "Architect This Code" aidermacs-architect-this-code)
-    ("i" "Implement TODO" aidermacs-implement-todo)]
+   ["Code"
+    ("c" "Code Change" aidermacs-direct-change)
+    ("e" "Question Code" aidermacs-question-code)
+    ("r" "Architect Change" aidermacs-architect-this-code)]
    ["Question"
-    ("q" "General Question" aidermacs-general-question)
-    ("e" "Question This Code" aidermacs-question-this-code)
+    ("q" "General Question" aidermacs-question-general)
     ("p" "Question This Symbol" aidermacs-question-this-symbol)
-    ("g" "Accept Changes" aidermacs-accept-change)]
+    ("g" "Accept Proposed Changes" aidermacs-accept-change)]
    ["Others"
-    ("RET" "Code Change Now" aidermacs-direct-change)
+    ("i" "Implement TODO" aidermacs-implement-todo)
     ("t" "Write Test" aidermacs-write-unit-test)
     ("T" "Fix Test" aidermacs-fix-failing-test-under-cursor)
     ("!" "Debug Exception" aidermacs-debug-exception)]])
@@ -558,24 +553,6 @@ https://aidermacs.chat/docs/usage/commands.html#entering-multi-line-chat-message
            (command (format "/drop %s" formatted-path)))
       (aidermacs--send-command command))))
 
-(defun aidermacs-plain-read-string (prompt &optional initial-input)
-  "Read a string from the user with PROMPT and optional INITIAL-INPUT.
-PROMPT is the text to display.  INITIAL-INPUT is the default value."
-  (read-string prompt initial-input 'aidermacs-read-string-history))
-
-(defun aidermacs-general-command ()
-  "Prompt the user to input COMMAND and send it to the aidemracs."
-  (interactive)
-  (let ((command (aidermacs-plain-read-string "Enter general aider command: ")))
-    ;; Use the shared helper function to send the command
-    (aidermacs--send-command command)))
-
-(defun aidermacs-direct-change ()
-  "Prompt the user for an input and send it to aidemracs prefixed with \"/code \"."
-  (interactive)
-  (when-let ((command (aidermacs--form-prompt "/code" nil t "empty to change to code mode")))
-    (aidermacs--send-command command)))
-
 (defun aidermacs--parse-ls-output (output)
   "Parse the /ls command output to extract files in chat.
 OUTPUT is the text returned by the /ls command.  After the \"Files in chat:\"
@@ -730,35 +707,56 @@ Sends the \"/ls\" command and displays the results in a Dired buffer."
           (unless (member relative-path aidermacs--tracked-files)
             (aidermacs--add-files-helper (list relative-path))))))))
 
-(defun aidermacs-question-this-code ()
+(defun aidermacs--form-prompt (command &optional prompt-prefix guide ignore-context)
+  "Get command based on context with COMMAND and PROMPT-PREFIX.
+COMMAND is the text to prepend.  PROMPT-PREFIX is the text to add after COMMAND.
+GUIDE is displayed in the prompt but not included in the final command.
+Use highlighted region as context unless IGNORE-CONTEXT is set to non-nil."
+  (let* ((region-text (when (and (use-region-p) (not ignore-context))
+                        (buffer-substring-no-properties (region-beginning) (region-end))))
+         (context (when region-text
+                    (format " regarding this section:\n```\n%s\n```\n" region-text)))
+         (user-command (read-string (concat command " " prompt-prefix context
+                                            (when guide (format " (%s)" guide)) ": "))))
+    (concat command (and (not (string-empty-p user-command))
+                         (concat " " prompt-prefix context ": " user-command)))))
+
+(defun aidermacs-direct-change ()
+  "Prompt the user for an input and send it to aidemracs prefixed with \"/code \"."
+  (interactive)
+  (when-let ((command (aidermacs--form-prompt "/code" "Make this change" "will edit file")))
+    (aidermacs--ensure-current-file-tracked)
+    (aidermacs--send-command command)))
+
+(defun aidermacs-question-code ()
   "Ask a question about the code at point or region.
 If a region is active, include the region text in the question.
 If cursor is inside a function, include the function name as context.
 If called from the aidermacs buffer, use general question instead."
   (interactive)
-  ;; Dispatch to general question if in aidermacs buffer
-  (if (aidermacs--is-aidermacs-buffer-p)
-      (call-interactively #'aidermacs-general-question)
-    (when-let ((command (aidermacs--form-prompt "/ask" "Question")))
-      (aidermacs--ensure-current-file-tracked)
-      (aidermacs--send-command command))))
+  (when-let ((command (aidermacs--form-prompt "/ask" "Propose a solution" "won't edit file")))
+    (aidermacs--ensure-current-file-tracked)
+    (aidermacs--send-command command)))
 
-(defun aidermacs-general-question ()
+(defun aidermacs-architect-this-code ()
+  "Architect code at point or region.
+If region is active, inspect that region.
+If point is in a function, inspect that function."
+  (interactive)
+  (when-let ((command (aidermacs--form-prompt "/architect" "Design a solution" "confirm before edit")))
+    (aidermacs--ensure-current-file-tracked)
+    (aidermacs--send-command command)))
+
+(defun aidermacs-question-general ()
   "Prompt the user for a general question without code context."
   (interactive)
-  (when-let ((command (aidermacs--form-prompt "/ask" nil t "empty to change to ask mode")))
+  (when-let ((command (aidermacs--form-prompt "/ask" nil "empty for ask mode" t)))
     (aidermacs--send-command command)))
 
 (defun aidermacs-help ()
   "Prompt the user for an input prefixed with \"/help \"."
   (interactive)
-  (when-let ((command (aidermacs--form-prompt "/help" nil t "empty for general /help")))
-    (aidermacs--send-command command)))
-
-(defun aidermacs-general-architect ()
-  "Prompt the user for an input prefixed with \"/architect \"."
-  (interactive)
-  (when-let ((command (aidermacs--form-prompt "/architect" nil t "empty to change to architect mode")))
+  (when-let ((command (aidermacs--form-prompt "/help" nil "question how to use aider, empty for all commands" t)))
     (aidermacs--send-command command)))
 
 (defun aidermacs-debug-exception ()
@@ -770,7 +768,7 @@ If called from the aidermacs buffer, use general question instead."
 (defun aidermacs-accept-change ()
   "Send the command \"go ahead\" to the aidemracs."
   (interactive)
-  (aidermacs--send-command "/code go ahead"))
+  (aidermacs--send-command "/code go ahead with the proposed changes"))
 
 (defun aidermacs-magit-show-last-commit ()
   "Show the last commit message using Magit.
@@ -785,39 +783,6 @@ If Magit is not installed, report that it is required."
   (interactive)
   (aidermacs--send-command "/undo"))
 
-(defun aidermacs--form-prompt (command prompt-prefix &optional ignore-context guide)
-  "Get command based on context with COMMAND and PROMPT-PREFIX.
-COMMAND is the text to prepend.  PROMPT-PREFIX is the text to add after COMMAND.
-If IGNORE-CONTEXT is non-nil, skip function and region context.
-If region is active, use that region's text.
-If point is in a function, use function name.
-GUIDE is displayed in the prompt but not included in the final command."
-  (let* ((on-function (unless ignore-context (which-function)))
-         (region-text (when (and (use-region-p) (not ignore-context))
-                        (buffer-substring-no-properties (region-beginning) (region-end))))
-         (context (concat (when on-function
-                            (format " in function `%s`" on-function))
-                          (when region-text
-                            (format " on code block:\n```\n%s\n```\n" region-text))))
-         (prompt (concat command " " prompt-prefix context
-                         (when guide (format "(%s)" guide)) ": "))
-         (user-command (aidermacs-plain-read-string prompt)))
-    (concat command (unless (string-empty-p user-command)
-                      (concat " " prompt-prefix context ": " user-command)))))
-
-(defun aidermacs-architect-this-code ()
-  "Architect code at point or region.
-If region is active, inspect that region.
-If point is in a function, inspect that function."
-  (interactive)
-  ;; Dispatch to general architect if in aidermacs buffer
-  (if (string= (buffer-name) (aidermacs-get-buffer-name))
-      (call-interactively #'aidermacs-general-architect)
-    (when-let ((command (aidermacs--form-prompt "/architect" "Architect")))
-      (aidermacs--ensure-current-file-tracked)
-      (aidermacs--send-command command))))
-
-;;;###autoload
 (defun aidermacs-question-this-symbol ()
   "Ask aidermacs to explain symbol under point."
   (interactive)

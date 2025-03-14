@@ -304,10 +304,10 @@ Once the transient menu is open, you can navigate and execute commands using the
 ##### Utilities
 - `^`: Show Last Commit (if auto-commits enabled)
 - `u`: Undo Last Commit (if auto-commits enabled)
+- `R`: Refresh Repo Map
 - `h`: Session History
 - `o`: Change Main Model
-- `O`: Clear Selection Cache
-- `?`: Aider Help
+- `?`: Aider Meta-level Help
 
 ##### File Actions
 - `f`: Add File (C-u: read-only)
@@ -317,20 +317,20 @@ Once the transient menu is open, you can navigate and execute commands using the
 - `m`: Add From Dired (marked)
 - `j`: Drop File
 - `J`: Drop Current File
-- `k`: Drop All Files
-- `A`: List Added Files
+- `k`: Drop From Dired (marked)
+- `K`: Drop All Files
 - `S`: Create Session Scratchpad
 - `G`: Add File to Session
+- `A`: List Added Files
 
 ##### Code Actions
-- `c`: General Architect
-- `r`: Architect This Code
-- `i`: Implement TODO
+- `c`: Code Change
+- `e`: Question Code
+- `r`: Architect Change
 - `q`: General Question
-- `e`: Question This Code
 - `p`: Question This Symbol
-- `g`: Accept Changes
-- `RET`: Code Change Now
+- `g`: Accept Proposed Changes
+- `i`: Implement TODO
 - `t`: Write Test
 - `T`: Fix Test
 - `!`: Debug Exception
