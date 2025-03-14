@@ -136,7 +136,8 @@ These contain the original content of files that might be modified by Aider.")
    ["Drop Files"
     ("j" "Drop File" aidermacs-drop-file)
     ("J" "Drop Current File" aidermacs-drop-current-file)
-    ("k" "Drop All Files" aidermacs-drop-all-files)]
+    ("K" "Drop All Files" aidermacs-drop-all-files)
+    ("k" "Drop From Dired (marked)" aidermacs-batch-drop-dired-marked-files)]
    ["Others"
     ("S" "Create Session Scratchpad" aidermacs-create-session-scratchpad)
     ("G" "Add File to Session" aidermacs-add-file-to-session)
@@ -170,9 +171,10 @@ This is used when you want to target an existing session."
       (`(,name) (buffer-name name))
       (_ (completing-read "Select aidermacs session: " buffer-names nil t)))))
 
-(defun aidermacs-get-buffer-name (&optional use-existing)
+(defun aidermacs-get-buffer-name (&optional use-existing suffix)
   "Generate the aidermacs buffer name based on project root or current directory.
-If USE-EXISTING is non-nil, use an existing buffer instead of creating new."
+If USE-EXISTING is non-nil, use an existing buffer instead of creating new.
+If supplied, SUFFIX is appended to the buffer name within the earmuffs."
   (if use-existing
       (aidermacs-select-buffer-name)
     (let* ((root (aidermacs-project-root))
@@ -209,8 +211,9 @@ If USE-EXISTING is non-nil, use an existing buffer instead of creating new."
                           (closest-parent closest-parent)
                           ;; Fall back to project root for new non-subtree session
                           (t root))))
-      (format "*aidermacs:%s*"
-              (file-truename display-root)))))
+      (format "*aidermacs:%s%s*"
+              (file-truename display-root)
+               (or suffix "")))))
 
 ;;;###autoload
 (defun aidermacs-run ()
@@ -635,13 +638,37 @@ Returns a deduplicated list of such file names."
 
 (defun aidermacs-list-added-files ()
   "List all files currently added to the chat session.
-Sends the \"/ls\" command and returns the list of files via callback."
+Sends the \"/ls\" command and displays the results in a Dired buffer."
   (interactive)
   (aidermacs--get-files-in-session
    (lambda (files)
-     (message "%S" files)
      (setq aidermacs--tracked-files files)
-     files)))
+     (let ((buf-name (aidermacs-get-buffer-name nil " Files")))
+       ;; Unfortunately find-dired-with-command doesn't allow us to specify the
+       ;; buffer name, so we manually rename it after the fact and recreate it
+       ;; on each call.
+       (when (get-buffer buf-name)
+         (kill-buffer buf-name))
+       (if files
+           (let* ((git-root (vc-git-root default-directory))
+                  (files-arg (mapconcat #'shell-quote-argument files " "))
+                  (cmd (format "find %s %s" files-arg (car find-ls-option))))
+             (find-dired-with-command git-root cmd)
+             (let ((buf (get-buffer "*Find*")))
+               (when buf
+                 (with-current-buffer buf
+                   (rename-buffer buf-name)
+                   (save-excursion
+                     ;; The executed command is on the 2nd line; it can get
+                     ;; quite long, so we delete it to avoid cluttering the
+                     ;; buffer.
+                     (goto-line 2)
+                     (when (looking-at "^ *find " t)
+                       (let ((inhibit-read-only t))
+                         (delete-region (line-beginning-position) (line-end-position)))))
+                   (setq revert-buffer-function
+                         (lambda (&rest _) (aidermacs-list-added-files)))))))
+         (message "No files added to the chat session"))))))
 
 (defun aidermacs-drop-file ()
   "Drop a file from the chat session by selecting from currently added files."
@@ -658,6 +685,11 @@ Sends the \"/ls\" command and returns the list of files via callback."
   "Drop all files from the current chat session."
   (interactive)
   (aidermacs--send-command "/drop"))
+
+(defun aidermacs-batch-drop-dired-marked-files ()
+  "Drop Dired files."
+  (interactive)
+  (aidermacs--drop-files-helper (dired-get-marked-files)))
 
 (defun aidermacs-show-output-history ()
   "Display the AI output history in a new buffer."
@@ -835,6 +867,20 @@ as read-only.  MESSAGE can override the default success message."
                                (length files)
                                (if read-only "read-only" "editable")))))
       (message "No files to add."))))
+
+(defun aidermacs--drop-files-helper (files &optional message)
+  "Helper function to drop files.
+FILES is a list of file paths to drop.  Optional MESSAGE can override the
+default success message."
+  (let* ((command (aidermacs--prepare-file-paths-for-command "/drop" files))
+         (files (delq nil files)))
+    (if files
+        (progn
+          (aidermacs--send-command command)
+          (message (or message
+                       (format "Dropped %d files"
+                               (length files)))))
+      (message "No files to drop."))))
 
 (defun aidermacs-add-current-file (&optional read-only)
   "Add current file with optional READ-ONLY flag.
