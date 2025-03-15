@@ -327,6 +327,7 @@ This is skipped if `aidermacs-show-diff-after-change' is nil."
   (when aidermacs-show-diff-after-change
     (let ((files aidermacs--tracked-files))
       (when files
+        (message "Preparing code edit for %s" files)
         (setq aidermacs--pre-edit-file-buffers
               (cl-remove-duplicates
                (mapcar (lambda (file)
@@ -485,6 +486,8 @@ If CALLBACK is non-nil it will be called after the command finishes."
       (setq aidermacs--last-command processed-command)
       ;; Always prepare for potential edits
       (aidermacs--cleanup-temp-buffers)
+      ;; Ensure current file is tracked before preparing for code edit
+      (aidermacs--ensure-current-file-tracked)
       (aidermacs--prepare-for-code-edit)
       (aidermacs--send-command-backend buffer processed-command redirect))
     (when (and (not no-switch-to-buffer)
@@ -705,6 +708,7 @@ Sends the \"/ls\" command and displays the results in a Dired buffer."
       (when session-buffer
         (with-current-buffer session-buffer
           (unless (member relative-path aidermacs--tracked-files)
+            (push relative-path aidermacs--tracked-files)
             (aidermacs--add-files-helper (list relative-path))))))))
 
 (defun aidermacs--form-prompt (command &optional prompt-prefix guide ignore-context)
