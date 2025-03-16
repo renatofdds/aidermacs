@@ -151,7 +151,19 @@ When Architect mode is enabled, the `aidermacs-default-model` setting is ignored
 (setq aidermacs-editor-model "deepseek/deepseek-chat") ;; defaults to aidermacs-default-model
 ```
 
-*Note: This configuration will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File)).*
+*Note: These configurations will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File)).*
+
+#### Architect Mode Confirmation
+
+By default, Aidermacs requires explicit confirmation before applying changes proposed in Architect mode. This gives you a chance to review the AI's plan before any code is modified.
+
+If you prefer to automatically accept all Architect mode changes without confirmation (similar to Aider's default behavior), you can enable this with:
+
+```emacs-lisp
+(setq aidermacs-auto-accept-architect t)
+```
+
+*Note: These configurations will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File)).*
 
 ### Terminal Backend Selection
 

@@ -83,6 +83,11 @@ This is useful for working in monorepos where you want to limit aider's scope."
 When nil, disable auto-commits requiring manual git commits."
   :type 'boolean)
 
+(defcustom aidermacs-auto-accept-architect nil
+  "When non-nil, automatically accept architect mode changes.
+When nil, require explicit confirmation before applying changes."
+  :type 'boolean)
+
 (defun aidermacs-project-root ()
   "Get the project root using project.el, VC, or fallback to file directory.
 This function tries multiple methods to determine the project root."
@@ -260,8 +265,10 @@ This function sets up the appropriate arguments and launches the process."
                        "--editor-model" aidermacs-editor-model)
                (unless has-model-arg
                  (list "--model" aidermacs-default-model)))
-             (when (not aidermacs-auto-commits)
+             (unless aidermacs-auto-commits
                '("--no-auto-commits"))
+             (unless aidermacs-auto-accept-architect
+               '("--no-auto-accept-architect"))
              (when aidermacs-subtree-only
                '("--subtree-only")))))
          (final-args (append backend-args flat-extra-args)))
