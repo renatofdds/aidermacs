@@ -1,6 +1,6 @@
 ;;; aidermacs-models.el --- Model selection for aidermacs -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
-;; Version: 1.0.0
+;; Version: 1.0
 ;; Keywords: ai emacs llm aider ai-pair-programming tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
 ;; SPDX-License-Identifier: Apache-2.0
@@ -31,6 +31,10 @@
 (declare-function aidermacs--send-command "aidermacs" (command &optional no-switch-to-buffer use-existing redirect callback))
 (declare-function aidermacs-buffer-name "aidermacs" ())
 (declare-function aidermacs-exit "aidermacs" ())
+
+(defgroup aidermacs-models nil
+  "Model selection for Aidermacs."
+  :group 'aidermacs)
 
 (defcustom aidermacs-default-model "sonnet"
   "Default AI model to use for aidermacs sessions when not in Architect mode."

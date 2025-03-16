@@ -1,6 +1,6 @@
 ;;; aidermacs-backend-vterm.el --- VTerm backend for aidermacs -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
-;; Version: 1.0.0
+;; Version: 1.0
 ;; Keywords: ai emacs llm aider ai-pair-programming tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
 ;; SPDX-License-Identifier: Apache-2.0
@@ -47,8 +47,16 @@
 (declare-function aidermacs--is-aidermacs-buffer-p "aidermacs")
 (declare-function aidermacs-get-buffer-name "aidermacs")
 
-;; useful because we want to override "RET" key for evil mode insert state
+(declare-function aidermacs--parse-output-for-files "aidermacs-backends" (output))
+
 (declare-function evil-define-minor-mode-key "evil-core")
+
+(defvar aidermacs-prompt-regexp)
+(defvar aidermacs--last-command)
+
+(defgroup aidermacs-backend-vterm nil
+  "VTerm backend for Aidermacs."
+  :group 'aidermacs)
 
 (defvar-local aidermacs--vterm-active-timer nil
   "Store the active timer for vterm output processing.")
@@ -56,16 +64,12 @@
 (defvar-local aidermacs--vterm-last-check-point nil
   "Store the last position checked in the vterm buffer.")
 
-
 (defvar-local aidermacs-vterm-check-interval 0.7
   "Interval in seconds between checks for command completion in vterm.")
-
 
 (defcustom aidermacs-vterm-multiline-newline-key "S-<return>"
   "Key binding to enter a newline without sending in vterm."
   :type 'string)
-
-(defvar aidermacs-prompt-regexp)
 
 (defun aidermacs--vterm-check-finish-sequence-repeated (proc orig-filter start-point)
   "Check for the finish sequence in PROC's buffer.
@@ -145,7 +149,7 @@ after each output chunk, reducing the need for timers."
 (defun aidermacs--maybe-cancel-active-timer (&optional buffer)
   "Cancel the active timer if it exists.
 Use BUFFER if provided, otherwise retrieve it from `aidermacs-get-buffer-name'."
-  (when-let ((buf (get-buffer (or buffer (aidermacs-get-buffer-name)))))
+  (when-let* ((buf (get-buffer (or buffer (aidermacs-get-buffer-name)))))
     (with-current-buffer buf
       (when (timerp aidermacs--vterm-active-timer)
         (cancel-timer aidermacs--vterm-active-timer)

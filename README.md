@@ -82,6 +82,24 @@ Here's what the community is saying about Aidermacs:
 
 ## Configuration
 
+#### Pre-Run Hook
+
+You can use the `aidermacs-before-run-backend-hook` to run custom setup code before starting the Aider backend. This is particularly useful for:
+
+- Setting environment variables
+- Injecting secrets
+- Performing any other pre-run configuration
+
+Example usage to securely set an OpenAI API key from password-store:
+
+```elisp
+(add-hook 'aidermacs-before-run-backend-hook
+          (lambda ()
+            (setenv "OPENAI_API_KEY" (password-store-get "code/openai_api_key"))))
+```
+
+This approach keeps sensitive information out of your dotfiles while still making it available to Aidermacs.
+
 ### Default Model Selection
 
 You can customize the default AI model used by Aidermacs by setting the `aidermacs-default-model` variable:
@@ -133,7 +151,19 @@ When Architect mode is enabled, the `aidermacs-default-model` setting is ignored
 (setq aidermacs-editor-model "deepseek/deepseek-chat") ;; defaults to aidermacs-default-model
 ```
 
-*Note: This configuration will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File)).*
+*Note: These configurations will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File)).*
+
+#### Architect Mode Confirmation
+
+By default, Aidermacs requires explicit confirmation before applying changes proposed in Architect mode. This gives you a chance to review the AI's plan before any code is modified.
+
+If you prefer to automatically accept all Architect mode changes without confirmation (similar to Aider's default behavior), you can enable this with:
+
+```emacs-lisp
+(setq aidermacs-auto-accept-architect t)
+```
+
+*Note: These configurations will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File)).*
 
 ### Terminal Backend Selection
 
@@ -252,30 +282,19 @@ Aidermacs supports project-specific configurations via `.aider.conf.yml` files. 
 
 ### Claude 3.7 Sonnet Thinking Tokens
 
-Aider can work with Sonnet 3.7's [new thinking tokens](https://www.anthropic.com/news/claude-3-7-sonnet), but does not ask Sonnet to use thinking tokens by default.
+Aider can work with Sonnet 3.7's [new thinking tokens](https://www.anthropic.com/news/claude-3-7-sonnet). You can now enable and configure thinking tokens more easily using the following methods:
 
-Enabling thinking currently requires manual configuration. Create an `.aider.model.settings.yml` in  your home dir, project's root, or the current directory, then add the following to the file. Adjust the `budget_tokens` value to change the target number of thinking tokens.
+1.  **In-Chat Command:** Use the `/think-tokens` command followed by the desired token budget. For example: `/think-tokens 8k` or `/think-tokens 10000`. Supported formats include `8096`, `8k`, `10.5k`, and `0.5M`.
 
-```yaml
-- name: anthropic/claude-3-7-sonnet-20250219
-  edit_format: diff
-  weak_model_name: anthropic/claude-3-5-haiku-20241022
-  use_repo_map: true
-  examples_as_sys_msg: true
-  use_temperature: false
-  extra_params:
-    extra_headers:
-      anthropic-beta: prompt-caching-2024-07-31,pdfs-2024-09-25,output-128k-2025-02-19
-    max_tokens: 64000
-    thinking:
-      type: enabled
-      budget_tokens: 32000 # Adjust this number
-  cache_control: true
-  editor_model_name: anthropic/claude-3-7-sonnet-20250219
-  editor_edit_format: editor-diff
-```
+2.  **Command-Line Argument:** Set the `--thinking-tokens` argument when starting Aidermacs. For example, you can add this to your `aidermacs-extra-args`:
 
-More streamlined support will be coming soon.
+    ```emacs-lisp
+    (setq aidermacs-extra-args '("--thinking-tokens" "16k"))
+    ```
+
+These methods provide a more streamlined way to control thinking tokens without requiring manual configuration of `.aider.model.settings.yml` files.
+
+*Note: If you are using an `.aider.conf.yml` file, you can also set the `thinking_tokens` option there.*
 
 ## Usage
 
