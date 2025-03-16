@@ -9,7 +9,6 @@
 [![LICENSE](https://img.shields.io/github/license/MatthewZMD/aidermacs?logo=apache&.svg)](https://github.com/MatthewZMD/aidermacs/blob/master/LICENSE)
 [![CONTRIBUTORS](https://img.shields.io/github/contributors/MatthewZMD/aidermacs.svg)](https://github.com/MatthewZMD/aidermacs/graphs/contributors)
 [![ISSUES](https://img.shields.io/github/issues/MatthewZMD/aidermacs.svg)](https://github.com/MatthewZMD/aidermacs/issues)
-[![PR](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/MatthewZMD/aidermacs/pull/new)
 
 Missing [Cursor](https://cursor.sh) but prefer living in Emacs? Aidermacs brings Cursor-like AI-powered development to your Emacs workflow by integrating [Aider](https://github.com/paul-gauthier/aider), one of the most powerful open-source AI pair programming tools. As a community-driven project, Aidermacs prioritizes Emacs users' needs and preferences while providing the same powerful features found in Cursor!
 
