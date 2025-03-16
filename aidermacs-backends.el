@@ -42,11 +42,13 @@ Options are `comint' (the default) or `vterm'.  When set to `vterm',
 aidermacs launches a fully functional vterm buffer instead
 of using a comint process."
   :type '(choice (const :tag "Comint" comint)
-                 (const :tag "VTerm" vterm)))
+                 (const :tag "VTerm" vterm))
+  :group 'aidermacs-backends)
 
 (defcustom aidermacs-output-limit 10
   "Maximum number of output entries to keep in history."
-  :type 'integer)
+  :type 'integer
+  :group 'aidermacs-backends)
 
 (defvar-local aidermacs--output-history nil
   "List to store aidermacs output history.
@@ -60,7 +62,8 @@ Each entry is a cons cell (timestamp . output-text).")
 
 (defcustom aidermacs-before-run-backend-hook nil
   "Hook run before the aidermacs backend is startd."
-  :type 'hook)
+  :type 'hook
+  :group 'aidermacs-backends)
 
 (defun aidermacs-get-output-history (&optional limit)
   "Get the output history, optionally limited to LIMIT entries.
