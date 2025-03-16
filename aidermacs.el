@@ -519,7 +519,7 @@ If the current buffer is already the aidermacs buffer, do nothing."
      (buffer
       (pop-to-buffer buffer))
      (t
-      (error "No aidermacs buffer exists.")))))
+      (error "No aidermacs buffer exists")))))
 
 (defun aidermacs-clear-chat-history ()
   "Send the command \"/clear\" to the aidermacs buffer."
@@ -944,7 +944,7 @@ Otherwise:
   - Otherwise generate unit tests for the entire file"
   (interactive)
   (if (not buffer-file-name)
-      (user-error "Current buffer is not visiting a file.")
+      (user-error "Current buffer is not visiting a file")
     (let ((function-name (which-function)))
       (cond
        ;; Test file case
@@ -1007,7 +1007,7 @@ snippets, or other content to the session."
     (message "Created and added scratchpad to session: %s" filename)))
 
 (defun aidermacs-add-file-to-session (&optional file)
-  "Interactively add a file to an existing aidermacs session using /read.
+  "Interactively add a FILE to an existing aidermacs session using /read.
 This allows you to add the file's content to a specific session."
   (interactive
    (let* ((initial (when buffer-file-name

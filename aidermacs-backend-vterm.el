@@ -47,9 +47,12 @@
 (declare-function aidermacs--is-aidermacs-buffer-p "aidermacs")
 (declare-function aidermacs-get-buffer-name "aidermacs")
 
+(declare-function aidermacs--parse-output-for-files "aidermacs-backends" (output))
+
 (declare-function evil-define-minor-mode-key "evil-core")
 
 (defvar aidermacs-prompt-regexp)
+(defvar aidermacs--last-command)
 
 (defgroup aidermacs-backend-vterm nil
   "VTerm backend for Aidermacs."
@@ -153,8 +156,8 @@ Use BUFFER if provided, otherwise retrieve it from `aidermacs-get-buffer-name'."
         (setq aidermacs--vterm-active-timer nil)))))
 
 (defcustom aidermacs-vterm-use-theme-colors t
-  "Whether to use emacs theme colors for aider. Has effect only
-when using the vterm backend."
+  "Whether to use Emacs theme colors for aider.
+Has effect only when using the vterm backend."
   :type 'boolean)
 
 (defcustom aidermacs-vterm-theme-colors-plist
@@ -162,19 +165,20 @@ when using the vterm backend."
     "--assistant-output-color" default
     "--tool-error-color" error
     "--tool-warning-color"  warning)
-  "Emacs faces to use for aider colour flags. Keys are the commandline
-arguments to send to aider. Values are either faces or strings (colours like \"#00cc00\")"
+  "Emacs faces to use for aider colour flags.
+Keys are the commandline arguments to send to aider.
+Values are either faces or strings (colours like \"#00cc00\")."
   :type 'plist)
 
 (defun aidermacs--vterm-colorname-to-rgb (name)
-  "Convert emacs color names to RGB values."
+  "Convert Emacs color NAME to RGB values."
   (if-let ((colors (color-values name)))
       (concat "#"
               (mapconcat (lambda (c) (format "%02X" (/ c 256))) colors))
     (face-attribute 'default :foreground)))
 
 (defun aidermacs--vterm-theme-args ()
-  "Create arguments for aider to try and match the current emacs theme.
+  "Create arguments for aider to try and match the current Emacs theme.
 See `aidermacs-theme-colors-plist'."
   (if aidermacs-vterm-use-theme-colors
       (mapcar (lambda (s)
