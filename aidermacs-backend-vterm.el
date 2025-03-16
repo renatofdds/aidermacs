@@ -160,41 +160,68 @@ Use BUFFER if provided, otherwise retrieve it from `aidermacs-get-buffer-name'."
 Has effect only when using the vterm backend."
   :type 'boolean)
 
-(defcustom aidermacs-vterm-theme-colors-plist
+(defcustom aidermacs-vterm-theme-foreground-colors-plist
   '("--user-input-color" font-lock-function-name-face
     "--assistant-output-color" default
+    "--tool-output-color" default
     "--tool-error-color" error
-    "--tool-warning-color"  warning)
-  "Emacs faces to use for aider colour flags.
-Keys are the commandline arguments to send to aider.
-Values are either faces or strings (colours like \"#00cc00\")."
+    "--tool-warning-color"  warning
+    "--completion-menu-color" default
+    "--completion-menu-current-color" highlight)
+  "Emacs faces to use for aider color flags.
+Keys are the commandline arguments to send to aider. Values are either faces,
+or strings containing color codes like \"#00ccff\".
+
+For any face specified, the :foreground attribute will be used to determine the
+color. If that is unspecified, this falls back to the default face foreground
+color."
   :type 'plist)
 
-(defun aidermacs--vterm-colorname-to-rgb (name)
-  "Convert Emacs color NAME to RGB values."
-  (if-let ((colors (color-values name)))
+(defcustom aidermacs-vterm-theme-background-colors-plist
+  '("--completion-menu-bg-color" default
+    "--completion-menu-current-bg-color" highlight)
+  "Emacs faces to use for aider color flags.
+Keys are the commandline arguments to send to aider. Values are either faces,
+or strings containing color codes like \"#00ccff\".
+
+For any face specified, the :background attribute will be used to determine the
+color. If that is unspecified, this falls back to the default face foreground
+color."
+  :type 'plist)
+
+(defun aidermacs--vterm-colorname-to-rgb (name attr)
+  "Convert Emacs color name NAME to RGB values."
+  (if-let* ((colors (color-values name)))
       (concat "#"
               (mapconcat (lambda (c) (format "%02X" (/ c 256))) colors))
-    (face-attribute 'default :foreground)))
+    (face-attribute 'default attr)))
+
+(defun aidermacs--vterm-get-face-color (face attr)
+  "Return an RGB color code for FACE attribute ATTR.
+If unspecified, return ATTR from default face."
+  (let ((color-string (face-attribute-specified-or
+		               (face-attribute face attr)
+		               (face-attribute 'default attr))))
+    (if (string-prefix-p "#" color-string)
+        color-string
+      (aidermacs--vterm-colorname-to-rgb color-string attr))))
+
+(defun aidermacs--vterm-convert-color-arg (attr el)
+  "Maps element EL from color plist, to actual RGB Values, using attribute ATTR."
+  (shell-quote-argument
+   (cond ((stringp el) el)
+         ((facep el) (aidermacs--vterm-get-face-color el attr))
+         (t (error "Invalid face or colour value: %s" el)))))
 
 (defun aidermacs--vterm-theme-args ()
   "Create arguments for aider to try and match the current Emacs theme.
 See `aidermacs-theme-colors-plist'."
   (if aidermacs-vterm-use-theme-colors
-      (mapcar (lambda (s)
-                (cond ((stringp s)
-                       (if (string-prefix-p "-" s) s
-                         (shell-quote-argument s)))
-                      ((facep s)
-                       (shell-quote-argument
-		                (let ((color-string (face-attribute-specified-or
-		                                     (face-attribute s :foreground)
-		                                     (face-attribute 'default :foreground))))
-                          (if (string-prefix-p "#" color-string)
-                              color-string
-                            (aidermacs--vterm-colorname-to-rgb color-string)))))
-                      (t (error "Invalid face or colour value: %s" s))))
-              aidermacs-vterm-theme-colors-plist)
+      (nconc
+       (mapcar (apply-partially #'aidermacs--vterm-convert-color-arg :foreground)
+               aidermacs-vterm-theme-foreground-colors-plist)
+       (mapcar (apply-partially #'aidermacs--vterm-convert-color-arg :background)
+               aidermacs-vterm-theme-background-colors-plist))
     (if (eq (frame-parameter nil 'background-mode) 'dark)
         '("--dark-mode")
       '("--light-mode"))))

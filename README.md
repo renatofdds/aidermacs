@@ -180,6 +180,13 @@ Available backends:
 - `comint` (default): Uses Emacs' built-in terminal emulation
 - `vterm`: Leverages vterm for better terminal compatibility
 
+### Emacs theme support
+The vterm backend will use the faces defined by your active Emacs theme to set the colors for aider. It tries to guess some reasonable color values based on your themes. In some cases this will not work perfectly; if text is unreadable for you, you can turn this off as follows:
+
+``` emacs-lisp
+;; don't match emacs theme colors
+(setopt aidermacs-vterm-use-theme-colors nil)
+```
 
 ### Multiline Input Configuration
 
