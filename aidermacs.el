@@ -648,7 +648,8 @@ Sends the \"/ls\" command and displays the results in a Dired buffer."
                      ;; The executed command is on the 2nd line; it can get
                      ;; quite long, so we delete it to avoid cluttering the
                      ;; buffer.
-                     (goto-line 2)
+                     (goto-char (point-min))
+                     (forward-line 1)  ;; Move to the 2nd line
                      (when (looking-at "^ *find " t)
                        (let ((inhibit-read-only t))
                          (delete-region (line-beginning-position) (line-end-position)))))
@@ -670,6 +671,7 @@ Sends the \"/ls\" command and displays the results in a Dired buffer."
 (defun aidermacs-drop-all-files ()
   "Drop all files from the current chat session."
   (interactive)
+  (setq aidermacs--tracked-files nil)
   (aidermacs--send-command "/drop"))
 
 (defun aidermacs-batch-drop-dired-marked-files ()
