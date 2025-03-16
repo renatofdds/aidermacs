@@ -35,6 +35,7 @@
 (require 'ansi-color)
 (require 'cl-lib)
 (require 'tramp)
+(require 'find-dired)
 
 (require 'aidermacs-backends)
 (require 'aidermacs-models)
