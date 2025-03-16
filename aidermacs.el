@@ -53,13 +53,11 @@ Possible values: `code', `ask', `architect', `help'.")
 (defcustom aidermacs-show-diff-after-change t
   "When non-nil, enable ediff for reviewing AI-generated changes.
 When nil, skip preparing temp buffers and showing ediff comparisons."
-  :type 'boolean
-  :group 'aidermacs)
+  :type 'boolean)
 
 (defcustom aidermacs-program "aider"
   "The name or path of the aidermacs program."
-  :type 'string
-  :group 'aidermacs)
+  :type 'string)
 
 (define-obsolete-variable-alias 'aidermacs-args 'aidermacs-extra-args "0.5.0"
   "Old name for `aidermacs-extra-args', please update your config.")
@@ -69,31 +67,26 @@ When nil, skip preparing temp buffers and showing ediff comparisons."
 When set, Aidermacs will pass this to aider via --config flag,
 ignoring other configuration settings except `aidermacs-extra-args'."
   :type '(choice (const :tag "None" nil)
-                 (file :tag "Config file"))
-  :group 'aidermacs)
+                 (file :tag "Config file")))
 
 (defcustom aidermacs-extra-args '()
   "Additional arguments to pass to the aidermacs command."
-  :type '(repeat string)
-  :group 'aidermacs)
+  :type '(repeat string))
 
 (defcustom aidermacs-subtree-only nil
   "When non-nil, run aider with --subtree-only in the current directory.
 This is useful for working in monorepos where you want to limit aider's scope."
-  :type 'boolean
-  :group 'aidermacs)
+  :type 'boolean)
 
 (defcustom aidermacs-auto-commits nil
   "When non-nil, enable auto-commits of LLM changes.
 When nil, disable auto-commits requiring manual git commits."
-  :type 'boolean
-  :group 'aidermacs)
+  :type 'boolean)
 
 (defcustom aidermacs-auto-accept-architect nil
   "When non-nil, automatically accept architect mode changes.
 When nil, require explicit confirmation before applying changes."
-  :type 'boolean
-  :group 'aidermacs)
+  :type 'boolean)
 
 (defun aidermacs-project-root ()
   "Get the project root using project.el, VC, or fallback to file directory.
@@ -108,8 +101,7 @@ This function tries multiple methods to determine the project root."
 (defcustom aidermacs-prompt-file-name ".aider.prompt.org"
   "File name that will automatically enable `aidermacs-minor-mode' when opened.
 This is the file name without path."
-  :type 'string
-  :group 'aidermacs)
+  :type 'string)
 
 (defconst aidermacs-prompt-regexp "^[^[:space:]<]*>[[:space:]]+$"
   "Regexp to match Aider's command prompt.")
@@ -1166,8 +1158,7 @@ Provides these keybindings:
    ".aider.input.history")
   "List of filenames that should automatically enable `aidermacs-minor-mode'.
 These are exact filename matches (including the dot prefix)."
-  :type '(repeat string)
-  :group 'aidermacs)
+  :type '(repeat string))
 
 (defun aidermacs--maybe-enable-minor-mode ()
   "Determines whether to enable `aidermacs-minor-mode'."

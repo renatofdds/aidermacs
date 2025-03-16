@@ -38,24 +38,20 @@
 
 (defcustom aidermacs-default-model "sonnet"
   "Default AI model to use for aidermacs sessions when not in Architect mode."
-  :type 'string
-  :group 'aidermacs-models)
+  :type 'string)
 
 (defcustom aidermacs-architect-model "sonnet"
   "Default AI model to use for architectural reasoning in aidermacs sessions."
-  :type 'string
-  :group 'aidermacs-models)
+  :type 'string)
 
 (defcustom aidermacs-editor-model aidermacs-default-model
   "Default AI model to use for code editing in aidermacs sessions.
 Defaults to `aidermacs-default-model` if not explicitly set."
-  :type 'string
-  :group 'aidermacs-models)
+  :type 'string)
 
 (defcustom aidermacs-use-architect-mode nil
   "If non-nil, use separate Architect/Editor mode."
-  :type 'boolean
-  :group 'aidermacs-models)
+  :type 'boolean)
 
 (defcustom aidermacs-popular-models
   '("sonnet"
@@ -66,8 +62,7 @@ Defaults to `aidermacs-default-model` if not explicitly set."
   "List of available AI models for selection.
 Each model should be in the format expected by the aidermacs CLI.
 Also based on aidermacs LLM benchmark: https://aidermacs.chat/docs/leaderboards/"
-  :type '(repeat string)
-  :group 'aidermacs-models)
+  :type '(repeat string))
 
 (defvar aidermacs--cached-models aidermacs-popular-models
   "Cache of available AI models.")

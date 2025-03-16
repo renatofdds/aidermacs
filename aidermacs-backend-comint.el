@@ -48,8 +48,7 @@
                                          ("cpp" . "c++"))
   "Map external language names to Emacs names."
   :type '(alist :key-type (string :tag "Language Name/Alias")
-                :value-type (string :tag "Mode Name (without -mode)"))
-  :group 'aidermacs-backend-comint)
+                :value-type (string :tag "Mode Name (without -mode)")))
 
 ;; FIXME: Hmm... seems to use standard diff3 markers.  Maybe some code
 ;; in `smerge-mode.el' could be (re)used?
@@ -63,8 +62,7 @@
 (defcustom aidermacs-comint-multiline-newline-key "S-<return>"
   "Key binding for `comint-accumulate' in Aidermacs buffers.
 This allows for multi-line input without sending the command."
-  :type 'string
-  :group 'aidermacs-backend-comint)
+  :type 'string)
 
 (defface aidermacs-command-separator
   '((((type graphic)) :strike-through t :extend t)

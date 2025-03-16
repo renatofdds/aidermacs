@@ -69,8 +69,7 @@
 
 (defcustom aidermacs-vterm-multiline-newline-key "S-<return>"
   "Key binding to enter a newline without sending in vterm."
-  :type 'string
-  :group 'aidermacs-backend-vterm)
+  :type 'string)
 
 (defun aidermacs--vterm-check-finish-sequence-repeated (proc orig-filter start-point)
   "Check for the finish sequence in PROC's buffer.
@@ -159,8 +158,7 @@ Use BUFFER if provided, otherwise retrieve it from `aidermacs-get-buffer-name'."
 (defcustom aidermacs-vterm-use-theme-colors t
   "Whether to use Emacs theme colors for aider.
 Has effect only when using the vterm backend."
-  :type 'boolean
-  :group 'aidermacs-backend-vterm)
+  :type 'boolean)
 
 (defcustom aidermacs-vterm-theme-colors-plist
   '("--user-input-color" font-lock-function-name-face
@@ -170,8 +168,7 @@ Has effect only when using the vterm backend."
   "Emacs faces to use for aider colour flags.
 Keys are the commandline arguments to send to aider.
 Values are either faces or strings (colours like \"#00cc00\")."
-  :type 'plist
-  :group 'aidermacs-backend-vterm)
+  :type 'plist)
 
 (defun aidermacs--vterm-colorname-to-rgb (name)
   "Convert Emacs color NAME to RGB values."
