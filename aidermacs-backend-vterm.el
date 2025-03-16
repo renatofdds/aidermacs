@@ -151,6 +151,49 @@ Use BUFFER if provided, otherwise retrieve it from `aidermacs-get-buffer-name'."
         (cancel-timer aidermacs--vterm-active-timer)
         (setq aidermacs--vterm-active-timer nil)))))
 
+(defcustom aidermacs-vterm-use-theme-colors t
+  "Whether to use emacs theme colors for aider. Has effect only
+when using the vterm backend."
+  :type 'boolean)
+
+(defcustom aidermacs-vterm-theme-colors-plist
+  '("--user-input-color" font-lock-function-name-face
+    "--assistant-output-color" default
+    "--tool-error-color" error
+    "--tool-warning-color"  warning)
+  "Emacs faces to use for aider colour flags. Keys are the commandline
+arguments to send to aider. Values are either faces or strings (colours like \"#00cc00\")"
+  :type 'plist)
+
+(defun aidermacs--vterm-colorname-to-rgb (name)
+  "Convert emacs color names to RGB values."
+  (if-let ((colors (color-values name)))
+      (concat "#"
+              (mapconcat (lambda (c) (format "%02X" (/ c 256))) colors))
+    (face-attribute 'default :foreground)))
+
+(defun aidermacs--vterm-theme-args ()
+  "Create arguments for aider to try and match the current emacs theme.
+See `aidermacs-theme-colors-plist'."
+  (if aidermacs-vterm-use-theme-colors
+      (mapcar (lambda (s)
+                (cond ((stringp s)
+                       (if (string-prefix-p "-" s) s
+                         (shell-quote-argument s)))
+                      ((facep s)
+                       (shell-quote-argument
+		                (let ((color-string (face-attribute-specified-or
+		                                     (face-attribute s :foreground)
+		                                     (face-attribute 'default :foreground))))
+                          (if (string-prefix-p "#" color-string)
+                              color-string
+                            (aidermacs--vterm-colorname-to-rgb color-string)))))
+                      (t (error "Invalid face or colour value: %s" s))))
+              aidermacs-vterm-theme-colors-plist)
+    (if (eq (frame-parameter nil 'background-mode) 'dark)
+        '("--dark-mode")
+      '("--light-mode"))))
+
 (defun aidermacs-run-vterm (program args buffer-name)
   "Create a vterm-based buffer and run aidermacs program.
 PROGRAM is the command to run.  ARGS is a list of command line arguments.
@@ -158,10 +201,7 @@ BUFFER-NAME is the name for the vterm buffer."
   (unless (require 'vterm nil t)
     (error "Vterm package is not available"))
   (unless (get-buffer buffer-name)
-    (let* ((mode (if (eq (frame-parameter nil 'background-mode) 'dark)
-                     "--dark-mode"
-                   "--light-mode"))
-           (cmd (mapconcat #'identity (append (list program mode) args) " "))
+    (let* ((cmd (mapconcat #'identity (append `(,program ,@(aidermacs--vterm-theme-args)) args) " "))
            (vterm-buffer-name buffer-name)
            (vterm-shell cmd))
       (with-current-buffer (vterm-other-window)
