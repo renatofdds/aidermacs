@@ -54,6 +54,10 @@ Each entry is a cons cell (timestamp . output-text).")
 (defvar-local aidermacs--current-output ""
   "Accumulator for current output being captured as a string.")
 
+(defcustom aidermacs-before-run-backend-hook nil
+  "Hook run before the aidermacs backend is startd."
+  :type 'hook)
+
 (defun aidermacs-get-output-history (&optional limit)
   "Get the output history, optionally limited to LIMIT entries.
 LIMIT is the maximum number of entries to return.
@@ -210,6 +214,7 @@ If there's a callback function, call it with the output."
 PROGRAM is the aidermacs executable path.  ARGS are command line arguments.
 BUFFER-NAME is the name for the aidermacs buffer."
   (message "Running %s with %s" program args)
+  (run-hooks 'aidermacs-before-run-backend-hook)
   (cond
    ((eq aidermacs-backend 'vterm)
     (aidermacs-run-vterm program args buffer-name))
