@@ -51,7 +51,7 @@
                 :value-type (string :tag "Mode Name (without -mode)")))
 
 ;; FIXME: Hmm... seems to use standard diff3 markers.  Maybe some code
-+;; in `smerge-mode.el' could be (re)used?
+;; in `smerge-mode.el' could be (re)used?
 (defconst aidermacs-search-marker "<<<<<<< SEARCH")
 (defconst aidermacs-diff-marker "=======")
 (defconst aidermacs-replace-marker ">>>>>>> REPLACE")
