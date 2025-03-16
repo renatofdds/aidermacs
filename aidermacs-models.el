@@ -32,6 +32,10 @@
 (declare-function aidermacs-buffer-name "aidermacs" ())
 (declare-function aidermacs-exit "aidermacs" ())
 
+(defgroup aidermacs-models nil
+  "Model selection for Aidermacs."
+  :group 'aidermacs)
+
 (defcustom aidermacs-default-model "sonnet"
   "Default AI model to use for aidermacs sessions when not in Architect mode."
   :type 'string)

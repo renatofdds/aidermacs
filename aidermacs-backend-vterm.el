@@ -50,6 +50,10 @@
 ;; useful because we want to override "RET" key for evil mode insert state
 (declare-function evil-define-minor-mode-key "evil-core")
 
+(defgroup aidermacs-backend-vterm nil
+  "VTerm backend for Aidermacs."
+  :group 'aidermacs)
+
 (defvar-local aidermacs--vterm-active-timer nil
   "Store the active timer for vterm output processing.")
 

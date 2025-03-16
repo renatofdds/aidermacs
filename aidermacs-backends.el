@@ -32,6 +32,10 @@
 (declare-function aidermacs--prepare-for-code-edit "aidermacs" ())
 (declare-function aidermacs--get-files-in-session "aidermacs" (callback))
 
+(defgroup aidermacs-backends nil
+  "Backend dispatcher for aidermacs."
+  :group 'aidermacs)
+
 (defcustom aidermacs-backend 'comint
   "Backend to use for the aidermacs process.
 Options are `comint' (the default) or `vterm'.  When set to `vterm',
@@ -85,91 +89,81 @@ This is used to avoid having to run /ls repeatedly.")
 (defun aidermacs--parse-output-for-files (output)
   "Parse OUTPUT for files and add them to `aidermacs--tracked-files'."
   (when output
-    (let ((tracked-files aidermacs--tracked-files))
-      (with-temp-buffer
-        (insert output)
-        (goto-char (point-min))
+    (let ((lines (split-string output "\n"))
+          (last-line "")
+          (in-udiff nil)
+          (current-udiff-file nil))
+      (dolist (line lines)
+        (cond
+         ;; Applied edit to <filename>
+         ((string-match "Applied edit to \\(\\./\\)?\\(.+\\)" line)
+          (when-let ((file (match-string 2 line)))
+            (add-to-list 'aidermacs--tracked-files file)))
 
-        ;; Applied edit to <filename>
-        (while (search-forward "Applied edit to" nil t)
-          (beginning-of-line)
-          (when-let ((file (and (looking-at ".*Applied edit to \\(\\./\\)?\\(.+\\)")
-                                (match-string-no-properties 2))))
-            (add-to-list 'tracked-files file))
-          (forward-line 1))
+         ;; Added <filename> to the chat.
+         ((string-match "Added \\(\\./\\)?\\(.+\\) to the chat" line)
+          (when-let ((file (match-string 2 line)))
+            (add-to-list 'aidermacs--tracked-files file)))
 
-        ;; Combined file tracking logic
-        (goto-char (point-min))
-        (while (re-search-forward
-                "\\(Added\\|Removed\\|Moved\\) \\(\\./\\)?\\([^ ]+\\) \\(to\\|from\\) \\(the chat\\|editable\\|read-only\\) files?"
-                nil t)
-          (let* ((action (match-string 1))
-                 (file (match-string 3))
-                 (state (match-string 5)))
-            (cond
-             ;; Added files
-             ((string= action "Added")
-              (add-to-list 'tracked-files
-                           (if (string= state "read-only")
-                               (concat file " (read-only)")
-                             file)))
+         ;; Removed <filename> from the chat (with or without ./ prefix)
+         ((string-match "Removed \\(\\./\\)?\\(.+\\) from the chat" line)
+          (when-let ((file (match-string 2 line)))
+            (setq aidermacs--tracked-files (delete file aidermacs--tracked-files))))
 
-             ;; Removed files
-             ((string= action "Removed")
-              (setq tracked-files (delete file tracked-files)))
+         ;; Added <filename> to read-only files.
+         ((string-match "Added \\(\\./\\)?\\(.+\\) to read-only files" line)
+          (when-let ((file (match-string 2 line)))
+            (add-to-list 'aidermacs--tracked-files (concat file " (read-only)"))))
 
-             ;; Moved files
-             ((string= action "Moved")
-              (let* ((from-state (if (string= state "editable") "read-only" "editable"))
-                     (old-file (if (string= from-state "read-only")
-                                   (concat file " (read-only)")
-                                 file))
-                     (new-file (if (string= state "read-only")
-                                   (concat file " (read-only)")
-                                 file)))
-                (setq tracked-files (delete old-file tracked-files))
-                (add-to-list 'tracked-files new-file))))))
+         ;; Moved <file> from editable to read-only files in the chat
+         ((string-match "Moved \\(\\./\\)?\\(.+\\) from editable to read-only files in the chat" line)
+          (when-let ((file (match-string 2 line)))
+            (let ((editable-file (replace-regexp-in-string " (read-only)$" "" file)))
+              (setq aidermacs--tracked-files (delete editable-file aidermacs--tracked-files))
+              (add-to-list 'aidermacs--tracked-files (concat file " (read-only)")))))
 
-        ;; <file> is already in the chat as an editable file
-        (goto-char (point-min))
-        (while (search-forward " is already in the chat as an editable file" nil t)
-          (beginning-of-line)
-          (when-let ((file (and (looking-at "\\(\\./\\)?\\(.+\\) is already in the chat as an editable file")
-                                (match-string-no-properties 2))))
-            (add-to-list 'tracked-files file))
-          (forward-line 1))
+         ;; Moved <file> from read-only to editable files in the chat
+         ((string-match "Moved \\(\\./\\)?\\(.+\\) from read-only to editable files in the chat" line)
+          (when-let ((file (match-string 2 line)))
+            (let ((read-only-file (concat file " (read-only)")))
+              (setq aidermacs--tracked-files (delete read-only-file aidermacs--tracked-files))
+              (add-to-list 'aidermacs--tracked-files file))))
 
-        ;; Add file to the chat?
-        (goto-char (point-min))
-        (while (search-forward "Add file to the chat?" nil t)
-          (save-excursion
-            (forward-line -1)
-            (let ((potential-file (string-trim (buffer-substring (line-beginning-position) (line-end-position)))))
-              (when (not (string-empty-p potential-file))
-                (add-to-list 'tracked-files potential-file)
-                (aidermacs--prepare-for-code-edit))))
-          (forward-line 1))
+         ;; <file>\nAdd file to the chat?
+         ((string-match "Add file to the chat?" line)
+          (add-to-list 'aidermacs--tracked-files last-line)
+          (aidermacs--prepare-for-code-edit))
 
-        ;; Handle udiff format
-        (goto-char (point-min))
-        (while (search-forward "--- " nil t)
-          (message "processing %s " tracked-files)
-          (let* ((line-end (line-end-position))
-                 (current-udiff-file (when (looking-at "\\(\\./\\)?\\(.+\\)")
-                                       (match-string-no-properties 2))))
-            (when current-udiff-file
-              (forward-line 1)
-              (when (looking-at "\\+\\+\\+ \\(\\./\\)?\\(.+\\)")
-                (let ((plus-file (match-string-no-properties 2)))
-                  (when (string= (file-name-nondirectory current-udiff-file)
-                                 (file-name-nondirectory plus-file))
-                    (add-to-list 'tracked-files current-udiff-file))))))))
+         ;; <file> is already in the chat as an editable file
+         ((string-match "\\(\\./\\)?\\(.+\\) is already in the chat as an editable file" line)
+          (when-let ((file (match-string 2 line)))
+            (add-to-list 'aidermacs--tracked-files file)))
+
+         ;; Handle udiff format
+         ;; Detect start of udiff with "--- filename"
+         ((string-match "^--- \\(\\./\\)?\\(.+\\)" line)
+          (setq in-udiff t
+                current-udiff-file (match-string 2 line)))
+
+         ;; Confirm udiff file with "+++ filename" line
+         ((and in-udiff
+               current-udiff-file
+               (string-match "^\\+\\+\\+ \\(\\./\\)?\\(.+\\)" line))
+          (let ((plus-file (match-string 2 line)))
+            ;; Only add if the filenames match (ignoring ./ prefix)
+            (when (string= (file-name-nondirectory current-udiff-file)
+                           (file-name-nondirectory plus-file))
+              (add-to-list 'aidermacs--tracked-files current-udiff-file)
+              (setq in-udiff nil
+                    current-udiff-file nil)))))
+
+        (setq last-line line))
 
       ;; Verify all tracked files exist
       (let* ((project-root (aidermacs-project-root))
              (is-remote (file-remote-p project-root))
              (valid-files nil))
-        (dolist (file tracked-files)
+        (dolist (file aidermacs--tracked-files)
           (let* ((is-readonly (string-match-p " (read-only)$" file))
                  (actual-file (if is-readonly
                                   (substring file 0 (- (length file) 12))
@@ -177,15 +171,7 @@ This is used to avoid having to run /ls repeatedly.")
                  (full-path (expand-file-name actual-file project-root)))
             (when (or (file-exists-p full-path) is-remote)
               (push file valid-files))))
-        (setq tracked-files valid-files))
-      (setq aidermacs--tracked-files tracked-files))))
-
-(defun aidermacs-reset-tracked-files ()
-  "Reset the list of tracked files and force a refresh."
-  (interactive)
-  (setq aidermacs--tracked-files nil)
-  (aidermacs--get-files-in-session (lambda (files)
-                                     (message "Refreshed file list: %s" files))))
+        (setq aidermacs--tracked-files valid-files)))))
 
 (defun aidermacs--store-output (output)
   "Store output string in the history with timestamp.

@@ -32,6 +32,10 @@
 (declare-function aidermacs--detect-edited-files "aidermacs")
 (declare-function aidermacs--process-message-if-multi-line "aidermacs" (str))
 
+(defgroup aidermacs-backend-comint nil
+  "Comint backend for Aidermacs."
+  :group 'aidermacs)
+
 (defcustom aidermacs-language-name-map '(("elisp" . "emacs-lisp")
                                          ("bash" . "sh")
                                          ("objective-c" . "objc")

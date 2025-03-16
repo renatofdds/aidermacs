@@ -40,6 +40,10 @@
 (require 'aidermacs-backends)
 (require 'aidermacs-models)
 
+(defgroup aidermacs nil
+  "AI pair programming with Aider."
+  :group 'aidermacs)
+
 (defvar-local aidermacs--current-mode nil
   "Buffer-local variable to track the current aidermacs mode.
 Possible values: `code', `ask', `architect', `help'.")
