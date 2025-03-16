@@ -82,6 +82,24 @@ Here's what the community is saying about Aidermacs:
 
 ## Configuration
 
+#### Pre-Run Hook
+
+You can use the `aidermacs-before-run-backend-hook` to run custom setup code before starting the Aider backend. This is particularly useful for:
+
+- Setting environment variables
+- Injecting secrets
+- Performing any other pre-run configuration
+
+Example usage to securely set an OpenAI API key from password-store:
+
+```elisp
+(add-hook 'aidermacs-before-run-backend-hook
+          (lambda ()
+            (setenv "OPENAI_API_KEY" (password-store-get "code/openai_api_key"))))
+```
+
+This approach keeps sensitive information out of your dotfiles while still making it available to Aidermacs.
+
 ### Default Model Selection
 
 You can customize the default AI model used by Aidermacs by setting the `aidermacs-default-model` variable:
