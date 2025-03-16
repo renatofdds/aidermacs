@@ -86,7 +86,7 @@ When nil, disable auto-commits requiring manual git commits."
 (defun aidermacs-project-root ()
   "Get the project root using project.el, VC, or fallback to file directory.
 This function tries multiple methods to determine the project root."
-  (or (when-let ((proj (project-current)))
+  (or (when-let* ((proj (project-current)))
         (project-root proj))
       (vc-git-root default-directory)
       (when buffer-file-name
@@ -381,7 +381,7 @@ Returns a list of files that have been modified according to the output."
         ;; Case 1: Find "Applied edit to" lines
         (while (search-forward "Applied edit to" nil t)
           (beginning-of-line)
-          (when-let ((file (and (looking-at ".*Applied edit to \\(\\./\\)?\\([^[:space:]]+\\)")
+          (when-let* ((file (and (looking-at ".*Applied edit to \\(\\./\\)?\\([^[:space:]]+\\)")
                                 (match-string-no-properties 2))))
             (push file edited-files))
           (forward-line 1))
@@ -724,7 +724,7 @@ Use highlighted region as context unless IGNORE-CONTEXT is set to non-nil."
   (let* ((region-text (when (and (use-region-p) (not ignore-context))
                         (buffer-substring-no-properties (region-beginning) (region-end))))
          (context (when region-text
-                    (format " regarding this section:\n```\n%s\n```\n" region-text)))
+                    (format " in %s regarding this section:\n```\n%s\n```\n" (buffer-name) region-text)))
          (user-command (read-string (concat command " " prompt-prefix context
                                             (when guide (format " (%s)" guide)) ": "))))
     (concat command (and (not (string-empty-p user-command))
@@ -733,7 +733,7 @@ Use highlighted region as context unless IGNORE-CONTEXT is set to non-nil."
 (defun aidermacs-direct-change ()
   "Prompt the user for an input and send it to aidemracs prefixed with \"/code \"."
   (interactive)
-  (when-let ((command (aidermacs--form-prompt "/code" "Make this change" "will edit file")))
+  (when-let* ((command (aidermacs--form-prompt "/code" "Make this change" "will edit file")))
     (aidermacs--ensure-current-file-tracked)
     (aidermacs--send-command command)))
 
@@ -743,7 +743,7 @@ If a region is active, include the region text in the question.
 If cursor is inside a function, include the function name as context.
 If called from the aidermacs buffer, use general question instead."
   (interactive)
-  (when-let ((command (aidermacs--form-prompt "/ask" "Propose a solution" "won't edit file")))
+  (when-let* ((command (aidermacs--form-prompt "/ask" "Propose a solution" "won't edit file")))
     (aidermacs--ensure-current-file-tracked)
     (aidermacs--send-command command)))
 
@@ -752,26 +752,26 @@ If called from the aidermacs buffer, use general question instead."
 If region is active, inspect that region.
 If point is in a function, inspect that function."
   (interactive)
-  (when-let ((command (aidermacs--form-prompt "/architect" "Design a solution" "confirm before edit")))
+  (when-let* ((command (aidermacs--form-prompt "/architect" "Design a solution" "confirm before edit")))
     (aidermacs--ensure-current-file-tracked)
     (aidermacs--send-command command)))
 
 (defun aidermacs-question-general ()
   "Prompt the user for a general question without code context."
   (interactive)
-  (when-let ((command (aidermacs--form-prompt "/ask" nil "empty for ask mode" t)))
+  (when-let* ((command (aidermacs--form-prompt "/ask" nil "empty for ask mode" t)))
     (aidermacs--send-command command)))
 
 (defun aidermacs-help ()
   "Prompt the user for an input prefixed with \"/help \"."
   (interactive)
-  (when-let ((command (aidermacs--form-prompt "/help" nil "question how to use aider, empty for all commands" t)))
+  (when-let* ((command (aidermacs--form-prompt "/help" nil "question how to use aider, empty for all commands" t)))
     (aidermacs--send-command command)))
 
 (defun aidermacs-debug-exception ()
   "Prompt the user for an input and send it to aidemracs prefixed with \"/debug \"."
   (interactive)
-  (when-let ((command (aidermacs--form-prompt "/ask" "Debug exception")))
+  (when-let* ((command (aidermacs--form-prompt "/ask" "Debug exception")))
     (aidermacs--send-command command)))
 
 (defun aidermacs-accept-change ()
@@ -977,7 +977,7 @@ Otherwise:
   "Report the current test failure to aidermacs and ask it to fix the code.
 This function assumes the cursor is on or inside a test function."
   (interactive)
-  (if-let ((test-function-name (which-function)))
+  (if-let* ((test-function-name (which-function)))
       (let* ((initial-input (format "The test '%s' is failing. Please analyze and fix the code to make the test pass. Don't break any other test"
                                     test-function-name))
              (command (aidermacs--form-prompt "/architect" initial-input)))
@@ -1051,7 +1051,7 @@ Otherwise implement TODOs for the entire current file."
       (message "Current buffer is not visiting a file.")
     (let* ((current-line (string-trim (thing-at-point 'line t)))
            (is-comment (aidermacs--is-comment-line current-line)))
-      (when-let ((command (aidermacs--form-prompt
+      (when-let* ((command (aidermacs--form-prompt
                            "/architect"
                            (concat "Please implement the TODO items."
                                    (and is-comment
@@ -1124,10 +1124,10 @@ sample prompt."
 ;;;###autoload
 (defvar aidermacs-minor-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "C-c C-n") 'aidermacs-send-line-or-region)
-    (define-key map (kbd "C-<return>") 'aidermacs-send-line-or-region)
-    (define-key map (kbd "C-c C-c") 'aidermacs-send-block-or-region)
-    (define-key map (kbd "C-c C-z") 'aidermacs-switch-to-buffer)
+    (define-key map (kbd "C-c C-n") #'aidermacs-send-line-or-region)
+    (define-key map (kbd "C-<return>") #'aidermacs-send-line-or-region)
+    (define-key map (kbd "C-c C-c") #'aidermacs-send-block-or-region)
+    (define-key map (kbd "C-c C-z") #'aidermacs-switch-to-buffer)
     map)
   "Keymap for `aidermacs-minor-mode'.")
 

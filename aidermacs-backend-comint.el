@@ -31,6 +31,11 @@
 (declare-function aidermacs--show-ediff-for-edited-files "aidermacs")
 (declare-function aidermacs--detect-edited-files "aidermacs")
 (declare-function aidermacs--process-message-if-multi-line "aidermacs" (str))
+(declare-function aidermacs--parse-output-for-files "aidermacs-backends" (output))
+(declare-function aidermacs--store-output "aidermacs-backends" (output))
+(declare-function aidermacs--is-aidermacs-buffer-p "aidermacs-backends" (&optional buffer))
+
+(defvar aidermacs--last-command)
 
 (defgroup aidermacs-backend-comint nil
   "Comint backend for Aidermacs."
@@ -45,6 +50,8 @@
   :type '(alist :key-type (string :tag "Language Name/Alias")
                 :value-type (string :tag "Mode Name (without -mode)")))
 
+;; FIXME: Hmm... seems to use standard diff3 markers.  Maybe some code
++;; in `smerge-mode.el' could be (re)used?
 (defconst aidermacs-search-marker "<<<<<<< SEARCH")
 (defconst aidermacs-diff-marker "=======")
 (defconst aidermacs-replace-marker ">>>>>>> REPLACE")
@@ -67,7 +74,7 @@ This allows for multi-line input without sending the command."
   "Face for commands sent to aidermacs buffer.")
 
 (defface aidermacs-search-replace-block
-  '((t :inherit 'diff-refine-added :bold t))
+  '((t :inherit diff-refine-added :bold t))
   "Face for search/replace block content.")
 
 (defvar aidermacs-font-lock-keywords

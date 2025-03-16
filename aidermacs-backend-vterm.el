@@ -47,8 +47,9 @@
 (declare-function aidermacs--is-aidermacs-buffer-p "aidermacs")
 (declare-function aidermacs-get-buffer-name "aidermacs")
 
-;; useful because we want to override "RET" key for evil mode insert state
 (declare-function evil-define-minor-mode-key "evil-core")
+
+(defvar aidermacs-prompt-regexp)
 
 (defgroup aidermacs-backend-vterm nil
   "VTerm backend for Aidermacs."
@@ -60,16 +61,12 @@
 (defvar-local aidermacs--vterm-last-check-point nil
   "Store the last position checked in the vterm buffer.")
 
-
 (defvar-local aidermacs-vterm-check-interval 0.7
   "Interval in seconds between checks for command completion in vterm.")
-
 
 (defcustom aidermacs-vterm-multiline-newline-key "S-<return>"
   "Key binding to enter a newline without sending in vterm."
   :type 'string)
-
-(defvar aidermacs-prompt-regexp)
 
 (defun aidermacs--vterm-check-finish-sequence-repeated (proc orig-filter start-point)
   "Check for the finish sequence in PROC's buffer.
@@ -149,7 +146,7 @@ after each output chunk, reducing the need for timers."
 (defun aidermacs--maybe-cancel-active-timer (&optional buffer)
   "Cancel the active timer if it exists.
 Use BUFFER if provided, otherwise retrieve it from `aidermacs-get-buffer-name'."
-  (when-let ((buf (get-buffer (or buffer (aidermacs-get-buffer-name)))))
+  (when-let* ((buf (get-buffer (or buffer (aidermacs-get-buffer-name)))))
     (with-current-buffer buf
       (when (timerp aidermacs--vterm-active-timer)
         (cancel-timer aidermacs--vterm-active-timer)
