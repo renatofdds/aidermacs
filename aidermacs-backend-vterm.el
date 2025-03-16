@@ -236,7 +236,6 @@ BUFFER-NAME is the name for the vterm buffer."
     (let* ((cmd (mapconcat #'identity (append `(,program ,@(aidermacs--vterm-theme-args)) args) " "))
            (vterm-buffer-name buffer-name)
            (vterm-shell cmd))
-      (message "CMD: %s" cmd)
       (with-current-buffer (vterm-other-window)
         (setq-local vterm-max-scrollback 1000
                     aidermacs--vterm-active-timer nil
