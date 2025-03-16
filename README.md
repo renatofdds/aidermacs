@@ -4,6 +4,7 @@
 
 # Aidermacs: AI Pair Programming in Emacs
 [![MELPA](https://melpa.org/packages/aidermacs-badge.svg)](https://melpa.org/#/aidermacs)
+[![NonGNU ELPA](https://elpa.nongnu.org/nongnu/aidermacs.svg)](https://elpa.nongnu.org/nongnu/aidermacs.html)
 [![EMACS](https://img.shields.io/badge/Emacs-29.1-922793?logo=gnu-emacs&logoColor=b39ddb&.svg)](https://www.gnu.org/savannah-checkouts/gnu/emacs/emacs.html)
 [![LICENSE](https://img.shields.io/github/license/MatthewZMD/aidermacs?logo=apache&.svg)](https://github.com/MatthewZMD/aidermacs/blob/master/LICENSE)
 [![CONTRIBUTORS](https://img.shields.io/github/contributors/MatthewZMD/aidermacs.svg)](https://github.com/MatthewZMD/aidermacs/graphs/contributors)
