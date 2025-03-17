@@ -89,6 +89,25 @@ When nil, disable auto-commits requiring manual git commits."
 When nil, require explicit confirmation before applying changes."
   :type 'boolean)
 
+(defun aidermacs--check-aider-version ()
+  "Check the installed aider version.
+Returns a version string like \"0.77.0\" or nil if version can't be determined."
+  (with-temp-buffer
+    (when (= 0 (call-process aidermacs-program nil t nil "--version"))
+      (goto-char (point-min))
+      (when (re-search-forward "aider \\([0-9]+\\.[0-9]+\\.[0-9]+\\)" nil t)
+        (match-string 1)))))
+
+(defun aidermacs--version-greater-equal (v1 v2)
+  "Return t if version V1 is greater than or equal to V2."
+  (let ((v1-parts (mapcar #'string-to-number (split-string v1 "\\.")))
+        (v2-parts (mapcar #'string-to-number (split-string v2 "\\."))))
+    (or (> (car v1-parts) (car v2-parts))
+        (and (= (car v1-parts) (car v2-parts))
+             (or (> (cadr v1-parts) (cadr v2-parts))
+                 (and (= (cadr v1-parts) (cadr v2-parts))
+                      (>= (nth 2 v1-parts) (nth 2 v2-parts))))))))
+
 (defun aidermacs-project-root ()
   "Get the project root using VC-git, or fallback to file directory.
 This function tries multiple methods to determine the project root."
@@ -252,6 +271,10 @@ This function sets up the appropriate arguments and launches the process."
                              aidermacs-config-file
                              (cl-some (lambda (x) (member x flat-extra-args))
                                       '("--config" "-c"))))
+         ;; Check aider version for auto-accept-architect support
+         (aider-version (aidermacs--check-aider-version))
+         (supports-auto-accept-architect (and aider-version
+                                             (aidermacs--version-greater-equal aider-version "0.77.0")))
          (backend-args
           (if has-config-arg
               ;; Only need to add aidermacs-config-file manually
@@ -266,7 +289,11 @@ This function sets up the appropriate arguments and launches the process."
                  (list "--model" aidermacs-default-model)))
              (unless aidermacs-auto-commits
                '("--no-auto-commits"))
-             (unless aidermacs-auto-accept-architect
+             ;; Only add --no-auto-accept-architect if:
+             ;; 1. User has disabled auto-accept (aidermacs-auto-accept-architect is nil)
+             ;; 2. Aider version supports this flag (>= 0.77.0)
+             (when (and (not aidermacs-auto-accept-architect)
+                        supports-auto-accept-architect)
                '("--no-auto-accept-architect"))
              (when aidermacs-subtree-only
                '("--subtree-only")))))
