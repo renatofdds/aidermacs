@@ -681,9 +681,19 @@ Sends the \"/ls\" command and displays the results in a Dired buffer."
   (aidermacs--send-command "/drop"))
 
 (defun aidermacs-batch-drop-dired-marked-files ()
-  "Drop Dired files."
+  "Drop Dired marked files from the aidermacs session.
+If called from the special aidermacs files buffer, kill the buffer after dropping files."
   (interactive)
-  (aidermacs--drop-files-helper (dired-get-marked-files)))
+  (unless (derived-mode-p 'dired-mode)
+    (user-error "This command can only be used in Dired mode"))
+  (let ((files (dired-get-marked-files))
+        (is-aidermacs-files-buffer (string= (buffer-name)
+                                            (aidermacs-get-buffer-name nil " Files"))))
+    (aidermacs--drop-files-helper files)
+    ;; If we're in the special aidermacs files buffer, kill it after dropping files
+    (when is-aidermacs-files-buffer
+      (message "Closing aidermacs file buffer after dropping files")
+      (kill-buffer (aidermacs-get-buffer-name nil " Files")))))
 
 (defun aidermacs-show-output-history ()
   "Display the AI output history in a new buffer."
@@ -920,6 +930,8 @@ With prefix argument `C-u', add as read-only."
   "Add Dired files with READ-ONLY flag.
 With prefix argument `C-u', add as read-only."
   (interactive "P")
+  (unless (derived-mode-p 'dired-mode)
+    (user-error "This command can only be used in Dired mode"))
   (aidermacs--add-files-helper (dired-get-marked-files) read-only))
 
 (defun aidermacs-add-same-type-files-under-dir (&optional read-only)
