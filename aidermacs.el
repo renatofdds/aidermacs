@@ -89,14 +89,27 @@ When nil, disable auto-commits requiring manual git commits."
 When nil, require explicit confirmation before applying changes."
   :type 'boolean)
 
+(defvar aidermacs--cached-version nil
+  "Cached aider version to avoid repeated version checks.")
+
 (defun aidermacs--check-aider-version ()
   "Check the installed aider version.
-Returns a version string like \"0.77.0\" or nil if version can't be determined."
-  (with-temp-buffer
-    (when (= 0 (call-process aidermacs-program nil t nil "--version"))
-      (goto-char (point-min))
-      (when (re-search-forward "aider \\([0-9]+\\.[0-9]+\\.[0-9]+\\)" nil t)
-        (match-string 1)))))
+Returns a version string like \"0.77.0\" or nil if version can't be determined.
+Uses cached version if available to avoid repeated process calls."
+  (or aidermacs--cached-version
+      (setq aidermacs--cached-version
+            (with-temp-buffer
+              (when (= 0 (call-process aidermacs-program nil t nil "--version"))
+                (goto-char (point-min))
+                (when (re-search-forward "aider \\([0-9]+\\.[0-9]+\\.[0-9]+\\)" nil t)
+                  (match-string 1)))))))
+
+(defun aidermacs-clear-version-cache ()
+  "Clear the cached aider version.
+Call this after upgrading aider to ensure the correct version is detected."
+  (interactive)
+  (setq aidermacs--cached-version nil)
+  (message "Aider version cache cleared."))
 
 (defun aidermacs--version-greater-equal (v1 v2)
   "Return t if version V1 is greater than or equal to V2."
