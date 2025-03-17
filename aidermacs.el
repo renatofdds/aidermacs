@@ -1,7 +1,7 @@
 ;;; aidermacs.el --- AI pair programming with Aider -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Version: 1.0
-;; Package-Requires: ((emacs "28.1") (transient "0.3.0") (compat "30.0.2.0"))
+;; Package-Requires: ((emacs "26.1") (transient "0.3.0") (compat "30.0.2.0"))
 ;; Keywords: ai emacs llm aider ai-pair-programming tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
 ;; SPDX-License-Identifier: Apache-2.0
@@ -90,11 +90,9 @@ When nil, require explicit confirmation before applying changes."
   :type 'boolean)
 
 (defun aidermacs-project-root ()
-  "Get the project root using project.el, VC, or fallback to file directory.
+  "Get the project root using VC-git, or fallback to file directory.
 This function tries multiple methods to determine the project root."
-  (or (when-let* ((proj (project-current)))
-        (project-root proj))
-      (vc-git-root default-directory)
+  (or (vc-git-root default-directory)
       (when buffer-file-name
         (file-name-directory buffer-file-name))
       default-directory))

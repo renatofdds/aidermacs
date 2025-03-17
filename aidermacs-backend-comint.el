@@ -24,7 +24,7 @@
 ;;; Code:
 
 (require 'comint)
-(require 'cl-seq)
+(require 'cl-lib)
 (require 'map)
 
 ;; Forward declarations
