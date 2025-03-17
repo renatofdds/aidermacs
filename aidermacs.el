@@ -1,7 +1,7 @@
 ;;; aidermacs.el --- AI pair programming with Aider -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
 ;; Version: 1.0
-;; Package-Requires: ((emacs "29.1"))
+;; Package-Requires: ((emacs "26.1") (transient "0.3.0"))
 ;; Keywords: ai emacs llm aider ai-pair-programming tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
 ;; SPDX-License-Identifier: Apache-2.0
@@ -24,6 +24,9 @@
 ;; Originally forked from Kang Tu <tninja@gmail.com>'s Aider.el.
 
 ;;; Code:
+
+(when (< emacs-major-version 29)
+  (require 'compat))
 
 (require 'comint)
 (require 'dired)
