@@ -722,7 +722,8 @@ Sends the \"/ls\" command and displays the results in a Dired buffer."
         (with-current-buffer session-buffer
           (unless (member relative-path aidermacs--tracked-files)
             (push relative-path aidermacs--tracked-files)
-            (aidermacs--add-files-helper (list relative-path))))))))
+            (let ((command (aidermacs--prepare-file-paths-for-command "/add" (list relative-path))))
+              (aidermacs--send-command-backend session-buffer command nil))))))))
 
 (defun aidermacs--form-prompt (command &optional prompt-prefix guide ignore-context)
   "Get command based on context with COMMAND and PROMPT-PREFIX.
