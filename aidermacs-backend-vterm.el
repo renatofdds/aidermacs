@@ -29,6 +29,7 @@
 ;; we want to ensure these two variables are dynamic binding
 (defvar vterm-shell)
 (defvar vterm-buffer-name)
+(defvar vterm-kill-buffer-on-exit)
 
 ;; Forward declaration to avoid compiler warnings
 (declare-function vterm--render "vterm")
@@ -190,7 +191,7 @@ color."
   :type 'plist)
 
 (defun aidermacs--vterm-colorname-to-rgb (name attr)
-  "Convert Emacs color name NAME to RGB values."
+  "Convert Emacs color name NAME to RGB values with ATTR."
   (if-let* ((colors (color-values name)))
       (concat "#"
               (mapconcat (lambda (c) (format "%02X" (/ c 256))) colors))
