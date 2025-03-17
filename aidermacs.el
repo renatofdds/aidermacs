@@ -836,7 +836,7 @@ If point is in a function, inspect that function."
 (defun aidermacs-accept-change ()
   "Send the command \"go ahead\" to the aidemracs."
   (interactive)
-  (aidermacs--send-command "/code go ahead with the proposed changes"))
+  (aidermacs--send-command "/code ok"))
 
 (defun aidermacs-magit-show-last-commit ()
   "Show the last commit message using Magit.
