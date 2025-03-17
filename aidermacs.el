@@ -25,9 +25,7 @@
 
 ;;; Code:
 
-(when (< emacs-major-version 29)
-  (require 'compat))
-
+(require 'compat)
 (require 'comint)
 (require 'dired)
 (require 'ediff)
