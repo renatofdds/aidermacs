@@ -24,6 +24,8 @@
 ;;; Code:
 
 (require 'comint)
+(require 'cl-seq)
+(require 'map)
 
 ;; Forward declarations
 (declare-function aidermacs--prepare-for-code-edit "aidermacs")

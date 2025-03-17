@@ -32,6 +32,8 @@
 (declare-function aidermacs-buffer-name "aidermacs" ())
 (declare-function aidermacs-exit "aidermacs" ())
 
+(defvar aidermacs--current-output)
+
 (defgroup aidermacs-models nil
   "Model selection for Aidermacs."
   :group 'aidermacs)
