@@ -775,6 +775,14 @@ If called from the special aidermacs files buffer, kill the buffer after droppin
             (let ((command (aidermacs--prepare-file-paths-for-command "/add" (list relative-path))))
               (aidermacs--send-command-backend session-buffer command nil))))))))
 
+(defvar aidermacs--read-string-history nil
+  "History list for aidermacs read string inputs.")
+(if (bound-and-true-p savehist-loaded)
+    (add-to-list 'savehist-additional-variables 'aidermacs--read-string-history)
+  (add-hook 'savehist-mode-hook
+            (lambda ()
+              (add-to-list 'savehist-additional-variables 'aidermacs--read-string-history))))
+
 (defun aidermacs--form-prompt (command &optional prompt-prefix guide ignore-context)
   "Get command based on context with COMMAND and PROMPT-PREFIX.
 COMMAND is the text to prepend.  PROMPT-PREFIX is the text to add after COMMAND.
@@ -785,7 +793,9 @@ Use highlighted region as context unless IGNORE-CONTEXT is set to non-nil."
          (context (when region-text
                     (format " in %s regarding this section:\n```\n%s\n```\n" (buffer-name) region-text)))
          (user-command (read-string (concat command " " prompt-prefix context
-                                            (when guide (format " (%s)" guide)) ": "))))
+                                            (when guide (format " (%s)" guide)) ": ")
+                                    nil
+                                    'aidermacs--read-string-history)))
     (concat command (and (not (string-empty-p user-command))
                          (concat " " prompt-prefix context ": " user-command)))))
 
