@@ -129,6 +129,7 @@ This function tries multiple methods to determine the project root."
 This is the file name without path."
   :type 'string)
 
+;;;###autoload
 (transient-define-prefix aidermacs-transient-menu ()
   "AI Pair Programming Interface."
   ["Aidermacs: AI Pair Programming"
