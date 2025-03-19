@@ -704,11 +704,9 @@ With prefix argument `C-u', add as READ-ONLY.
 If current buffer is visiting a file, its name is used as initial input.
 Multiple files can be selected by calling the command multiple times."
   (interactive "P")
-  (let* ((initial (when buffer-file-name
-                    (file-name-nondirectory buffer-file-name)))
-         (file (expand-file-name
-                (read-file-name "Select file to add: "
-                                nil nil t initial))))
+  (let ((file (expand-file-name
+               (read-file-name "Select file to add: "
+                               nil nil t))))
     (cond
      ((file-directory-p file)
       (when (yes-or-no-p (format "Add all files in directory %s? " file))
