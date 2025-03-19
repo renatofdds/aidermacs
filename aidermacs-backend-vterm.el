@@ -19,8 +19,6 @@
 ;; - Custom multi-line input keybindings
 ;; - Aider process management in VTerm
 
-;; Originally forked from: Kang Tu <tninja@gmail.com> Aider.el
-
 ;;; Code:
 
 (require 'vterm nil 'noerror)
@@ -40,15 +38,15 @@
 (declare-function vterm-insert "vterm")
 (declare-function vterm-send-C-c "vterm")
 
-(declare-function aidermacs--prepare-for-code-edit "aidermacs")
-(declare-function aidermacs--cleanup-temp-buffers "aidermacs")
-(declare-function aidermacs--show-ediff-for-edited-files "aidermacs")
 (declare-function aidermacs--detect-edited-files "aidermacs")
-(declare-function aidermacs--store-output "aidermacs")
+(declare-function aidermacs--command-may-edit-files "aidermacs")
 (declare-function aidermacs--is-aidermacs-buffer-p "aidermacs")
 (declare-function aidermacs-get-buffer-name "aidermacs")
-
-(declare-function aidermacs--parse-output-for-files "aidermacs-backends" (output))
+(declare-function aidermacs--store-output "aidermacs-output")
+(declare-function aidermacs--prepare-for-code-edit "aidermacs-output")
+(declare-function aidermacs--parse-output-for-files "aidermacs-output" (output))
+(declare-function aidermacs--show-ediff-for-edited-files "aidermacs-output")
+(declare-function aidermacs--cleanup-temp-buffers "aidermacs-output")
 
 (declare-function evil-define-minor-mode-key "evil-core")
 
@@ -158,6 +156,8 @@ Use BUFFER if provided, otherwise retrieve it from `aidermacs-get-buffer-name'."
 
 
 (defun aidermacs--vterm-filter-buffer-substring (beg end &optional delete)
+  "Filter text from BEG to END in vterm buffer for cleaner display.
+When DELETE is non-nil, extract and delete the region instead of copying it."
   (let* ((text (cond
                 (delete
                  (save-excursion
@@ -308,8 +308,8 @@ BUFFER is the target buffer to send to.  COMMAND is the text to send."
                        (line-end-position))))
         (when (not (string-empty-p command))
           (setq-local aidermacs--last-command command)
-          ;; Always prepare for potential edits
-          (aidermacs--prepare-for-code-edit))))))
+          (when (aidermacs--command-may-edit-files command)
+            (aidermacs--prepare-for-code-edit)))))))
 
 (defun aidermacs--vterm-cleanup ()
   "Clean up vterm resources when buffer is killed."
