@@ -519,7 +519,7 @@ Sends the \"/ls\" command and displays the results in a Dired buffer."
    (lambda (files)
      (if-let* ((file (completing-read "Select file to drop: " files nil t))
                (clean-file (replace-regexp-in-string " (read-only)$" "" file)))
-         (let ((command (aidermacs--prepare-file-paths-for-command "/drop" (list (concat "./" clean-file)))))
+         (let ((command (aidermacs--prepare-file-paths-for-command "/drop" (list clean-file))))
            (aidermacs--send-command command))
        (message "No files available to drop")))))
 
