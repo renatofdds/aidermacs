@@ -203,7 +203,6 @@ If supplied, SUFFIX is appended to the buffer name within the earmuffs."
   (if use-existing
       (aidermacs-select-buffer-name)
     (let* ((root (aidermacs-project-root))
-           (current-dir (file-truename default-directory))
            ;; Get all existing aidermacs buffers
            (aidermacs-buffers
             (match-buffers #'aidermacs--is-aidermacs-buffer-p))
@@ -223,7 +222,7 @@ If supplied, SUFFIX is appended to the buffer name within the earmuffs."
               (cl-remove-if-not
                (lambda (dir-info)
                  (and (car dir-info)
-                      (string-prefix-p (car dir-info) current-dir)
+                      (string-prefix-p (car dir-info) default-directory)
                       (file-exists-p (car dir-info))))
                buffer-dirs)
               (lambda (a b)
@@ -231,7 +230,7 @@ If supplied, SUFFIX is appended to the buffer name within the earmuffs."
                 (> (length (car a)) (length (car b)))))))
            (display-root (cond
                           ;; Use current directory for new subtree session
-                          (aidermacs-subtree-only current-dir)
+                          (aidermacs-subtree-only default-directory)
                           ;; Use closest parent if it exists
                           (closest-parent closest-parent)
                           ;; Fall back to project root for new non-subtree session
@@ -490,10 +489,10 @@ Sends the \"/ls\" command and displays the results in a Dired buffer."
        (when (get-buffer buf-name)
          (kill-buffer buf-name))
        (if files
-           (let* ((git-root (vc-git-root default-directory))
+           (let* ((root (aidermacs-project-root))
                   (files-arg (mapconcat #'shell-quote-argument files " "))
                   (cmd (format "find %s %s" files-arg (car find-ls-option))))
-             (find-dired-with-command git-root cmd)
+             (find-dired-with-command root cmd)
              (let ((buf (get-buffer "*Find*")))
                (when buf
                  (with-current-buffer buf
@@ -932,9 +931,9 @@ position."
 If file doesn't exist, create it with command binding help and
 sample prompt."
   (interactive)
-  (let* ((project-root (aidermacs-project-root))
-         (prompt-file (when project-root
-                        (expand-file-name aidermacs-prompt-file-name project-root))))
+  (let* ((root (aidermacs-project-root))
+         (prompt-file (when root
+                        (expand-file-name aidermacs-prompt-file-name root))))
     (if prompt-file
         (progn
           (find-file-other-window prompt-file)
