@@ -29,6 +29,39 @@
   "List of files that have been mentioned in the aidermacs output.
 This is used to avoid having to run /ls repeatedly.")
 
+(defun aidermacs--find-tracked-file (path)
+  "Check if PATH (absolute or relative) is in aidermacs--tracked-files.
+Returns the matching tracked file entry or nil if not found."
+  (let* ((project-root (aidermacs-project-root))
+         ;; Convert to relative path if it's absolute
+         (relative-path (if (file-name-absolute-p path)
+                            (file-relative-name path project-root)
+                          path))
+         ;; Get the basename for fallback matching
+         (basename (file-name-nondirectory path))
+         ;; Handle both regular and read-only versions
+         (possible-entries (list relative-path
+                                (concat relative-path " (read-only)"))))
+    (or
+     ;; Strategy 1: Try exact matches with possible entry formats
+     (cl-find-if (lambda (tracked)
+                   (member tracked possible-entries))
+                 aidermacs--tracked-files)
+
+     ;; Strategy 2: Try matching by path suffix (handles path prefix differences)
+     (cl-find-if (lambda (tracked)
+                   (let ((clean-tracked (replace-regexp-in-string " (read-only)$" "" tracked)))
+                     (or (string-suffix-p clean-tracked relative-path)
+                         (string-suffix-p relative-path clean-tracked))))
+                 aidermacs--tracked-files)
+
+     ;; Strategy 3: Try matching by basename
+     (cl-find-if (lambda (tracked)
+                   (string-match-p (regexp-quote basename)
+                                  (file-name-nondirectory
+                                   (replace-regexp-in-string " (read-only)$" "" tracked))))
+                 aidermacs--tracked-files))))
+
 (defvar-local aidermacs--output-history nil
   "List to store aidermacs output history.
 Each entry is a cons cell (timestamp . output-text).")
@@ -179,10 +212,12 @@ Only adds the hook if it's not already present."
           (when-let* ((file (match-string 2 line)))
             (add-to-list 'aidermacs--tracked-files file)))
 
-         ;; Removed <filename> from the chat (with or without ./ prefix)
-         ((string-match "Removed \\(\\./\\)?\\(.+\\) from the chat" line)
-          (when-let* ((file (match-string 2 line)))
-            (setq aidermacs--tracked-files (delete file aidermacs--tracked-files))))
+         ;; Removed <filename> from the chat (handling read-only, relative and full paths)
+         ((string-match "Removed \\(read-only file\\)? \\(\\./\\)?\\(.+\\) from the chat" line)
+          (when-let* ((raw-path (match-string 3 line))
+                      (tracked-file (aidermacs--find-tracked-file raw-path)))
+            (setq aidermacs--tracked-files (delete tracked-file aidermacs--tracked-files))
+            (message "Removed %s from tracked files" tracked-file)))
 
          ;; Added <filename> to read-only files.
          ((string-match "Added \\(\\./\\)?\\(.+\\) to read-only files" line)
