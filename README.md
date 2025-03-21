@@ -59,7 +59,7 @@ Here's what the community is saying about Aidermacs:
 ## Quick Start
 
 1. Requirements
-- Emacs ≥ 28.1
+- Emacs ≥ 26.1
 - [Aider](https://aider.chat/docs/install.html)
 - [Transient](https://github.com/magit/transient)
 2. Download Aidermacs through [melpa](https://melpa.org/#/aidermacs), or clone manually
