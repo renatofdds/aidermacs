@@ -26,16 +26,17 @@
 (require 'json)
 (require 'url)
 
-(defvar url-http-end-of-headers)
-
 (declare-function aidermacs--send-command "aidermacs")
 (declare-function aidermacs-buffer-name "aidermacs")
 (declare-function aidermacs-exit "aidermacs")
 (declare-function aidermacs-aider-version "aidermacs")
+(declare-function aidermacs-get-buffer-name "aidermacs")
 
 (defvar aidermacs--current-output)
 (defvar aidermacs-use-architect-mode)
 (defvar aidermacs--current-mode)
+
+(defvar url-http-end-of-headers)
 
 (defgroup aidermacs-models nil
   "Model selection for Aidermacs."

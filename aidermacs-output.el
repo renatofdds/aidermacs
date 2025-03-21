@@ -129,13 +129,15 @@ and syntax highlighting to match the original file."
             (insert-file-contents filename)
             (set-buffer-modified-p nil)
             ;; Use same major mode as the original file
-            (let ((buffer-file-name filename)
-                  (delay-mode-hooks t))
-              (set-auto-mode)
-              ;; Ensure syntax highlighting is applied
-              (font-lock-mode 1))
-            ;; Make buffer read-only
-            (setq buffer-read-only t))
+            (with-demoted-errors ""
+              (let ((buffer-file-name filename)
+                    (delay-mode-hooks t))
+                (set-auto-mode)
+                ;; Ensure syntax highlighting is applied
+                (font-lock-mode 1)
+                (font-lock-fontify-buffer))
+              ;; Make buffer read-only
+              (setq buffer-read-only t)))
           (cons filename temp-buffer))
       (error
        (message "Error capturing file state for %s: %s"
