@@ -90,34 +90,27 @@ When nil, require explicit confirmation before applying changes."
 (defvar aidermacs--read-string-history nil
   "History list for aidermacs read string inputs.")
 
-(defun aidermacs--check-aider-version ()
+(defun aidermacs-aider-version ()
   "Check the installed aider version.
 Returns a version string like \"0.77.0\" or nil if version can't be determined.
 Uses cached version if available to avoid repeated process calls."
+  (interactive)
   (or aidermacs--cached-version
       (setq aidermacs--cached-version
             (with-temp-buffer
               (when (= 0 (call-process aidermacs-program nil t nil "--version"))
                 (goto-char (point-min))
                 (when (re-search-forward "aider \\([0-9]+\\.[0-9]+\\.[0-9]+\\)" nil t)
-                  (match-string 1)))))))
+                  (match-string 1))))))
+  (message "Aider version %s" aidermacs--cached-version)
+  aidermacs--cached-version)
 
-(defun aidermacs-clear-version-cache ()
+(defun aidermacs-aider-version-clear-cache ()
   "Clear the cached aider version.
 Call this after upgrading aider to ensure the correct version is detected."
   (interactive)
   (setq aidermacs--cached-version nil)
   (message "Aider version cache cleared."))
-
-(defun aidermacs--version-greater-equal (v1 v2)
-  "Return t if version V1 is greater than or equal to V2."
-  (let ((v1-parts (mapcar #'string-to-number (split-string v1 "\\.")))
-        (v2-parts (mapcar #'string-to-number (split-string v2 "\\."))))
-    (or (> (car v1-parts) (car v2-parts))
-        (and (= (car v1-parts) (car v2-parts))
-             (or (> (cadr v1-parts) (cadr v2-parts))
-                 (and (= (cadr v1-parts) (cadr v2-parts))
-                      (>= (nth 2 v1-parts) (nth 2 v2-parts))))))))
 
 (defun aidermacs-project-root ()
   "Get the project root using VC-git, or fallback to file directory.
@@ -276,9 +269,9 @@ This function sets up the appropriate arguments and launches the process."
                              (cl-some (lambda (x) (member x flat-extra-args))
                                       '("--config" "-c"))))
          ;; Check aider version for auto-accept-architect support
-         (aider-version (aidermacs--check-aider-version))
+         (aider-version (aidermacs-aider-version))
          (supports-auto-accept-architect (and aider-version
-                                             (aidermacs--version-greater-equal aider-version "0.77.0")))
+                                             (version<= "0.77.0" aider-version)))
          (backend-args
           (if has-config-arg
               ;; Only need to add aidermacs-config-file manually
