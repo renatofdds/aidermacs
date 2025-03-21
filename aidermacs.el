@@ -41,7 +41,7 @@
 (require 'aidermacs-models)
 (require 'aidermacs-output)
 
-(declare-function magit-show-commit "magit-diff" (rev &optional noselect module))
+(declare-function magit-show-commit "magit-diff")
 
 (defgroup aidermacs nil
   "AI pair programming with Aider."

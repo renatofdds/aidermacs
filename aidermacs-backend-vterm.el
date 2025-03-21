@@ -44,7 +44,7 @@
 (declare-function aidermacs-get-buffer-name "aidermacs")
 (declare-function aidermacs--store-output "aidermacs-output")
 (declare-function aidermacs--prepare-for-code-edit "aidermacs-output")
-(declare-function aidermacs--parse-output-for-files "aidermacs-output" (output))
+(declare-function aidermacs--parse-output-for-files "aidermacs-output")
 (declare-function aidermacs--show-ediff-for-edited-files "aidermacs-output")
 (declare-function aidermacs--cleanup-temp-buffers "aidermacs-output")
 

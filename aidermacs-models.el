@@ -28,11 +28,12 @@
 
 (defvar url-http-end-of-headers)
 
-(declare-function aidermacs--send-command "aidermacs" (command &optional no-switch-to-buffer use-existing redirect callback))
-(declare-function aidermacs-buffer-name "aidermacs" ())
-(declare-function aidermacs-exit "aidermacs" ())
+(declare-function aidermacs--send-command "aidermacs")
+(declare-function aidermacs-buffer-name "aidermacs")
+(declare-function aidermacs-exit "aidermacs")
 
 (defvar aidermacs--current-output)
+(defvar aidermacs-use-architect-mode)
 
 (defgroup aidermacs-models nil
   "Model selection for Aidermacs."

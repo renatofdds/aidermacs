@@ -24,11 +24,11 @@
 (when (commandp 'vterm)
   (require 'aidermacs-backend-vterm))
 
-(declare-function aidermacs-run-vterm "aidermacs-backend-vterm" (program args buffer-name))
-(declare-function aidermacs--send-command-vterm "aidermacs-backend-vterm" (buffer command))
+(declare-function aidermacs-run-vterm "aidermacs-backend-vterm")
+(declare-function aidermacs--send-command-vterm "aidermacs-backend-vterm")
 (declare-function aidermacs--prepare-for-code-edit "aidermacs-output")
 (declare-function aidermacs-project-root "aidermacs")
-(declare-function aidermacs--get-files-in-session "aidermacs" (callback))
+(declare-function aidermacs--get-files-in-session "aidermacs")
 
 (defgroup aidermacs-backends nil
   "Backend dispatcher for aidermacs."
