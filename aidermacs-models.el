@@ -42,18 +42,15 @@
   "Default AI model to use for aidermacs sessions when not in Architect mode."
   :type 'string)
 
-(defcustom aidermacs-architect-model "sonnet"
-  "Default AI model to use for architectural reasoning in aidermacs sessions."
+(defcustom aidermacs-architect-model aidermacs-default-model
+  "Default reasoning AI model to use for architect mode.
+Defaults to `aidermacs-default-model' if not explicitly set."
   :type 'string)
 
 (defcustom aidermacs-editor-model aidermacs-default-model
-  "Default AI model to use for code editing in aidermacs sessions.
-Defaults to `aidermacs-default-model` if not explicitly set."
+  "Default editing AI model to use for architect mode.
+Defaults to `aidermacs-default-model' if not explicitly set."
   :type 'string)
-
-(defcustom aidermacs-use-architect-mode nil
-  "If non-nil, use separate Architect/Editor mode."
-  :type 'boolean)
 
 (defcustom aidermacs-popular-models
   '("sonnet"
@@ -69,54 +66,94 @@ Also based on aidermacs LLM benchmark: https://aidermacs.chat/docs/leaderboards/
 (defvar aidermacs--cached-models aidermacs-popular-models
   "Cache of available AI models.")
 
-(defun aidermacs--fetch-openai-compatible-models (url)
+(defconst aidermacs--api-providers
+  '(("https://openrouter.ai/api/v1" . ((hostname . "openrouter.ai")
+                                       (prefix . "openrouter")
+                                       (env-var . "OPENROUTER_API_KEY")
+                                       (auth-header . (("Authorization" . "Bearer %s")))
+                                       (models-path . "/models")
+                                       (models-key . data)))
+    ("https://api.openai.com/v1" . ((hostname . "api.openai.com")
+                                    (prefix . "openai")
+                                    (env-var . "OPENAI_API_KEY")
+                                    (auth-header . (("Authorization" . "Bearer %s")))
+                                    (models-path . "/models")
+                                    (models-key . data)))
+    ("https://api.deepseek.com" . ((hostname . "api.deepseek.com")
+                                   (prefix . "deepseek")
+                                   (env-var . "DEEPSEEK_API_KEY")
+                                   (auth-header . (("Authorization" . "Bearer %s")))
+                                   (models-path . "/models")
+                                   (models-key . data)))
+    ("https://api.anthropic.com/v1" . ((hostname . "api.anthropic.com")
+                                       (prefix . "anthropic")
+                                       (env-var . "ANTHROPIC_API_KEY")
+                                       (auth-header . (("x-api-key" . "%s")
+                                                       ("anthropic-version" . "2023-06-01")))
+                                       (models-path . "/models")
+                                       (models-key . data)))
+    ("https://generativelanguage.googleapis.com/v1beta" . ((hostname . "generativelanguage.googleapis.com")
+                                                           (prefix . "gemini")
+                                                           (env-var . "GEMINI_API_KEY")
+                                                           (auth-header . nil)
+                                                           (models-path . "/models?key=%s")
+                                                           (models-key . models)
+                                                           (model-name-transform . (lambda (name)
+                                                                                     (replace-regexp-in-string "^models/" "" name)))))
+    ("https://api.x.ai/v1" . ((hostname . "api.x.ai")
+                              (prefix . "xai")
+                              (env-var . "XAI_API_KEY")
+                              (auth-header . (("Authorization" . "Bearer %s")))
+                              (models-path . "/models")
+                              (models-key . data))))
+  "Configuration for different API providers.
+Each entry maps a base URL to a configuration alist with:
+- hostname: The API hostname
+- prefix: Prefix to add to model names
+- env-var: Environment variable containing the API key
+- auth-header: Headers for authentication (nil if not needed)
+- models-path: Path to fetch models, with %s for token if needed
+- models-key: JSON key containing the models list
+- model-name-transform: Optional function to transform model names")
+
+(defun aidermacs--fetch-openai-compatible-models (url token)
   "Fetch available models from an OpenAI compatible API endpoint.
 URL should be the base API endpoint, e.g. https://api.openai.com/v1.
+TOKEN is the API token for authentication.
 Returns a list of model names with appropriate prefixes based on the
 API provider."
-  (let* ((url-parsed (url-generic-parse-url url))
-         (hostname (url-host url-parsed))
-         (prefix (pcase hostname
-                   ("api.openai.com" "openai")
-                   ("openrouter.ai" "openrouter")
-                   ("api.deepseek.com" "deepseek")
-                   ("api.anthropic.com" "anthropic")
-                   ("generativelanguage.googleapis.com" "gemini")
-                   (_ (error "Unknown API host: %s" hostname))))
-         (token (pcase hostname
-                  ("api.openai.com" (getenv "OPENAI_API_KEY"))
-                  ("openrouter.ai" (getenv "OPENROUTER_API_KEY"))
-                  ("api.deepseek.com" (getenv "DEEPSEEK_API_KEY"))
-                  ("api.anthropic.com" (getenv "ANTHROPIC_API_KEY"))
-                  ("generativelanguage.googleapis.com" (getenv "GEMINI_API_KEY"))
-                  (_ (error "Unknown API host: %s" hostname)))))
+  (let* ((provider-config (cdr (assoc url aidermacs--api-providers)))
+         (prefix (alist-get 'prefix provider-config))
+         (auth-headers (alist-get 'auth-header provider-config))
+         (models-path (alist-get 'models-path provider-config))
+         (models-key (alist-get 'models-key provider-config))
+         (transform-fn (alist-get 'model-name-transform provider-config)))
+
+    (unless provider-config
+      (error "Unknown API URL: %s" url))
+
     (with-local-quit
       (with-current-buffer
           (let ((url-request-extra-headers
-                 (pcase hostname
-                   ("api.anthropic.com"
-                    `(("x-api-key" . ,token)
-                      ("anthropic-version" . "2023-06-01")))
-                   ("generativelanguage.googleapis.com"
-                    nil)  ; No auth headers for Gemini, key is in URL
-                   (_
-                    `(("Authorization" . ,(concat "Bearer " token)))))))
+                 (when auth-headers
+                   (mapcar (lambda (header)
+                             (cons (car header)
+                                   (format (cdr header) token)))
+                           auth-headers))))
             (url-retrieve-synchronously
-             (if (string= hostname "generativelanguage.googleapis.com")
-                 (concat url "/models?key=" token)
-               (concat url "/models"))))
+             (concat url (if (string-match-p "%s" models-path)
+                             (format models-path token)
+                           models-path))))
+
         (goto-char url-http-end-of-headers)
         (let* ((json-object-type 'alist)
                (json-data (json-read))
-               (models (if (string= hostname "generativelanguage.googleapis.com")
-                           (alist-get 'models json-data)
-                         (alist-get 'data json-data))))
+               (models (alist-get models-key json-data)))
           (mapcar (lambda (model)
                     (concat prefix "/"
                             (cond
-                             ((string= hostname "generativelanguage.googleapis.com")
-                              (replace-regexp-in-string "^models/" "" (alist-get 'name model)))
-                             ((stringp model) model)  ; Handle case where model is just a string
+                             (transform-fn (funcall transform-fn (alist-get 'name model)))
+                             ((stringp model) model)
                              (t (or (alist-get 'id model)
                                     (alist-get 'name model))))))
                   models))))))
@@ -146,16 +183,14 @@ This fetches models from various API providers and caches them."
              (mapcar (lambda (line)
                        (substring line 2)) ; Remove "- " prefix
                      supported-models))
-       (dolist (url-token-pair '(("https://api.openai.com/v1" . "OPENAI_API_KEY")
-                                 ("https://openrouter.ai/api/v1" . "OPENROUTER_API_KEY")
-                                 ("https://api.deepseek.com" . "DEEPSEEK_API_KEY")
-                                 ("https://api.anthropic.com/v1" . "ANTHROPIC_API_KEY")
-                                 ("https://generativelanguage.googleapis.com/v1beta" . "GEMINI_API_KEY")))
-         (let ((url (car url-token-pair))
-               (token-value (getenv (cdr url-token-pair))))
+       (dolist (provider-entry aidermacs--api-providers)
+         (let* ((url (car provider-entry))
+                (config (cdr provider-entry))
+                (env-var (alist-get 'env-var config))
+                (token-value (getenv env-var)))
            (when (and token-value (not (string-empty-p token-value)))
              (condition-case err
-                 (let* ((fetched-models (aidermacs--fetch-openai-compatible-models url))
+                 (let* ((fetched-models (aidermacs--fetch-openai-compatible-models url token-value))
                         (filtered-models (seq-filter (lambda (model)
                                                        (member model supported-models))
                                                      fetched-models)))

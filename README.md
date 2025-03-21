@@ -147,8 +147,9 @@ When Architect mode is enabled, the `aidermacs-default-model` setting is ignored
 
 ```emacs-lisp
 (setq aidermacs-use-architect-mode t)
-(setq aidermacs-architect-model "o1-mini") ; default
-(setq aidermacs-editor-model "deepseek/deepseek-chat") ;; defaults to aidermacs-default-model
+;; Both default to aidermacs-default-model
+(setq aidermacs-architect-model "sonnet")
+(setq aidermacs-editor-model "deepseek/deepseek-chat")
 ```
 
 *Note: These configurations will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File)).*

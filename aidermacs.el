@@ -55,6 +55,10 @@
   "Buffer-local variable to track the current aidermacs mode.
 Possible values: `code', `ask', `architect', `help'.")
 
+(defcustom aidermacs-use-architect-mode nil
+  "If non-nil, use separate Architect/Editor mode."
+  :type 'boolean)
+
 (defcustom aidermacs-config-file nil
   "Path to aider configuration file.
 When set, Aidermacs will pass this to aider via --config flag,
@@ -84,11 +88,11 @@ When nil, disable auto-commits requiring manual git commits."
 When nil, require explicit confirmation before applying changes."
   :type 'boolean)
 
-(defvar aidermacs--cached-version nil
-  "Cached aider version to avoid repeated version checks.")
-
 (defvar aidermacs--read-string-history nil
   "History list for aidermacs read string inputs.")
+
+(defvar aidermacs--cached-version nil
+  "Cached aider version to avoid repeated version checks.")
 
 (defun aidermacs-aider-version ()
   "Check the installed aider version.
@@ -147,7 +151,7 @@ This is the file name without path."
      :if (lambda () aidermacs-auto-commits))
     ("R" "Refresh Repo Map" aidermacs-refresh-repo-map)
     ("h" "Session History" aidermacs-show-output-history)
-    ("o" "Change Main Model" aidermacs-change-model)
+    ("o" "Switch Model" aidermacs-change-model)
     ("?" "Aider Meta-level Help" aidermacs-help)]]
   ["File Actions"
    ["Add Files (C-u: read-only)"
@@ -234,7 +238,7 @@ If supplied, SUFFIX is appended to the buffer name within the earmuffs."
                           (t root))))
       (format "*aidermacs:%s%s*"
               (file-truename display-root)
-               (or suffix "")))))
+              (or suffix "")))))
 
 ;;;###autoload
 (defun aidermacs-run ()
@@ -270,8 +274,6 @@ This function sets up the appropriate arguments and launches the process."
                                       '("--config" "-c"))))
          ;; Check aider version for auto-accept-architect support
          (aider-version (aidermacs-aider-version))
-         (supports-auto-accept-architect (and aider-version
-                                             (version<= "0.77.0" aider-version)))
          (backend-args
           (if has-config-arg
               ;; Only need to add aidermacs-config-file manually
@@ -290,7 +292,7 @@ This function sets up the appropriate arguments and launches the process."
              ;; 1. User has disabled auto-accept (aidermacs-auto-accept-architect is nil)
              ;; 2. Aider version supports this flag (>= 0.77.0)
              (when (and (not aidermacs-auto-accept-architect)
-                        supports-auto-accept-architect)
+                        (version<= "0.77.0" aider-version))
                '("--no-auto-accept-architect"))
              (when aidermacs-subtree-only
                '("--subtree-only")))))
@@ -876,11 +878,11 @@ Otherwise implement TODOs for the entire current file."
     (let* ((current-line (string-trim (thing-at-point 'line t)))
            (is-comment (aidermacs--is-comment-line current-line)))
       (when-let* ((command (aidermacs--form-prompt
-                           "/architect"
-                           (concat "Please implement the TODO items."
-                                   (and is-comment
-                                        (format " on this comment: `%s`." current-line))
-                                   " Keep existing code structure"))))
+                            "/architect"
+                            (concat "Please implement the TODO items."
+                                    (and is-comment
+                                         (format " on this comment: `%s`." current-line))
+                                    " Keep existing code structure"))))
         (aidermacs--ensure-current-file-tracked)
         (aidermacs--send-command command)))))
 
