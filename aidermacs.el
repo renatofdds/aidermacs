@@ -87,6 +87,9 @@ When nil, require explicit confirmation before applying changes."
 (defvar aidermacs--cached-version nil
   "Cached aider version to avoid repeated version checks.")
 
+(defvar aidermacs--read-string-history nil
+  "History list for aidermacs read string inputs.")
+
 (defun aidermacs--check-aider-version ()
   "Check the installed aider version.
 Returns a version string like \"0.77.0\" or nil if version can't be determined.
