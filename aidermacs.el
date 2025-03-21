@@ -109,7 +109,7 @@ Uses cached version if available to avoid repeated process calls."
   (message "Aider version %s" aidermacs--cached-version)
   aidermacs--cached-version)
 
-(defun aidermacs-aider-version-clear-cache ()
+(defun aidermacs-clear-aider-version-cache ()
   "Clear the cached aider version.
 Call this after upgrading aider to ensure the correct version is detected."
   (interactive)
