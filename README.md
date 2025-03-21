@@ -147,10 +147,36 @@ When Architect mode is enabled, the `aidermacs-default-model` setting is ignored
 
 ```emacs-lisp
 (setq aidermacs-use-architect-mode t)
-;; Both default to aidermacs-default-model
+```
+You can switch to it persistently by `M-x aidermacs-switch-to-architect-mode` (`3` in `aidermacs-transient-menu`), or temporarily with `M-x aidermacs-architect-this-code` (`r` in `aidermacs-transient-menu`).
+
+You can configure each model independently:
+```emacs-lisp
+;; Architect model for reasoning (defaults to aidermacs-default-model)
 (setq aidermacs-architect-model "sonnet")
+
+;; Editor model for code generation (defaults to aidermacs-default-model)
 (setq aidermacs-editor-model "deepseek/deepseek-chat")
 ```
+
+The model hierarchy works as follows:
+- When Architect mode is enabled, `aidermacs-default-model` is ignored
+- The Architect model handles high-level reasoning and solution design
+- The Editor model executes the actual code changes
+- You can configure both models independently or let them default to `aidermacs-default-model`
+
+*Note: These configurations will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File)).*
+
+### Customize Weak Model
+
+The Weak model is used for commit messages (if you have `aidermacs-auto-commits` set to `t`) and chat history summarization (default depends on –model). You can customize it using
+
+```emacs-lisp
+;; default to nil
+(setq aidermacs-weak-model "deepseek/deepseek-chat")
+```
+
+You can change the Weak model during a session by using `C-u o` (`aidermacs-change-model` with a prefix argument). In most cases, you won't need to change this as Aider will automatically select an appropriate Weak model based on your main model.
 
 *Note: These configurations will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File)).*
 
@@ -246,7 +272,7 @@ With auto-commits disabled, you must manually commit changes using your preferre
 
 *Note: This configuration will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File)).*
 
-### Customizing Aider Options with `aidermacs-extra-args`
+### Customize Aider Options with `aidermacs-extra-args`
 
 If these configurations aren't sufficient, the `aidermacs-extra-args` variable enables passing any Aider-supported command-line options.
 

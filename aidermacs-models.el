@@ -31,9 +31,11 @@
 (declare-function aidermacs--send-command "aidermacs")
 (declare-function aidermacs-buffer-name "aidermacs")
 (declare-function aidermacs-exit "aidermacs")
+(declare-function aidermacs-aider-version "aidermacs")
 
 (defvar aidermacs--current-output)
 (defvar aidermacs-use-architect-mode)
+(defvar aidermacs--current-mode)
 
 (defgroup aidermacs-models nil
   "Model selection for Aidermacs."
@@ -53,18 +55,13 @@ Defaults to `aidermacs-default-model' if not explicitly set."
 Defaults to `aidermacs-default-model' if not explicitly set."
   :type 'string)
 
-(defcustom aidermacs-popular-models
-  '("sonnet"
-    "o1-mini"
-    "gemini/gemini-2.0-flash"
-    "r1"
-    "deepseek/deepseek-chat")
-  "List of available AI models for selection.
-Each model should be in the format expected by the aidermacs CLI.
-Also based on aidermacs LLM benchmark: https://aidermacs.chat/docs/leaderboards/"
-  :type '(repeat string))
+(defcustom aidermacs-weak-model nil
+  "Default weak AI model to use.
+This is the model to use for commit messages and chat history summarization.
+When nil, Aider sets it automatically based on the default model."
+  :type 'string)
 
-(defvar aidermacs--cached-models aidermacs-popular-models
+(defvar aidermacs--cached-models nil
   "Cache of available AI models.")
 
 (defconst aidermacs--api-providers
@@ -159,14 +156,38 @@ API provider."
                                     (alist-get 'name model))))))
                   models))))))
 
-(defun aidermacs--select-model ()
-  "Provide model selection with completion.
-This is a private function used internally."
-  (condition-case nil
-      (let ((model (completing-read "Select AI model: " aidermacs--cached-models nil t)))
-        (when model
-          (aidermacs--send-command (format "/model %s" model))))
-    (quit (message "Model selection cancelled"))))
+(defun aidermacs--select-model (&optional set-weak-model)
+  "Provide model selection with completion, handling main/weak/editor models.
+When SET-WEAK-MODEL is non-nil, only allow setting the weak model."
+  (let ((buf (get-buffer (aidermacs-get-buffer-name t))))
+    (unless buf
+      (user-error "No active aidermacs session"))
+    (with-current-buffer buf
+      (condition-case nil
+          (let* ((aider-version (aidermacs-aider-version))
+                 (supports-specific-model (version<= "0.78.0" aider-version))
+                 (is-architect-mode (and (eq aidermacs--current-mode 'architect) supports-specific-model))
+                 (set-weak-model (and set-weak-model supports-specific-model))
+                 (model-type
+                  (cond
+                   (set-weak-model "Weak Model")
+                   (is-architect-mode
+                    (completing-read
+                     "Select model type: "
+                     '("Main/Reasoning Model" "Editing Model")
+                     nil t))
+                   (t "Main Model")))
+                 (model (completing-read (format "Select %s: " model-type) aidermacs--cached-models nil t)))
+            (when model
+              (cond
+               (set-weak-model
+                (aidermacs--send-command (format "/weak-model %s" model)))
+               ((and is-architect-mode supports-specific-model)
+                (pcase model-type
+                  ("Main/Reasoning Model" (aidermacs--send-command (format "/model %s" model)))
+                  ("Editing Model" (aidermacs--send-command (format "/editor-model %s" model)))))
+               (t (aidermacs--send-command (format "/model %s" model))))))
+        (quit (message "Model selection cancelled"))))))
 
 (defun aidermacs--get-available-models ()
   "Get list of models supported by aider using the /models command.
@@ -174,16 +195,14 @@ This fetches models from various API providers and caches them."
   (aidermacs--send-command
    "/models /" nil nil t
    (lambda ()
-     (let* ((supported-models
-             (seq-filter
-              (lambda (line)
-                (string-prefix-p "- " line))
-              (split-string aidermacs--current-output "\n" t)))
-            (models nil))
-       (setq supported-models
+     (let* ((all-models
              (mapcar (lambda (line)
                        (substring line 2)) ; Remove "- " prefix
-                     supported-models))
+                     (seq-filter
+                      (lambda (line)
+                        (string-prefix-p "- " line))
+                      (split-string aidermacs--current-output "\n" t))))
+            (models))
        (dolist (provider-entry aidermacs--api-providers)
          (let* ((url (car provider-entry))
                 (config (cdr provider-entry))
@@ -193,12 +212,14 @@ This fetches models from various API providers and caches them."
              (condition-case err
                  (let* ((fetched-models (aidermacs--fetch-openai-compatible-models url token-value))
                         (filtered-models (seq-filter (lambda (model)
-                                                       (member model supported-models))
+                                                       (member model all-models))
                                                      fetched-models)))
                    (setq models (append models filtered-models)))
-               (error (message "Failed to fetch models from %s: %s" url (error-message-string err)))))))
-       (setq aidermacs--cached-models models)
-       (aidermacs--select-model)))))
+               (error "Failed to fetch models from %s: %s" url (error-message-string err))))))
+       ;; If we couldn't fetch any models from APIs, just use all supported models list
+       (if models
+           (setq aidermacs--cached-models models)
+         (setq aidermacs--cached-models all-models))))))
 
 (defun aidermacs-clear-model-cache ()
   "Clear the cached models, forcing a fresh fetch on next use.
@@ -208,18 +229,13 @@ This is useful when available models have changed."
   (message "Model cache cleared"))
 
 ;;;###autoload
-(defun aidermacs-change-model ()
-  "Interactively select and change AI model in current aidermacs session."
-  (interactive)
-  (when (and aidermacs--cached-models
-             (equal aidermacs--cached-models aidermacs-popular-models)
-             (fboundp 'aidermacs-get-buffer-name)
-             (get-buffer (aidermacs-get-buffer-name)))
-    (setq aidermacs--cached-models nil))
-
-  (if aidermacs--cached-models
-      (aidermacs--select-model)
-    (aidermacs--get-available-models)))
+(defun aidermacs-change-model (&optional arg)
+  "Interactively select and change AI model in current aidermacs session.
+With prefix ARG, only allow setting the weak model."
+  (interactive "P")
+  (unless aidermacs--cached-models
+    (aidermacs--get-available-models))
+  (aidermacs--select-model arg))
 
 (provide 'aidermacs-models)
 ;;; aidermacs-models.el ends here

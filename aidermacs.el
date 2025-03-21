@@ -151,7 +151,7 @@ This is the file name without path."
      :if (lambda () aidermacs-auto-commits))
     ("R" "Refresh Repo Map" aidermacs-refresh-repo-map)
     ("h" "Session History" aidermacs-show-output-history)
-    ("o" "Switch Model" aidermacs-change-model)
+    ("o" "Switch Model (C-u: weak-model)" aidermacs-change-model)
     ("?" "Aider Meta-level Help" aidermacs-help)]]
   ["File Actions"
    ["Add Files (C-u: read-only)"
@@ -294,6 +294,9 @@ This function sets up the appropriate arguments and launches the process."
              (when (and (not aidermacs-auto-accept-architect)
                         (version<= "0.77.0" aider-version))
                '("--no-auto-accept-architect"))
+             ;; Add weak model if specified
+             (when aidermacs-weak-model
+               (list "--weak-model" aidermacs-weak-model))
              (when aidermacs-subtree-only
                '("--subtree-only")))))
          (final-args (append backend-args flat-extra-args)))
