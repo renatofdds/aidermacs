@@ -129,11 +129,10 @@ and syntax highlighting to match the original file."
             (insert-file-contents filename)
             (set-buffer-modified-p nil)
             ;; Use same major mode as the original file
-            (with-demoted-errors "%s"
+            (with-demoted-errors "%S"
               (let ((buffer-file-name filename)
                     (delay-mode-hooks t))
                 (set-auto-mode)
-                ;; Ensure syntax highlighting is applied
                 (font-lock-ensure))
               ;; Make buffer read-only
               (setq buffer-read-only t)))
