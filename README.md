@@ -393,6 +393,19 @@ Once the transient menu is open, you can navigate and execute commands using the
 
 The `All File Actions` and `All Code Actions` entries open submenus with more specialized commands. Use the displayed keys to navigate these submenus.
 
+### File Management and AI Interaction
+
+When using Aidermacs, you have the flexibility to decide which files the AI should read and edit. Here are some guidelines:
+
+- **Editable Files**: Add files you want the AI to potentially edit. This grants the AI permission to both read and modify these files if necessary.
+- **Read-Only Files**: If you want the AI to read a file without editing it, you can add it as read-only. In Aidermacs, all add file commands can be prefixed with `C-u` to specify read-only access.
+- **Session Scratchpads**: Use the session scratchpads (`S`) to paste notes or documentation that will be fed to the AI as read-only.
+- **External Files**: The "Add file to session" (`G`) command allows you to include files outside the current project (or files in `.gitignore`), as Aider doesn't automatically include these files in its context.
+
+The AI can sometimes determine relevant files on its own, depending on the model and the context of the codebase. However, for precise control, it's often beneficial to manually specify files, especially when dealing with complex projects.
+
+Aider encourages a collaborative approach, similar to working with a human co-worker. Sometimes the AI will need explicit guidance, while other times it can infer the necessary context on its own.
+
 ### Prompt Files Minor Mode
 
 Aidermacs provides a minor mode that makes it easy to work with prompt files and other Aider-related files. The minor mode can be enabled automatically for specific files by calling `(aidermacs-setup-minor-mode)` in your config:
