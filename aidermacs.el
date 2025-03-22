@@ -91,6 +91,19 @@ When nil, require explicit confirmation before applying changes."
 (defvar aidermacs--read-string-history nil
   "History list for aidermacs read string inputs.")
 
+(defcustom aidermacs-common-prompts
+  '("What does this code do? Explain the logic step by step"
+    "Explain the overall architecture of this codebase"
+    "Simplify this code while preserving functionality"
+    "Extract this logic into separate helper functions"
+    "Optimize this code for better performance"
+    "Are there any edge cases not handled in this code?"
+    "Refactor to reduce complexity and improve readability"
+    "How could we make this code more maintainable?")
+  "List of common prompts to use with aidermacs.
+These will be available for selection when using aidermacs commands."
+  :type '(repeat string))
+
 (defvar aidermacs--cached-version nil
   "Cached aider version to avoid repeated version checks.")
 
@@ -552,10 +565,19 @@ Use highlighted region as context unless IGNORE-CONTEXT is set to non-nil."
                         (buffer-substring-no-properties (region-beginning) (region-end))))
          (context (when region-text
                     (format " in %s regarding this section:\n```\n%s\n```\n" (buffer-name) region-text)))
-         (user-command (read-string (concat command " " prompt-prefix context
-                                            (when guide (format " (%s)" guide)) ": ")
-                                    nil
-                                    'aidermacs--read-string-history)))
+         ;; Create completion table from common prompts and history
+         (completion-candidates
+          (delete-dups (append aidermacs-common-prompts
+                               aidermacs--read-string-history)))
+         ;; Read user input with completion
+         (user-command (completing-read
+                        (concat command " " prompt-prefix context
+                                (when guide (format " (%s)" guide)) ": ")
+                        completion-candidates nil nil nil
+                        'aidermacs--read-string-history)))
+    ;; Add to history if not already there, removing any duplicates
+    (setq aidermacs--read-string-history
+          (delete-dups (cons user-command aidermacs--read-string-history)))
     (concat command (and (not (string-empty-p user-command))
                          (concat " " prompt-prefix context ": " user-command)))))
 

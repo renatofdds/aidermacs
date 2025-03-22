@@ -248,6 +248,19 @@ Example usage:
 M-x aidermacs-transient-menu
 ```
 
+### Prompt Selection and History
+
+Aidermacs makes it easy to reuse prompts through:
+
+1. **Prompt History** - Your previously used prompts are saved and can be quickly selected
+2. **Common Prompts** - A curated list of frequently used prompts for common tasks defined in `aidermacs-common-prompts`:
+
+When entering a prompt, you can:
+- Select from your history or common prompts using completion
+- Still type custom prompts when needed
+
+The prompt history and common prompts are available across all sessions.
+
 ### Diff and Change Review
 
 Control whether to show diffs for AI-generated changes with `aidermacs-show-diff-after-change`:
