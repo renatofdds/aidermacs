@@ -1,16 +1,91 @@
 # CHANGELOG
 
-## 1.0 - Initial Release
+# Aidermacs 1.1
 
-### Features
+**What's New in Aidermacs 1.1?**
 
--   **Built-in Ediff Integration:** Review AI-generated changes with Emacs' familiar `ediff` interface.
--   **Intelligent Model Selection:** Automatically discover and integrate with multiple AI providers (OpenAI, Anthropic, DeepSeek, Google Gemini, OpenRouter).
--   **Flexible Terminal Backend Support:** Choose between `comint` and `vterm` backends for the best terminal compatibility and performance.
--   **Enhanced File Management:** Easily manage files within your Aider session with commands for adding, dropping, listing, and more. Full support for remote files via Tramp (SSH, Docker, etc.).
--   **Streamlined Transient Menu Selection:** Access all Aidermacs features through a redesigned and ergonomic transient menu system.
--   **Prompt Files Minor Mode:** Work seamlessly with prompt files and other Aider-related files with convenient keybindings and automatic mode activation.
--   **Claude 3.7 Sonnet Thinking Tokens:** Enable and configure thinking tokens using the `/think-tokens` in-chat command or the `--thinking-tokens` command-line argument.
--   **Architect Mode Confirmation:** Control whether to automatically accept Architect mode changes with the `aidermacs-auto-accept-architect` variable.
--   **Re-Enable Auto-Commits:** Aider automatically commits AI-generated changes by default. We consider this behavior *very* intrusive, so we've disabled it. You can re-enable auto-commits by setting `aidermacs-auto-commits` to `t`.
--   **Customizing Aider Options with `aidermacs-extra-args`:** Pass any Aider-supported command-line options.
+* **New Features:**
+  * Added common prompts system with history
+  * Better support for architect/editor model separation
+  * Improved theme support for vterm backend
+  * Added model name transformation for API providers
+
+* **Enhanced Model Management:**
+  * Added support for weak models for commit messages and chat summarization
+  * Improved model selection with prefix arguments for weak model changes
+  * Better handling of model inheritance and initialization
+  * Added model version checking and caching
+
+* **Output Handling Improvements:**
+  * New output module with better file tracking and parsing
+  * Improved ediff integration with proper cleanup hooks
+  * Better handling of read-only files and remote paths
+  * Enhanced output history management
+
+* **Performance Enhancements:**
+  * Added protection against infinite font-lock loops
+  * Better handling of large output blocks
+  * Improved buffer management and cleanup
+
+* **Bug Fixes:**
+  * Fixed file path handling in drop commands
+  * Improved error handling in model fetching
+  * Better handling of process output filtering
+  * Fixed issues with buffer naming and selection
+
+**Breaking Changes:**
+* Minimum Emacs version requirement changed to 26.1
+* Some internal APIs have been reorganized
+* Model selection behavior has changed for architect mode
+
+**Upgrade Instructions:**
+1. Update your Emacs to at least version 26.1
+2. Review your model configuration settings
+3. Check for any customizations that may need updating
+4. Clear any cached model lists if experiencing issues
+
+## New Contributors
+* @SpringHan made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/81
+* @u-yuta made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/86
+* @smallzhan made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/84
+* @claritystorm made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/88
+
+
+# Aidermacs 1.0
+
+**What's New in Aidermacs 1.0?**
+
+Aidermacs 1.0 delivers a range of features designed to enhance your productivity and coding experience:
+
+* **Package Repositories:**
+  *   **MELPA:** Install directly from MELPA using `M-x package-install RET aidermacs RET`.
+  *   **Non-GNU ELPA:** Also available on Non-GNU ELPA.
+*   **Built-in Ediff Integration:** Review AI-generated changes with Emacs' familiar `ediff` interface, allowing you to easily accept or reject modifications.
+*   **Intelligent Model Selection:** Automatically discover and integrate with multiple AI providers (OpenAI, Anthropic, DeepSeek, Google Gemini, OpenRouter), ensuring compatibility and optimal performance.
+*   **Flexible Terminal Backend Support:** Choose between `comint` and `vterm` backends for the best terminal compatibility and performance.
+*   **Enhanced File Management:** Easily manage files within your Aider session with commands for adding, dropping, listing, and more. Full support for remote files via Tramp (SSH, Docker, etc.).
+*   **Streamlined Transient Menu Selection:** Access all Aidermacs features through a redesigned and ergonomic transient menu system.
+*   **Prompt Files Minor Mode:** Work seamlessly with prompt files and other Aider-related files with convenient keybindings and automatic mode activation.
+*   **Claude 3.7 Sonnet Thinking Tokens:** Enable and configure thinking tokens using the `/think-tokens` in-chat command or the `--thinking-tokens` command-line argument.
+*   **Architect Mode Confirmation:** Control whether to automatically accept Architect mode changes with the `aidermacs-auto-accept-architect` variable.
+*   **Re-Enable Auto-Commits:** Aider automatically commits AI-generated changes by default. We consider this behavior *very* intrusive, so we've disabled it. You can re-enable auto-commits by setting `aidermacs-auto-commits` to `t`.
+*   **Customizing Aider Options with `aidermacs-extra-args`:** Pass any Aider-supported command-line options.
+
+
+## New Contributors
+* @notImposterSyndromeIfImposter made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/5
+* @CeleritasCelery made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/6
+* @zsxh made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/10
+* @milanglacier made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/13
+* @ArthurHeymans made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/11
+* @bard made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/27
+* @mwolson made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/26
+* @jfeser made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/29
+* @ianschenck made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/34
+* @LemonBreezes made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/36
+* @hexmode made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/47
+* @xplutoy made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/49
+* @rschmukler made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/56
+* @philip-zhan made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/64
+* @amake made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/63
+* @rjekker made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/70
