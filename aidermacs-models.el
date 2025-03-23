@@ -226,7 +226,7 @@ This is useful when available models have changed."
 
 (defun aidermacs-change-model (&optional arg)
   "Interactively select and change AI model in current aidermacs session.
-   With prefix ARG, only allow setting the weak model."
+With prefix ARG, only allow setting the weak model."
   (interactive "P")
   (unless aidermacs--cached-models
     (aidermacs--get-available-models))

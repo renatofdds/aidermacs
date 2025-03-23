@@ -236,7 +236,9 @@ If supplied, SUFFIX is appended to the buffer name within the earmuffs."
               (cl-remove-if-not
                (lambda (dir-info)
                  (and (car dir-info)
-                      (string-prefix-p (car dir-info) default-directory)
+                      (string-prefix-p
+                       (expand-file-name (car dir-info))
+                       (expand-file-name default-directory))
                       (file-exists-p (car dir-info))))
                buffer-dirs)
               (lambda (a b)
