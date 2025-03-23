@@ -348,9 +348,14 @@ If USE-EXISTING is non-nil, use an existing buffer instead of creating new.
 If REDIRECT is non-nil it redirects the output (hidden) for comint backend.
 If CALLBACK is non-nil it will be called after the command finishes."
   (let* ((buffer-name (aidermacs-get-buffer-name use-existing))
-         (buffer (or (get-buffer buffer-name)
-                     (progn (aidermacs-run)
-                            (get-buffer buffer-name))))
+         (buffer (if (and (get-buffer buffer-name)
+                          (process-live-p (get-buffer-process buffer-name)))
+                     (get-buffer buffer-name)
+                   (when (get-buffer buffer-name)
+                     (kill-buffer buffer-name))
+                   (aidermacs-run)
+                   (sit-for 1)
+                   (get-buffer buffer-name)))
          (processed-command (aidermacs--process-message-if-multi-line command)))
     ;; Check if command may edit files and prepare accordingly
     (with-current-buffer buffer

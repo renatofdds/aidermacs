@@ -224,19 +224,10 @@ This is useful when available models have changed."
   (setq aidermacs--cached-models nil)
   (message "Model cache cleared"))
 
-;;;###autoload
 (defun aidermacs-change-model (&optional arg)
   "Interactively select and change AI model in current aidermacs session.
    With prefix ARG, only allow setting the weak model."
   (interactive "P")
-  ;; Ensure a session is running and initialized
-  (let ((buffer-name (aidermacs-get-buffer-name)))
-    (unless (and (get-buffer buffer-name)
-                 (process-live-p (get-buffer-process buffer-name)))
-      (aidermacs-run)
-      ;; Wait briefly for the prompt to appear
-      (sit-for 1)))
-
   (unless aidermacs--cached-models
     (aidermacs--get-available-models))
   (aidermacs--select-model arg))
