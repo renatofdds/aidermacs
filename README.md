@@ -8,10 +8,8 @@
 [![MELPA Stable](https://stable.melpa.org/packages/aidermacs-badge.svg)](https://stable.melpa.org/#/aidermacs)
 [![NonGNU ELPA](https://elpa.nongnu.org/nongnu/aidermacs.svg)](https://elpa.nongnu.org/nongnu/aidermacs.html)
 [![EMACS](https://img.shields.io/badge/Emacs-26.1-922793?logo=gnu-emacs&logoColor=b39ddb&.svg)](https://www.gnu.org/savannah-checkouts/gnu/emacs/emacs.html)
-[![LICENSE](https://img.shields.io/github/license/MatthewZMD/aidermacs?logo=apache&.svg)](https://github.com/MatthewZMD/aidermacs/blob/master/LICENSE)
+[![LICENSE](https://img.shields.io/github/license/MatthewZMD/aidermacs?logo=apache&.svg)](https://github.com/MatthewZMD/aidermacs/blob/main/LICENSE)
 [![CONTRIBUTORS](https://img.shields.io/github/contributors/MatthewZMD/aidermacs.svg)](https://github.com/MatthewZMD/aidermacs/graphs/contributors)
-
-## Overview
 
 Aidermacs brings AI-powered development to Emacs by integrating [Aider](https://github.com/paul-gauthier/aider), one of the most powerful open-source AI pair programming tools. If you're missing [Cursor](https://cursor.sh) but prefer living in Emacs, Aidermacs provides similar AI capabilities while staying true to Emacs workflows.
 
