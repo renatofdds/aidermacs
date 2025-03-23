@@ -160,39 +160,34 @@ API provider."
 (defun aidermacs--select-model (&optional set-weak-model)
   "Provide model selection with completion, handling main/weak/editor models.
 When SET-WEAK-MODEL is non-nil, only allow setting the weak model."
-  (let ((buf (get-buffer (aidermacs-get-buffer-name t))))
-    (unless buf
-      (user-error "No active aidermacs session"))
-    (with-current-buffer buf
-      (condition-case nil
-          (let* ((aider-version (aidermacs-aider-version))
-                 (supports-specific-model (version<= "0.78.0" aider-version))
-                 (is-architect-mode (and (eq aidermacs--current-mode 'architect) supports-specific-model))
-                 (set-weak-model (and set-weak-model supports-specific-model))
-                 (model-type
-                  (cond
-                   (set-weak-model "Weak Model")
-                   (is-architect-mode
-                    (completing-read
-                     "Select model type: "
-                     '("Main/Reasoning Model" "Editing Model")
-                     nil t))
-                   (t "Main Model")))
-                 (model (completing-read (format "Select %s: " model-type) aidermacs--cached-models nil t)))
-            (when model
+  (condition-case nil
+      (let* ((aider-version (aidermacs-aider-version))
+             (supports-specific-model (version<= "0.78.0" aider-version))
+             (is-architect-mode (and (eq aidermacs--current-mode 'architect) supports-specific-model))
+             (set-weak-model (and set-weak-model supports-specific-model))
+             (model-type
               (cond
-               (set-weak-model
-                (aidermacs--send-command (format "/weak-model %s" model)))
-               ((and is-architect-mode supports-specific-model)
-                (pcase model-type
-                  ("Main/Reasoning Model" (aidermacs--send-command (format "/model %s" model)))
-                  ("Editing Model" (aidermacs--send-command (format "/editor-model %s" model)))))
-               (t (aidermacs--send-command (format "/model %s" model))))))
-        (quit (message "Model selection cancelled"))))))
+               (set-weak-model "Weak Model")
+               (is-architect-mode
+                (completing-read
+                 "Select model type: "
+                 '("Main/Reasoning Model" "Editing Model")
+                 nil t))
+               (t "Main Model")))
+             (model (completing-read (format "Select %s: " model-type) aidermacs--cached-models nil t)))
+        (when model
+          (cond
+           (set-weak-model
+            (aidermacs--send-command (format "/weak-model %s" model)))
+           ((and is-architect-mode supports-specific-model)
+            (pcase model-type
+              ("Main/Reasoning Model" (aidermacs--send-command (format "/model %s" model)))
+              ("Editing Model" (aidermacs--send-command (format "/editor-model %s" model)))))
+           (t (aidermacs--send-command (format "/model %s" model))))))
+    (quit (message "Model selection cancelled"))))
 
 (defun aidermacs--get-available-models ()
-  "Get list of models supported by aider using the /models command.
-This fetches models from various API providers and caches them."
+  "Get list of models supported by aider using the /models command."
   (aidermacs--send-command
    "/models /" nil nil t
    (lambda ()
@@ -232,8 +227,16 @@ This is useful when available models have changed."
 ;;;###autoload
 (defun aidermacs-change-model (&optional arg)
   "Interactively select and change AI model in current aidermacs session.
-With prefix ARG, only allow setting the weak model."
+   With prefix ARG, only allow setting the weak model."
   (interactive "P")
+  ;; Ensure a session is running and initialized
+  (let ((buffer-name (aidermacs-get-buffer-name)))
+    (unless (and (get-buffer buffer-name)
+                 (process-live-p (get-buffer-process buffer-name)))
+      (aidermacs-run)
+      ;; Wait briefly for the prompt to appear
+      (sit-for 1)))
+
   (unless aidermacs--cached-models
     (aidermacs--get-available-models))
   (aidermacs--select-model arg))
