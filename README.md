@@ -3,6 +3,7 @@
 </p>
 
 # Aidermacs: AI Pair Programming in Emacs
+
 [![MELPA](https://melpa.org/packages/aidermacs-badge.svg)](https://melpa.org/#/aidermacs)
 [![MELPA Stable](https://stable.melpa.org/packages/aidermacs-badge.svg)](https://stable.melpa.org/#/aidermacs)
 [![NonGNU ELPA](https://elpa.nongnu.org/nongnu/aidermacs.svg)](https://elpa.nongnu.org/nongnu/aidermacs.html)
@@ -10,39 +11,20 @@
 [![LICENSE](https://img.shields.io/github/license/MatthewZMD/aidermacs?logo=apache&.svg)](https://github.com/MatthewZMD/aidermacs/blob/master/LICENSE)
 [![CONTRIBUTORS](https://img.shields.io/github/contributors/MatthewZMD/aidermacs.svg)](https://github.com/MatthewZMD/aidermacs/graphs/contributors)
 
-Missing [Cursor](https://cursor.sh) but prefer living in Emacs? Aidermacs brings Cursor-like AI-powered development to your Emacs workflow by integrating [Aider](https://github.com/paul-gauthier/aider), one of the most powerful open-source AI pair programming tools. As a community-driven project, Aidermacs prioritizes Emacs users' needs and preferences while providing the same powerful features found in Cursor!
+## Overview
 
-- Built-in **Ediff** integration for reviewing AI-generated changes
-- Top performance on the SWE Bench, solving real GitHub issues in major open source projects
-- Support for multi-file edits in complex codebases
-- Real-time file synchronization for true pair programming
-- Broad language support including Python, JavaScript, TypeScript, PHP, HTML, CSS, etc.
-- Compatibility with leading AI models like Claude, ChatGPT, DeepSeek, etc.
-
-## Why Aidermacs?
+Aidermacs brings AI-powered development to Emacs by integrating [Aider](https://github.com/paul-gauthier/aider), one of the most powerful open-source AI pair programming tools. If you're missing [Cursor](https://cursor.sh) but prefer living in Emacs, Aidermacs provides similar AI capabilities while staying true to Emacs workflows.
 
 <img style='height: auto; width: 80%; object-fit: contain' src="./introscreen.png">
 
-### Video Demo
+### Key Features
 
-[<img src="https://img.youtube.com/vi/fB3-ie6zs4Y/0.jpg" width=600>](https://www.youtube.com/watch?v=fB3-ie6zs4Y)
+- Intelligent model selection with multiple backends
+- Built-in Ediff integration for AI-generated changes
+- Enhanced file management from Emacs
+- Great customizability and flexible ways to add content
 
-### Community-Driven Development
-
-Aidermacs thrives on community involvement. We believe collaborative development with user and contributor input creates the best software. We encourage you to:
-
-- Contribute Code: Submit pull requests with bug fixes, new features, or improvements to existing functionality.
-- Report Issues: Let us know about any bugs, unexpected behavior, or feature requests through GitHub Issues.
-- Share Ideas: Participate in discussions and propose new ideas for making Aidermacs even better.
-- Improve Documentation: Help us make the documentation clearer, more comprehensive, and easier to use.
-
-Your contributions are essential for making Aidermacs the best AI pair programming tool in Emacs!
-
-<a href = "https://github.com/MatthewZMD/aidermacs/graphs/contributors">
-  <img src = "https://contrib.rocks/image?repo=MatthewZMD/aidermacs"/>
-</a>
-
-#### Community Speaks
+### Community Speaks
 
 Here's what the community is saying about Aidermacs:
 
@@ -79,6 +61,101 @@ Here's what the community is saying about Aidermacs:
 ```
 3. Open a project and run `M-x aidermacs-transient-menu` or `C-c a` (where you bind it)
 4. Add files and start coding with AI!
+
+## Usage
+
+### Getting Started
+
+The main interface to Aidermacs is through its transient menu system (similar to Magit). Access it with:
+
+```
+M-x aidermacs-transient-menu
+```
+
+Or bind it to a key in your config:
+
+```emacs-lisp
+(global-set-key (kbd "C-c a") 'aidermacs-transient-menu)
+```
+
+Once the transient menu is open, you can navigate and execute commands using the displayed keys. Here's a summary of the main menu structure:
+
+##### Core
+- `a`: Start/Open Session (auto-detects project root)
+- `.`: Start in Current Directory (good for monorepos)
+- `l`: Clear Chat History
+- `s`: Reset Session
+- `x`: Exit Session
+
+##### Persistent Modes
+- `1`: Code Mode
+- `2`: Chat/Ask Mode
+- `3`: Architect Mode
+- `4`: Help Mode
+
+##### Utilities
+- `^`: Show Last Commit (if auto-commits enabled)
+- `u`: Undo Last Commit (if auto-commits enabled)
+- `R`: Refresh Repo Map
+- `h`: Session History
+- `o`: Change Main Model
+- `?`: Aider Meta-level Help
+
+##### File Actions
+- `f`: Add File (C-u: read-only)
+- `F`: Add Current File
+- `d`: Add From Directory (same type)
+- `w`: Add From Window
+- `m`: Add From Dired (marked)
+- `j`: Drop File
+- `J`: Drop Current File
+- `k`: Drop From Dired (marked)
+- `K`: Drop All Files
+- `S`: Create Session Scratchpad
+- `G`: Add File to Session
+- `A`: List Added Files
+
+##### Code Actions
+- `c`: Code Change
+- `e`: Question Code
+- `r`: Architect Change
+- `q`: General Question
+- `p`: Question This Symbol
+- `g`: Accept Proposed Changes
+- `i`: Implement TODO
+- `t`: Write Test
+- `T`: Fix Test
+- `!`: Debug Exception
+
+The `All File Actions` and `All Code Actions` entries open submenus with more specialized commands. Use the displayed keys to navigate these submenus.
+
+### File Management and AI Interaction
+
+When using Aidermacs, you have the flexibility to decide which files the AI should read and edit. Here are some guidelines:
+
+- **Editable Files**: Add files you want the AI to potentially edit. This grants the AI permission to both read and modify these files if necessary.
+- **Read-Only Files**: If you want the AI to read a file without editing it, you can add it as read-only. In Aidermacs, all add file commands can be prefixed with `C-u` to specify read-only access.
+- **Session Scratchpads**: Use the session scratchpads (`S`) to paste notes or documentation that will be fed to the AI as read-only.
+- **External Files**: The "Add file to session" (`G`) command allows you to include files outside the current project (or files in `.gitignore`), as Aider doesn't automatically include these files in its context.
+
+The AI can sometimes determine relevant files on its own, depending on the model and the context of the codebase. However, for precise control, it's often beneficial to manually specify files, especially when dealing with complex projects.
+
+Aider encourages a collaborative approach, similar to working with a human co-worker. Sometimes the AI will need explicit guidance, while other times it can infer the necessary context on its own.
+
+### Prompt Files Minor Mode
+
+Aidermacs provides a minor mode that makes it easy to work with prompt files and other Aider-related files.
+When enabled, the minor mode provides these convenient keybindings:
+
+- `C-c C-n` or `C-<return>`: Send line/region line-by-line
+- `C-c C-c`: Send block/region as whole
+- `C-c C-z`: Switch to Aidermacs buffer
+
+The minor mode is automatically enabled for:
+- `.aider.prompt.org` files (create with `M-x aidermacs-open-prompt-file`)
+- `.aider.chat.md` files
+- `.aider.chat.history.md` files
+- `.aider.input.history` files
 
 ## Configuration
 
@@ -301,7 +378,6 @@ See the [Aider configuration documentation](https://aider.chat/docs/config/optio
 
 These arguments will be appended to the Aider command when it is run. Note that the `--model` argument is automatically handled by `aidermacs-default-model` and should not be included in `aidermacs-extra-args`.
 
-
 ### Overwrite Configuration with Configuration File
 
 Aidermacs supports project-specific configurations via `.aider.conf.yml` files. To enable this:
@@ -339,106 +415,6 @@ These methods provide a more streamlined way to control thinking tokens without 
 
 *Note: If you are using an `.aider.conf.yml` file, you can also set the `thinking_tokens` option there.*
 
-## Usage
-
-### Getting Started
-
-The main interface to Aidermacs is through its transient menu system (similar to Magit). Access it with:
-
-```
-M-x aidermacs-transient-menu
-```
-
-Or bind it to a key in your config:
-
-```emacs-lisp
-(global-set-key (kbd "C-c a") 'aidermacs-transient-menu)
-```
-
-Once the transient menu is open, you can navigate and execute commands using the displayed keys. Here's a summary of the main menu structure:
-
-##### Core
-- `a`: Start/Open Session (auto-detects project root)
-- `.`: Start in Current Directory (good for monorepos)
-- `l`: Clear Chat History
-- `s`: Reset Session
-- `x`: Exit Session
-
-##### Persistent Modes
-- `1`: Code Mode
-- `2`: Chat/Ask Mode
-- `3`: Architect Mode
-- `4`: Help Mode
-
-##### Utilities
-- `^`: Show Last Commit (if auto-commits enabled)
-- `u`: Undo Last Commit (if auto-commits enabled)
-- `R`: Refresh Repo Map
-- `h`: Session History
-- `o`: Change Main Model
-- `?`: Aider Meta-level Help
-
-##### File Actions
-- `f`: Add File (C-u: read-only)
-- `F`: Add Current File
-- `d`: Add From Directory (same type)
-- `w`: Add From Window
-- `m`: Add From Dired (marked)
-- `j`: Drop File
-- `J`: Drop Current File
-- `k`: Drop From Dired (marked)
-- `K`: Drop All Files
-- `S`: Create Session Scratchpad
-- `G`: Add File to Session
-- `A`: List Added Files
-
-##### Code Actions
-- `c`: Code Change
-- `e`: Question Code
-- `r`: Architect Change
-- `q`: General Question
-- `p`: Question This Symbol
-- `g`: Accept Proposed Changes
-- `i`: Implement TODO
-- `t`: Write Test
-- `T`: Fix Test
-- `!`: Debug Exception
-
-The `All File Actions` and `All Code Actions` entries open submenus with more specialized commands. Use the displayed keys to navigate these submenus.
-
-### File Management and AI Interaction
-
-When using Aidermacs, you have the flexibility to decide which files the AI should read and edit. Here are some guidelines:
-
-- **Editable Files**: Add files you want the AI to potentially edit. This grants the AI permission to both read and modify these files if necessary.
-- **Read-Only Files**: If you want the AI to read a file without editing it, you can add it as read-only. In Aidermacs, all add file commands can be prefixed with `C-u` to specify read-only access.
-- **Session Scratchpads**: Use the session scratchpads (`S`) to paste notes or documentation that will be fed to the AI as read-only.
-- **External Files**: The "Add file to session" (`G`) command allows you to include files outside the current project (or files in `.gitignore`), as Aider doesn't automatically include these files in its context.
-
-The AI can sometimes determine relevant files on its own, depending on the model and the context of the codebase. However, for precise control, it's often beneficial to manually specify files, especially when dealing with complex projects.
-
-Aider encourages a collaborative approach, similar to working with a human co-worker. Sometimes the AI will need explicit guidance, while other times it can infer the necessary context on its own.
-
-### Prompt Files Minor Mode
-
-Aidermacs provides a minor mode that makes it easy to work with prompt files and other Aider-related files. The minor mode can be enabled automatically for specific files by calling `(aidermacs-setup-minor-mode)` in your config:
-
-```emacs-lisp
-(aidermacs-setup-minor-mode)
-```
-
-When enabled, the minor mode provides these convenient keybindings:
-
-- `C-c C-n` or `C-<return>`: Send line/region line-by-line
-- `C-c C-c`: Send block/region as whole
-- `C-c C-z`: Switch to Aidermacs buffer
-
-The minor mode is automatically enabled for:
-- `.aider.prompt.org` files (create with `M-x aidermacs-open-prompt-file`)
-- `.aider.chat.md` files
-- `.aider.chat.history.md` files
-- `.aider.input.history` files
-
 #### Working with Prompt Files
 
 The `.aider.prompt.org` file is particularly useful for:
@@ -457,67 +433,6 @@ You can customize which files automatically enable the minor mode by configuring
         "my-custom-aider-file.org"))  ; Add your own files
 ```
 
-## Aidermacs vs aider.el
-
-Aidermacs is designed to provide a more Emacs-native experience while still integrating with [Aider](https://github.com/paul-gauthier/aider). It began as a fork of [aider.el](https://github.com/tninja/aider.el), but has since diverged significantly to prioritize Emacs workflow integration.
-
-While `aider.el` strictly mirrors Aider's CLI behavior, `Aidermacs` is built around Emacs-specific features and paradigms. This design philosophy allows you to harness Aider's powerful capabilities through a natural, Emacs-native coding experience.
-
-With `Aidermacs`, you get:
-
-1. Built-in Ediff Integration for AI-Generated Changes
-   - Seamless Code Review: Automatically shows diffs for all AI-modified files using Emacs' powerful `ediff` interface
-   - Familiar Interface: Uses Emacs' native `ediff` workflow for reviewing changes
-   - Interactive Workflow: Accept or reject changes with standard `ediff` commands
-   - Syntax Highlighting: Maintains proper syntax highlighting during comparisons
-   - Safe Change Management: Preserves original file states for easy comparison and rollback
-
-2. Intelligent Model Selection
-   - Automatic discovery of available models from multiple providers
-   - Real-time model compatibility checking
-   - Seamless integration with your configured API keys
-   - Caching for quick access to frequently used models
-   - Support for both popular pre-configured models and dynamically discovered ones
-
-3. Flexible Terminal Backend Support
-   - `Aidermacs` supports multiple terminal backends (comint and vterm) for better compatibility and performance
-   - Easy configuration to choose your preferred terminal emulation
-   - Extensible architecture for adding new backends
-
-4. Smarter Syntax Highlighting
-   - AI-generated code appears with proper syntax highlighting in major languages.
-   - Ensures clarity and readability without additional configuration.
-
-5. Better Support for Multiline Input
-   - `aider` is primarily designed as a command-line program, where multiline input is restricted by terminal limitations.
-   - Terminal-based tools require special syntax or manual formatting to handle multiline input, which can be cumbersome and unintuitive.
-   - `Aidermacs` eliminates these restrictions by handling multiline prompts natively within Emacs, allowing you to compose complex AI requests just like any other text input.
-   - Whether you're pasting blocks of code or refining AI-generated responses, multiline interactions in `Aidermacs` feel natural and seamless.
-
-6. Enhanced File Management from Emacs
-   - List files currently in chat with `M-x aidermacs-list-added-files`
-   - Drop specific files from chat with `M-x aidermacs-drop-file`
-   - View output history with `M-x aidermacs-show-output-history`
-   - Interactively select files to add with `M-x aidermacs-add-files-interactively`
-   - Add content from any file to a specific session with `M-x aidermacs-add-file-to-session`
-   - Create a temporary file for adding code snippets or notes to the Aider session with `M-x aidermacs-create-session-scratchpad`
-   - Full support for remote files via Tramp (SSH, Docker, etc.)
-   - and more
-
-7. Greater Configurability
-   - `Aidermacs` offers more customization options to tailor the experience to your preferences.
-
-8. Streamlined Transient Menu Selection
-   - The transient menus have been completely redesigned to encompass functionality and ergonomics, prioritizing user experience.
-
-9. Flexible Ways to Add Content
-   - `Aidermacs` provides multiple ways to add content to the Aider session, including adding files, creating temporary scratchpad files, and more.
-
-10. Community-Driven Development
-    - `Aidermacs` is actively developed and maintained by the community, incorporating user feedback and contributions.
-    - We prioritize features and improvements that directly benefit Emacs users, ensuring a tool that evolves with your needs.
-
-... and more to come 🚀
 
 ## FAQ
 
@@ -529,3 +444,22 @@ Yes! Aidermacs supports any OpenAI-compatible API endpoint. Check Aider document
 
 ### Is my code sent to the AI provider?
 Yes, the code you add to the session is sent to the AI provider. Be mindful of sensitive code.
+
+## Video Demo
+
+[<img src="https://img.youtube.com/vi/fB3-ie6zs4Y/0.jpg" width=600>](https://www.youtube.com/watch?v=fB3-ie6zs4Y)
+
+## Community-Driven Development
+
+Aidermacs thrives on community involvement. We believe collaborative development with user and contributor input creates the best software. We encourage you to:
+
+- Contribute Code: Submit pull requests with bug fixes, new features, or improvements to existing functionality.
+- Report Issues: Let us know about any bugs, unexpected behavior, or feature requests through GitHub Issues.
+- Share Ideas: Participate in discussions and propose new ideas for making Aidermacs even better.
+- Improve Documentation: Help us make the documentation clearer, more comprehensive, and easier to use.
+
+Your contributions are essential for making Aidermacs the best AI pair programming tool in Emacs!
+
+<a href = "https://github.com/MatthewZMD/aidermacs/graphs/contributors">
+  <img src = "https://contrib.rocks/image?repo=MatthewZMD/aidermacs"/>
+</a>
