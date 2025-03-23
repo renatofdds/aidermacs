@@ -44,12 +44,6 @@
 3. Check for any customizations that may need updating
 4. Clear any cached model lists if experiencing issues
 
-## New Contributors
-* @SpringHan made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/81
-* @u-yuta made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/86
-* @smallzhan made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/84
-* @claritystorm made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/88
-
 
 # Aidermacs 1.0
 
@@ -70,22 +64,3 @@ Aidermacs 1.0 delivers a range of features designed to enhance your productivity
 *   **Architect Mode Confirmation:** Control whether to automatically accept Architect mode changes with the `aidermacs-auto-accept-architect` variable.
 *   **Re-Enable Auto-Commits:** Aider automatically commits AI-generated changes by default. We consider this behavior *very* intrusive, so we've disabled it. You can re-enable auto-commits by setting `aidermacs-auto-commits` to `t`.
 *   **Customizing Aider Options with `aidermacs-extra-args`:** Pass any Aider-supported command-line options.
-
-
-## New Contributors
-* @notImposterSyndromeIfImposter made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/5
-* @CeleritasCelery made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/6
-* @zsxh made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/10
-* @milanglacier made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/13
-* @ArthurHeymans made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/11
-* @bard made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/27
-* @mwolson made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/26
-* @jfeser made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/29
-* @ianschenck made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/34
-* @LemonBreezes made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/36
-* @hexmode made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/47
-* @xplutoy made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/49
-* @rschmukler made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/56
-* @philip-zhan made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/64
-* @amake made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/63
-* @rjekker made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/70
