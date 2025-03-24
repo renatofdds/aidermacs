@@ -678,7 +678,7 @@ Otherwise, return FILE unchanged."
   "Prepare FILES for use with COMMAND in aider.
 Handles TRAMP paths by extracting local parts and formats the command string."
   (let* ((localized-files (mapcar #'aidermacs--localize-tramp-path (delq nil files)))
-         (quoted-files (mapcar #'shell-quote-argument localized-files)))
+         (quoted-files (mapcar (lambda (path) (format "\"%s\"" path)) localized-files)))
     (if quoted-files
         (format "%s %s" command
                 (mapconcat #'identity quoted-files " "))
