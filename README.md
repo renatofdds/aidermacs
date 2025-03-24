@@ -6,6 +6,7 @@
 
 [![MELPA](https://melpa.org/packages/aidermacs-badge.svg)](https://melpa.org/#/aidermacs)
 [![MELPA Stable](https://stable.melpa.org/packages/aidermacs-badge.svg)](https://stable.melpa.org/#/aidermacs)
+[![NonGNU-devel ELPA](https://elpa.nongnu.org/nongnu-devel/aidermacs.svg)](https://elpa.nongnu.org/nongnu-devel/aidermacs.html)
 [![NonGNU ELPA](https://elpa.nongnu.org/nongnu/aidermacs.svg)](https://elpa.nongnu.org/nongnu/aidermacs.html)
 [![EMACS](https://img.shields.io/badge/Emacs-26.1-922793?logo=gnu-emacs&logoColor=b39ddb&.svg)](https://www.gnu.org/savannah-checkouts/gnu/emacs/emacs.html)
 [![LICENSE](https://img.shields.io/github/license/MatthewZMD/aidermacs?logo=apache&.svg)](https://github.com/MatthewZMD/aidermacs/blob/main/LICENSE)
