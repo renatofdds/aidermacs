@@ -52,7 +52,7 @@ If nil, uses the value of `aidermacs-default-model'."
   :type '(choice (const :tag "Use default model" nil)
                  (string :tag "Specific model")))
 
-(defcustom aidermacs-editor-model nil 
+(defcustom aidermacs-editor-model nil
   "Default editing AI model to use for architect mode.
 If nil, uses the value of `aidermacs-default-model'."
   :type '(choice (const :tag "Use default model" nil)
@@ -172,7 +172,8 @@ API provider."
                   models))))))
 
 (defun aidermacs--select-model (&optional set-weak-model)
-  "Provide model selection with completion, handling main/weak/editor models."
+  "Provide model selection with completion, handling main/weak/editor models.
+When SET-WEAK-MODEL is non-nil, only allow setting the weak model."
   (condition-case nil
       (let* ((aider-version (aidermacs-aider-version))
              (supports-specific-model (version<= "0.78.0" aider-version))
@@ -195,13 +196,13 @@ API provider."
             (aidermacs--send-command (format "/weak-model %s" model)))
            ((and is-architect-mode supports-specific-model)
             (pcase model-type
-              ("Main/Reasoning Model" 
+              ("Main/Reasoning Model"
                (setq aidermacs-architect-model model)
                (aidermacs--send-command (format "/model %s" model)))
               ("Editing Model"
                (setq aidermacs-editor-model model)
                (aidermacs--send-command (format "/editor-model %s" model)))))
-           (t 
+           (t
             (setq aidermacs-default-model model)
             (aidermacs--send-command (format "/model %s" model))))))
     (quit (message "Model selection cancelled"))))
