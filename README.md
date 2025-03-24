@@ -375,7 +375,7 @@ See the [Aider configuration documentation](https://aider.chat/docs/config/optio
 
 ```emacs-lisp
 ;; Set the verbosity:
-(setq aidermacs-extra-args '("--verbose"))
+(add-to-list 'aidermacs-extra-args "--verbose")
 ```
 
 These arguments will be appended to the Aider command when it is run. Note that the `--model` argument is automatically handled by `aidermacs-default-model` and should not be included in `aidermacs-extra-args`.
