@@ -83,6 +83,12 @@ This is useful for working in monorepos where you want to limit aider's scope."
 When nil, disable auto-commits requiring manual git commits."
   :type 'boolean)
 
+(defcustom aidermacs-watch-files nil
+  "When non-nil, enable watching files for AI coding instructions.
+When enabled, aider will watch all files in your repo and look for
+any AI coding instructions you add using your favorite IDE or text editor."
+  :type 'boolean)
+
 (defcustom aidermacs-auto-accept-architect nil
   "When non-nil, automatically accept architect mode changes.
 When nil, require explicit confirmation before applying changes."
@@ -307,6 +313,9 @@ This function sets up the appropriate arguments and launches the process."
              (when (and (not aidermacs-auto-accept-architect)
                         (version<= "0.77.0" aider-version))
                '("--no-auto-accept-architect"))
+             ;; Add watch-files if enabled
+             (when aidermacs-watch-files
+               '("--watch-files"))
              ;; Add weak model if specified
              (when aidermacs-weak-model
                (list "--weak-model" aidermacs-weak-model))

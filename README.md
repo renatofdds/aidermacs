@@ -340,6 +340,31 @@ When entering a prompt, you can:
 
 The prompt history and common prompts are available across all sessions.
 
+### File Watching
+
+Enable watching for AI coding instructions in your repository files with `aidermacs-watch-files`:
+
+```emacs-lisp
+;; Enable file watching
+(setq aidermacs-watch-files t)
+```
+
+When enabled, Aidermacs will will watch all files in your repo and look for any AI coding instructions you add using your favorite IDE or text editor.
+
+Specifically, aider looks for one-liner comments (`# ...` or `// ...`) that either start or end with `AI`, `AI!` or `AI?` like these:
+```
+# Make a snake game. AI!
+# What is the purpose of this method AI?
+
+Or in // comment languages…
+
+// Write a protein folding prediction engine. AI!
+```
+Aidermacs will take note of all the comments that start or end with `AI`. Comments that include `AI!` with an exclamation point or `AI?` with a question mark are special. They trigger aider to take action to collect all the AI comments and use them as your instructions.
+
+- `AI!` triggers aider to make changes to your code.
+- `AI?` triggers aider to answer your question.
+
 ### Diff and Change Review
 
 Control whether to show diffs for AI-generated changes with `aidermacs-show-diff-after-change`:
