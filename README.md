@@ -365,6 +365,10 @@ Aidermacs will take note of all the comments that start or end with `AI`. Commen
 - `AI!` triggers aider to make changes to your code.
 - `AI?` triggers aider to answer your question.
 
+*Note: This feature currently only works in the vterm mode.*
+
+*Note: These configurations will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File)).*
+
 ### Diff and Change Review
 
 Control whether to show diffs for AI-generated changes with `aidermacs-show-diff-after-change`:
