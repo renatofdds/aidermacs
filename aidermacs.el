@@ -270,7 +270,7 @@ This function sets up the appropriate arguments and launches the process."
   (aidermacs-setup-minor-mode)
 
   (let* ((buffer-name (aidermacs-get-buffer-name))
-         ;; Process extra args: split each string on whitespace.
+         ;; Split each string on whitespace for member comparison later
          (flat-extra-args
           (cl-mapcan (lambda (s)
                        (if (stringp s)
@@ -321,7 +321,8 @@ This function sets up the appropriate arguments and launches the process."
                (list "--weak-model" aidermacs-weak-model))
              (when aidermacs-subtree-only
                '("--subtree-only")))))
-         (final-args (append backend-args flat-extra-args)))
+         ;; Take the original aidermacs-extra-args instead of the flat ones
+         (final-args (append backend-args aidermacs-extra-args)))
     (if (and (get-buffer buffer-name)
 	         (process-live-p (get-buffer-process buffer-name)))
         (aidermacs-switch-to-buffer buffer-name)
