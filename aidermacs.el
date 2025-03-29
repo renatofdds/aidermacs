@@ -252,7 +252,11 @@ If supplied, SUFFIX is appended to the buffer name within the earmuffs."
                           ;; Use current directory for new subtree session
                           (aidermacs-subtree-only default-directory)
                           ;; Use closest parent if it exists
-                          (closest-parent closest-parent)
+                          (closest-parent
+                           (if (<= (length (expand-file-name closest-parent))
+                                  (length (expand-file-name root)))
+                               root
+                             closest-parent))
                           ;; Fall back to project root for new non-subtree session
                           (t root))))
       (format "*aidermacs:%s%s*"
