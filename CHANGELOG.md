@@ -1,5 +1,40 @@
 # CHANGELOG
 
+# Aidermacs 1.3
+
+## What's Changed
+* Fix the part about the "AI" comments in the README.md by @Martinsos in https://github.com/MatthewZMD/aidermacs/pull/106
+* aidermacs--form-prompt: Always use prompt-prefix and context. by @thanhvg in https://github.com/MatthewZMD/aidermacs/pull/108
+* Use `display-warning` when warning user about font-lock position by @benthamite in https://github.com/MatthewZMD/aidermacs/pull/113
+* Fix aidermacs typos by @Dima-369 in https://github.com/MatthewZMD/aidermacs/pull/114
+* feat: add web content fetching function to aidermacs by @ArthurHeymans in https://github.com/MatthewZMD/aidermacs/pull/115
+* feat: add auto-commit command to Magit transient menu by @ArthurHeymans in https://github.com/MatthewZMD/aidermacs/pull/116
+* Change syntax highlighting to use a state based approach by @CeleritasCelery in https://github.com/MatthewZMD/aidermacs/pull/118
+* Add markdown formatting to the aider session by @CeleritasCelery in https://github.com/MatthewZMD/aidermacs/pull/119
+
+## New Contributors
+* @Martinsos made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/106
+* @thanhvg made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/108
+* @benthamite made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/113
+* @Dima-369 made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/114
+
+**Full Changelog**: https://github.com/MatthewZMD/aidermacs/compare/v1.2...v1.3
+
+# Aidermacs 1.2
+
+## What's Changed
+* Use uv install aider. by @manateelazycat in https://github.com/MatthewZMD/aidermacs/pull/89
+* Doc : fix uv aider proxy error by @ymfsing in https://github.com/MatthewZMD/aidermacs/pull/90
+* Fix model inheritance to dynamically use default model values by @u-yuta in https://github.com/MatthewZMD/aidermacs/pull/91
+* Handle errors in insert hooks by @CeleritasCelery in https://github.com/MatthewZMD/aidermacs/pull/95
+* readme: add spacemacs example by @paralin in https://github.com/MatthewZMD/aidermacs/pull/100
+* readme: add back steps 4 and 5 to getting started by @paralin in https://github.com/MatthewZMD/aidermacs/pull/101
+
+## New Contributors
+* @manateelazycat made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/89
+* @ymfsing made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/90
+* @paralin made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/100
+
 # Aidermacs 1.1
 
 **What's New in Aidermacs 1.1?**
