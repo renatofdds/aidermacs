@@ -368,7 +368,7 @@ The output is collected and passed to the current callback."
     map)
   "Keymap used when `aidermacs-comint-mode' is enabled.")
 
-(define-derived-mode aidermacs-comint-mode comint-mode "Aider"
+(define-derived-mode aidermacs-comint-mode comint-mode "Aidermacs"
   "Major mode for interacting with Aidermacs.
 Inherits from `comint-mode' with some Aider-specific customizations.
 \\{aider-comint-mode-map}"

@@ -75,7 +75,7 @@ Returns non-nil if the buffer has either `aidermacs-comint-mode' or
 `aidermacs-vterm-mode' enabled."
   (let ((buf (or buffer (current-buffer))))
     (with-current-buffer buf
-      (or (bound-and-true-p aidermacs-comint-mode)
+      (or (derived-mode-p 'aidermacs-comint-mode)
           (bound-and-true-p aidermacs-vterm-mode)))))
 
 (defun aidermacs--send-command-backend (buffer command &optional redirect)
