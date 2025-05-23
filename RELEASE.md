@@ -1,4 +1,26 @@
-# CHANGELOG
+# RELEASE
+
+# Aidermacs 1.4
+
+## What's Changed
+* [suggestion] Add project file picking by @remo5000 in https://github.com/MatthewZMD/aidermacs/pull/120
+* Do not require exact matches when selecting models by @AdamNiederer in https://github.com/MatthewZMD/aidermacs/pull/121
+* Don't send commands to aider if it's not ready for them by @AdamNiederer in https://github.com/MatthewZMD/aidermacs/pull/124
+* Use read-from-minibuffer instead of completing-read for prompts by @AdamNiederer in https://github.com/MatthewZMD/aidermacs/pull/123
+* Don't start aider just to stop it when not running  by @AdamNiederer in https://github.com/MatthewZMD/aidermacs/pull/125
+* Use read-string instead of read-from-minibuffer by @AdamNiederer in https://github.com/MatthewZMD/aidermacs/pull/126
+* feat: Ability to configure read-only files by @rezaamashi in https://github.com/MatthewZMD/aidermacs/pull/130
+* Add verilog support and prevent underscores from changing formatting by @CeleritasCelery in https://github.com/MatthewZMD/aidermacs/pull/131
+* Fix cursor moving during syntax highlighting by @CeleritasCelery in https://github.com/MatthewZMD/aidermacs/pull/132
+* Fix temp buffer exec path by @toniz4 in https://github.com/MatthewZMD/aidermacs/pull/133
+
+## New Contributors
+* @remo5000 made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/120
+* @AdamNiederer made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/121
+* @rezaamashi made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/130
+* @toniz4 made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/133
+
+**Full Changelog**: https://github.com/MatthewZMD/aidermacs/compare/v1.3...v1.4
 
 # Aidermacs 1.3
 
@@ -34,6 +56,8 @@
 * @manateelazycat made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/89
 * @ymfsing made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/90
 * @paralin made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/100
+
+**Full Changelog**: https://github.com/MatthewZMD/aidermacs/compare/v1.1...v1.2
 
 # Aidermacs 1.1
 
@@ -79,6 +103,7 @@
 3. Check for any customizations that may need updating
 4. Clear any cached model lists if experiencing issues
 
+**Full Changelog**: https://github.com/MatthewZMD/aidermacs/compare/v1.0...v1.1
 
 # Aidermacs 1.0
 
