@@ -243,44 +243,54 @@ If supplied, SUFFIX is appended to the buffer name within the earmuffs."
   (if use-existing
       (aidermacs-select-buffer-name)
     (let* ((root (aidermacs-project-root))
-           ;; Get all existing aidermacs buffers
-           (aidermacs-buffers
-            (match-buffers #'aidermacs--is-aidermacs-buffer-p))
-           ;; Extract directory paths and subtree status from buffer names
-           (buffer-dirs
-            (mapcar
-             (lambda (buf)
-               (when (string-match "^\\*aidermacs:\\(.*?\\)\\*$"
-                                   (buffer-name buf))
-                 (cons (match-string 1 (buffer-name buf))
-                       (match-string 2 (buffer-name buf)))))
-             aidermacs-buffers))
-           ;; Find closest parent directory that has an aidermacs session
-           (closest-parent
-            (caar
-             (sort
-              (cl-remove-if-not
-               (lambda (dir-info)
-                 (and (car dir-info)
-                      (file-in-directory-p default-directory (car dir-info))
-                      (file-exists-p (car dir-info))))
-               buffer-dirs)
-              (lambda (a b)
-                ;; Sort by length of filenames (deeper filenames first)
-                (> (length (car a)) (length (car b)))))))
-           (display-root (cond
-                          ;; Use current directory for new subtree session
-                          (aidermacs-subtree-only default-directory)
-                          ;; Use closest parent if it exists
-                          (closest-parent
-                           (if (<= (length (expand-file-name closest-parent))
-                                   (length (expand-file-name root)))
-                               root
-                             closest-parent))
-                          ;; Fall back to project root for new non-subtree session
-                          (t root))))
+           (current-dir-truename (file-truename default-directory)) ; Use truename for consistent comparisons
+           (aidermacs-buffers (match-buffers #'aidermacs--is-aidermacs-buffer-p))
+           ;; Extract truename paths from existing *aidermacs:PATH* buffers (base sessions)
+           (existing-session-paths
+            (delq nil
+                  (mapcar (lambda (buf)
+                            (when (string-match "^\\*aidermacs:\\([^\\*]+\\)\\*$" (buffer-name buf)) ; Match base session names
+                              (let ((path-str (match-string 1 (buffer-name buf))))
+                                (when (file-directory-p path-str) ; Ensure it's a directory
+                                  (file-truename path-str)))))
+                          aidermacs-buffers)))
+
+           ;; Determine the display-root for the buffer name
+           (display-root
+            (let* ((sessions-containing-current-dir ;; Sessions whose paths contain current-dir-truename
+                    (sort (cl-remove-if-not
+                           (lambda (session-path)
+                             (file-in-directory-p current-dir-truename session-path))
+                           existing-session-paths)
+                          ;; Sort by length (deeper paths are more specific)
+                          (lambda (a b) (> (length a) (length b)))))
+                   (closest-session-containing-current-dir (car sessions-containing-current-dir))
+
+                   (sessions-within-current-dir ;; Sessions whose paths are within current-dir-truename
+                    (sort (cl-remove-if-not
+                           (lambda (session-path)
+                             (file-in-directory-p session-path current-dir-truename))
+                           existing-session-paths)
+                          ;; Sort by length (deeper paths are more specific)
+                          (lambda (a b) (> (length a) (length b))))))
+
+              (cond
+               ;; 1. Current directory is INSIDE an existing session's directory.
+               (closest-session-containing-current-dir
+                closest-session-containing-current-dir)
+
+               ;; 2. Current directory is an ANCESTOR of exactly ONE existing session.
+               ((and (not closest-session-containing-current-dir) ; Only if not already covered by case 1
+                     sessions-within-current-dir
+                     (= 1 (length sessions-within-current-dir)))
+                (car sessions-within-current-dir))
+
+               ;; 3. Fallback logic (original logic for new session or ambiguous cases).
+               (aidermacs-subtree-only current-dir-truename)
+               (t (file-truename root)))))) ; Ensure root is also truename for consistency
+
       (format "*aidermacs:%s%s*"
-              (file-truename display-root)
+              display-root
               (or suffix "")))))
 
 (defun aidermacs--live-p (buffer-name)
@@ -790,23 +800,60 @@ With prefix argument `C-u', add as read-only."
              (if read-only "read-only" "editable")))))
 
 (defun aidermacs--pick-project-file ()
-  "Prompt for a file in the current project using `completing-read`."
-  (let* ((curr-project-root (or (aidermacs-project-root) (user-error "No project root found")))
-         (files
+  "Prompt for a file in the current project using `completing-read`.
+This function attempts to use `project.el` to find files if available
+and consistent with `aidermacs-project-root`. Otherwise, it falls back
+to a recursive directory listing based on `aidermacs-project-root`."
+  (interactive)
+  (let* ((aidermacs-root-raw (aidermacs-project-root))
+         (aidermacs-root (when aidermacs-root-raw (expand-file-name aidermacs-root-raw)))
+         (project-files-list nil)
+         (base-for-relativization aidermacs-root))
+
+    (unless aidermacs-root
+      (user-error "No project root found by aidermacs-project-root"))
+
+    (if (and (fboundp 'project-files) (project-current))
+        (let* ((proj (project-current)) ; proj is (TYPE . DIR) or (TYPE . (Git "DIR"))
+               (project-el-root-candidate (cdr proj)) ; This can be DIR string or a list like (Git "DIR")
+               (project-el-root-str
+                (cond
+                 ((stringp project-el-root-candidate) project-el-root-candidate)
+                 ;; Handles (SYMBOL "path" ...) e.g. (Git "/path/to/root")
+                 ((and (consp project-el-root-candidate)
+                       (symbolp (car project-el-root-candidate))
+                       (>= (length project-el-root-candidate) 2)
+                       (stringp (nth 1 project-el-root-candidate)))
+                  (nth 1 project-el-root-candidate))
+                 (t nil)))
+               (project-el-root-expanded (when project-el-root-str (expand-file-name project-el-root-str))))
+
           (cond
-           ((and curr-project-root
-                 ;; `project-files' can only be used in in Emacs 27.1+
-                 (fboundp 'project-files))
-            ;; Ensure that `project-current' is the same as aidermacs
-            (unless (string= (expand-file-name curr-project-root) (expand-file-name (cdr (project-current))))
-              (user-error "(project-current) does not match (aidermacs-project-root)"))
-            (project-files (project-current)))
-           ;; Fallback to recursive directory listing
-           (t (directory-files-recursively curr-project-root ".*" t))))
-         (choices (mapcar (lambda (f) (file-relative-name f curr-project-root)) files))
-         (file (completing-read "Select project file to add: " choices))
-         (absolute-file (expand-file-name file curr-project-root)))
-    absolute-file))
+           ((not project-el-root-expanded)
+            (message "aidermacs--pick-project-file: Could not determine project.el root string. Falling back to recursive listing based on aidermacs-project-root."))
+           ((string= aidermacs-root project-el-root-expanded)
+            (setq project-files-list (project-files proj))
+            (setq base-for-relativization project-el-root-expanded)
+            (unless project-files-list
+              (message "aidermacs--pick-project-file: project-files for '%s' returned no files. Falling back." project-el-root-expanded)))
+           (t
+            (message "aidermacs--pick-project-file: aidermacs-project-root (%s) differs from project.el root (%s). Falling back to recursive listing based on aidermacs-project-root."
+                     aidermacs-root project-el-root-expanded))))
+      (message "aidermacs--pick-project-file: project.el not available or no current project. Falling back to recursive listing based on aidermacs-project-root."))
+
+    ;; Fallback if project-files were not used or yielded no files
+    (unless project-files-list
+      (setq project-files-list (directory-files-recursively aidermacs-root ".*" t))
+      (setq base-for-relativization aidermacs-root)) ; Ensure base is set for fallback
+
+    (unless project-files-list
+      (user-error "No files found in project: %s" base-for-relativization))
+
+    (let* ((choices (mapcar (lambda (f) (file-relative-name f base-for-relativization))
+                            project-files-list))
+           (selected-relative-file (completing-read "Select project file to add: " choices nil t)))
+      (when selected-relative-file
+        (expand-file-name selected-relative-file base-for-relativization)))))
 
 (defun aidermacs-add-file (&optional read-only)
   "Add file(s) to aidermacs interactively.
