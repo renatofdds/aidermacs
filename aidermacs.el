@@ -109,6 +109,10 @@ any AI coding instructions you add using your favorite IDE or text editor."
 When nil, require explicit confirmation before applying changes."
   :type 'boolean)
 
+(defcustom aidermacs-exit-kills-buffer nil
+  "When non-nil, `aidermacs-exit' will also kill the Aider buffer."
+  :type 'boolean)
+
 (defvar aidermacs--read-string-history nil
   "History list for aidermacs read string inputs.")
 
@@ -470,12 +474,17 @@ If the current buffer is already the aidermacs buffer, do nothing."
   (aidermacs--send-command "/reset"))
 
 (defun aidermacs-exit ()
-  "Send the command \"/exit\" to the aidermacs buffer."
+  "Send the command \"/exit\" to the aidermacs buffer.
+If `aidermacs-exit-kills-buffer' is non-nil, also kill the buffer."
   (interactive)
-  (when (get-buffer (aidermacs-get-buffer-name))
-    (aidermacs--cleanup-temp-buffers)
-    (when (aidermacs--live-p (aidermacs-get-buffer-name))
-      (aidermacs--send-command "/exit" t))))
+  (let ((buffer-name (aidermacs-get-buffer-name)))
+    (when (get-buffer buffer-name)
+      (aidermacs--cleanup-temp-buffers)
+      (when (aidermacs--live-p buffer-name)
+        (aidermacs--send-command "/exit" t))
+      (when aidermacs-exit-kills-buffer
+        (sit-for 1)
+        (kill-buffer buffer-name)))))
 
 (defun aidermacs--process-message-if-multi-line (str)
   "Process multi-line chat messages for proper formatting.

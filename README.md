@@ -433,6 +433,15 @@ With auto-commits disabled, you must manually commit changes using your preferre
 
 *Note: This configuration will be overwritten by the existence of an `.aider.conf.yml` file (see [details](#Overwrite-Configuration-with-Configuration-File)).*
 
+### Control Buffer Killing on Exit
+
+By default, when you exit an Aidermacs session using `aidermacs-exit` (or `x` in the transient menu), the Aidermacs buffer remains open. If you prefer the buffer to be automatically killed upon exiting the session, you can customize this behavior:
+
+```emacs-lisp
+;; Kill the Aider buffer when exiting the session
+(setq aidermacs-exit-kills-buffer t)
+```
+
 ### Customize Aider Options with `aidermacs-extra-args`
 
 If these configurations aren't sufficient, the `aidermacs-extra-args` variable enables passing any Aider-supported command-line options.
