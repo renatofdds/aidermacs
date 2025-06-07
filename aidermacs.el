@@ -701,7 +701,9 @@ Sends the \"/ls\" command and displays the results in a Dired buffer."
          (kill-buffer buf-name))
        (if files
            (let* ((root (aidermacs-project-root))
-                  (files-arg (mapconcat #'shell-quote-argument files " "))
+                  (files-arg
+									 (mapconcat (lambda (f) (shell-quote-argument (replace-regexp-in-string " (read-only)$" "" f)))
+															files " "))
                   (cmd (format "find %s %s" files-arg (car find-ls-option))))
              (find-dired-with-command root cmd)
              (let ((buf (get-buffer "*Find*")))
