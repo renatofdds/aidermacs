@@ -541,6 +541,29 @@ And adjust aidermacs program with below config.
 (setq aidermacs-program (expand-file-name "~/.local/bin/aider"))
 ```
 
+### Local models prefer English, even if the prompt language is different
+
+Some local models in aider may default to English, even if you use a different language in your prompt. To ensure the chat language matches your preference (e.g., Russian), add the following to your Emacs configuration:
+
+```emacs-lisp
+(add-to-list 'aidermacs-extra-args "--chat-language ru")
+```
+
+This will instruct aider to use Russian for chat interactions.
+
+### Aidermacs or Aider ignores command-line arguments and prompts for provider selection when using Ollama
+
+If the `~/.aider` directory exists (even if empty), Aidermacs or Aider may silently ignore command-line arguments and unexpectedly prompt for provider selection (e.g., forcing OpenRouter), even if your configuration is correct for Ollama or other providers.
+
+**Workaround:**
+Remove the existing aider directory and restart Emacs:
+
+```bash
+rm -rf ~/.aider*
+```
+
+After this, Aidermacs should start as expected with your configured provider (e.g., Ollama).
+
 ### Aidermacs vs Aider CLI vs aider.el?
 
 Aidermacs is designed to provide a more Emacs-native experience while integrating with [Aider CLI](https://github.com/paul-gauthier/aider). It began as a fork of `aider.el`, but has since diverged significantly to prioritize Emacs workflow integration, built by Emacser, for Emacser.
