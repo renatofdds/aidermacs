@@ -1,6 +1,6 @@
 ;;; aidermacs-output.el --- Output manipulation for Aidermacs -*- lexical-binding: t; -*-
 ;; Author: Mingde (Matthew) Zeng <matthewzmd@posteo.net>
-;; Version: 1.4
+;; Version: 1.5
 ;; Keywords: ai emacs llm aider ai-pair-programming tools
 ;; URL: https://github.com/MatthewZMD/aidermacs
 ;; SPDX-License-Identifier: Apache-2.0
@@ -455,20 +455,21 @@ User can select a file to view its diff."
       (let ((inhibit-read-only t))
         (erase-buffer)
         (aidermacs-file-diff-selection-mode)
+        (setq-local default-directory (aidermacs-project-root))
         (setq-local aidermacs--pre-edit-file-buffers pre-edit-file-buffers)
-        
+
         (insert "Files modified by Aider:\n")
         (insert "=======================\n\n")
         (insert "Press RET on a file to view diff, q to quit\n\n")
-        
+
         (dolist (file files)
           (insert-text-button file
-                             'action (lambda (_) 
+                             'action (lambda (_)
                                       (aidermacs--show-ediff-for-file file))
                              'follow-link t
                              'help-echo "Click to view diff for this file")
           (insert "\n"))
-        
+
         (goto-char (point-min))
         (forward-line 5)))
 
@@ -480,7 +481,7 @@ User can select a file to view its diff."
 (defun aidermacs--show-ediff-for-file (file)
   "Uses the pre-edit buffer stored to compare with the current FILE state."
   (setq aidermacs--pre-ediff-window-config (current-window-configuration))
-  
+
   (let* ((full-path (expand-file-name file (aidermacs-project-root)))
          (pre-edit-pair (assoc full-path aidermacs--pre-edit-file-buffers))
          (pre-edit-buffer (and pre-edit-pair (cdr pre-edit-pair))))

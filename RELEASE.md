@@ -1,5 +1,27 @@
 # RELEASE
 
+# Aidermacs 1.5
+
+## What's Changed
+* backends: Adjust the backends for lazy-load vterm by @brianmcgillion in https://github.com/MatthewZMD/aidermacs/pull/137
+* Don't Run block fontification if position has not advanced by @CeleritasCelery in https://github.com/MatthewZMD/aidermacs/pull/140
+* feat: aidermacs send voice - fixes #128 by @rajp152k in https://github.com/MatthewZMD/aidermacs/pull/143
+* Fix aidermacs--send-command-backend warning during compilation by @AdamNiederer in https://github.com/MatthewZMD/aidermacs/pull/142
+* Feat: show list of edited files by @Azkae in https://github.com/MatthewZMD/aidermacs/pull/148
+* feat(core)!: introduce `aidermacs-default-chat-mode`; deprecate `aidermacs-use-architect-mode` by @timvisher-dd in https://github.com/MatthewZMD/aidermacs/pull/147
+* fix file selection when the previous buffer was not closed by @Azkae in https://github.com/MatthewZMD/aidermacs/pull/150
+* feat: support environment variables for default AI model configurations by @timvisher-dd in https://github.com/MatthewZMD/aidermacs/pull/151
+* fix default chat mode: defaults to 'code by @Azkae in https://github.com/MatthewZMD/aidermacs/pull/153
+
+## New Contributors
+* @brianmcgillion made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/137
+* @rajp152k made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/143
+* @Azkae made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/148
+* @timvisher-dd made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/147
+
+**Full Changelog**: https://github.com/MatthewZMD/aidermacs/compare/v1.4...v1.5
+
+
 # Aidermacs 1.4
 
 ## What's Changed
