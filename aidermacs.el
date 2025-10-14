@@ -1101,13 +1101,13 @@ snippets, or other content to the session."
       (insert ";; Add your code snippets, functions, or other content here\n")
       (insert ";; Just edit and save - changes will be available to aider\n\n")
       (write-file filename))
-    (let ((command (aidermacs--prepare-file-paths-for-command "/read" (list filename))))
+    (let ((command (aidermacs--prepare-file-paths-for-command "/read-only" (list filename))))
       (aidermacs--send-command command t t))
     (find-file-other-window filename)
     (message "Created and added scratchpad to session: %s" filename)))
 
 (defun aidermacs-add-file-to-session (&optional file)
-  "Interactively add a FILE to an existing aidermacs session using /read.
+  "Interactively add a FILE to an existing aidermacs session using /read-only.
 This allows you to add the file's content to a specific session."
   (interactive
    (let* ((initial (when buffer-file-name
@@ -1120,11 +1120,11 @@ This allows you to add the file's content to a specific session."
    ((file-directory-p file)
     (when (yes-or-no-p (format "Add all files in directory %s? " file))
       (let ((command (aidermacs--prepare-file-paths-for-command
-                      "/read"
+                      "/read-only"
                       (directory-files file t "^[^.]" t))))  ;; Exclude dotfiles
         (aidermacs--send-command command nil t)
         (message "Added all files in %s to session" file))))
-   (t (let ((command (aidermacs--prepare-file-paths-for-command "/read" (list file))))
+   (t (let ((command (aidermacs--prepare-file-paths-for-command "/read-only" (list file))))
         (aidermacs--send-command command nil t)
         (message "Added %s to session" (file-name-nondirectory file))))))
 
