@@ -47,8 +47,8 @@
   "AI pair programming with Aider."
   :group 'aidermacs)
 
-(defcustom aidermacs-program "aider"
-  "The name or path of the aidermacs program."
+(defcustom aidermacs-program "aider-ce"
+  "The name or path of the Aider program."
   :type 'string)
 
 (defvar-local aidermacs--current-mode nil
