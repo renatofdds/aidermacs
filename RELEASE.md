@@ -1,5 +1,35 @@
 # RELEASE
 
+# Aidermacs 1.6
+
+## What's Changed
+* Fix regexp for vterm-filter-buffer-substring by @meliache in https://github.com/MatthewZMD/aidermacs/pull/156
+* feat: Add aidermacs-run-in-directory with ":" key binding by @veracioux in https://github.com/MatthewZMD/aidermacs/pull/158
+* Fix: Use process-file to get aider version. Fixes #155 by @bdf369 in https://github.com/MatthewZMD/aidermacs/pull/161
+* UX improve: show current running status in transient menu by @blahgeek in https://github.com/MatthewZMD/aidermacs/pull/163
+* Respect `aidermacs-subtree-only` even when `aidermacs-config-file` is set by @blahgeek in https://github.com/MatthewZMD/aidermacs/pull/165
+* Make a copy of process-environment to prevent leaking secrets set in hook by @blahgeek in https://github.com/MatthewZMD/aidermacs/pull/166
+* Wait for a bit longer time for the backend to be ready by @blahgeek in https://github.com/MatthewZMD/aidermacs/pull/167
+* Update README about process-environment by @blahgeek in https://github.com/MatthewZMD/aidermacs/pull/169
+* Make code actions automatically select relevant context by @remo5000 in https://github.com/MatthewZMD/aidermacs/pull/176
+* Fix Aider version check by @claritystorm in https://github.com/MatthewZMD/aidermacs/pull/177
+* Fix aider version check by @Zhen-Ni in https://github.com/MatthewZMD/aidermacs/pull/178
+* Update thinking instructions for newer Sonnets by @plpxsk in https://github.com/MatthewZMD/aidermacs/pull/180
+* Display model pricing in model selection by @OverbearingPearl in https://github.com/MatthewZMD/aidermacs/pull/181
+* Fix: Use real model value in `aidermacs-set-model` by @OverbearingPearl in https://github.com/MatthewZMD/aidermacs/pull/182
+
+## New Contributors
+* @meliache made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/156
+* @veracioux made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/158
+* @bdf369 made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/161
+* @blahgeek made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/163
+* @Zhen-Ni made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/178
+* @plpxsk made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/180
+* @OverbearingPearl made their first contribution in https://github.com/MatthewZMD/aidermacs/pull/181
+
+**Full Changelog**: https://github.com/MatthewZMD/aidermacs/compare/v1.5...v1.6
+
+
 # Aidermacs 1.5
 
 ## What's Changed
