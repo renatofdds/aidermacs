@@ -41,7 +41,7 @@ Here's what the community is saying about Aidermacs:
 
 1. Requirements
 - Emacs ≥ 26.1
-- [Aider Community Experimentation](https://github.com/dwash96/aider-ce), as main [Aider](https://github.com/Aider-AI/aider) is becoming unmaintained.
+- [Aider](https://github.com/Aider-AI/aider) or its community fork [Aider Community Experimentation](https://github.com/dwash96/aider-ce).
 - [Transient](https://github.com/magit/transient)
 2. Download Aidermacs through [Melpa](https://melpa.org/#/aidermacs) or [Non-GNU Elpa](https://elpa.nongnu.org/nongnu/aidermacs.html), or clone manually
 3. Modify this **sample config** and place it in your Emacs `init.el`:

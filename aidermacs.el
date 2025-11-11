@@ -47,9 +47,24 @@
   "AI pair programming with Aider."
   :group 'aidermacs)
 
-(defcustom aidermacs-program "aider-ce"
-  "The name or path of the Aider program."
-  :type 'string)
+(defcustom aidermacs-program '("aider-ce" "aider")
+  "The name or path of the Aider program.
+If it is a list, Aidermacs will try each program in order."
+  :type '(choice string (repeat :tag "Program fallbacks" string)))
+
+(defvar aidermacs--resolved-program nil
+  "Cached path to the resolved Aider program.")
+
+(defun aidermacs-get-program ()
+  "Resolve and return the path to the Aider program.
+The value is cached in `aidermacs--resolved-program`.
+It respects `aidermacs-program` which can be a string or a list of strings."
+  (or aidermacs--resolved-program
+      (let* ((programs (if (listp aidermacs-program) aidermacs-program (list aidermacs-program)))
+             (program (cl-some #'executable-find programs)))
+        (unless program
+          (error "Aider executable not found. Checked: %s" programs))
+        (setq aidermacs--resolved-program program))))
 
 (defvar-local aidermacs--current-mode nil
   "Buffer-local variable to track the current aidermacs mode.
@@ -172,7 +187,7 @@ Uses cached version if available to avoid repeated process calls."
         (setq aidermacs--cached-version
               (with-temp-buffer
                 (setq-local exec-path path)
-                (when (= 0 (process-file aidermacs-program nil t nil "--version"))
+                (when (= 0 (process-file (aidermacs-get-program) nil t nil "--version"))
                   (goto-char (point-min))
                   (when (re-search-forward
                          "\\([0-9]+\\.[0-9]+\\.[0-9]+\\)" nil t)
@@ -438,7 +453,7 @@ set `aidermacs-default-chat-mode' to 'architect' instead."
                                aidermacs-extra-args)))
       (if (aidermacs--live-p buffer-name)
           (aidermacs-switch-to-buffer buffer-name)
-        (aidermacs-run-backend aidermacs-program final-args buffer-name)
+        (aidermacs-run-backend (aidermacs-get-program) final-args buffer-name)
         (with-current-buffer buffer-name
           ;; Set initial mode based on startup configuration
           (setq-local aidermacs--current-mode startup-mode))
