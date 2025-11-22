@@ -437,6 +437,10 @@ set `aidermacs-default-chat-mode' to 'architect' instead."
                ;; Add weak model if specified
                (when aidermacs-weak-model
                  (list "--weak-model" aidermacs-weak-model))
+               ;; Aider-CE Only Option
+               (when (and aidermacs--resolved-program
+                          (string-match-p "aider-ce" aidermacs--resolved-program))
+                 '("--linear-output"))
                (when aidermacs-global-read-only-files
                  (apply #'append
                         (mapcar (lambda (file) (list "--read" file))
